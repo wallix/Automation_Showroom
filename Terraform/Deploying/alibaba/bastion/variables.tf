@@ -50,11 +50,26 @@ variable "bastion_version" {
 }
 
 # mkpasswd --method=SHA-512
-variable "wabadmin_password" {}
-variable "wabsuper_password" {}
-variable "wabupgrade_password" {}
+variable "wabadmin_password" {
+  type      = string
+  sensitive = true
+}
+variable "wabsuper_password" {
+  type      = string
+  sensitive = true
+}
+variable "wabupgrade_password" {
+  type      = string
+  sensitive = true
+}
 
 # ssh public key, needed to execute some commands with the root account
-variable "ssh_key" {}
+variable "ssh_key" {
+  type      = string
+  sensitive = true
+}
 # ssh private key file, needed to execute some commands with the root account
-variable "private_key_file" {}
+variable "private_key_file" {
+  type      = string
+  sensitive = true
+}

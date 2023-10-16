@@ -7,7 +7,6 @@ terraform {
   }
 }
 
-
 provider "aws" {
   region = var.aws_region
 
@@ -15,7 +14,6 @@ provider "aws" {
 
 provider "cloudinit" {
 }
-
 
 locals {
   image_name    = "${var.product_name}-${var.product_version}-aws"
@@ -71,7 +69,6 @@ resource "aws_security_group" "accessmanager_sg" {
     Name = "firewall-${var.product_name}"
   }
 }
-
 
 resource "aws_security_group" "bastion_sg" {
   name        = "firewall-${var.product_name}"
