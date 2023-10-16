@@ -1,0 +1,11 @@
+product_name    = "bastion"
+product_version = "10.4.0.4"
+
+allowed_ip                = ["0.0.0.0/0"]
+cidr_range                = "10.0.0.0/16"
+gcp_bucket_name           = "wallix-cloud-images-gcp"
+gcp_credentials_file_path = "key.json"
+gcp_instance_size         = "e2-medium"
+gcp_project_name          = "testing"
+gcp_region                = "europe-west1"
+gcp_region_zone           = "europe-west1-b"

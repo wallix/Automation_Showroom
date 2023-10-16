@@ -1,0 +1,13 @@
+
+am_version           = "4.3.0.3"
+resource_group_name  = "LAB_RG"
+ssh_key              = "ssh-rsa <RSA KEY>"
+storage_account_name = "wallix"
+subnet_name          = "default"
+virtual_network_name = "mla_vn"
+vm_name              = "am3"
+vm_size              = "Standard_B2s"
+wabadmin_password    = "Password"
+wabsuper_password    = "Password"
+wabupgrade_password  = "Password"
+
