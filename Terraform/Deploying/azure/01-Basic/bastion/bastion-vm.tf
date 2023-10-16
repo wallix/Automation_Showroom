@@ -42,7 +42,7 @@ data "azurerm_subnet" "lab-subnet" {
 
 
 #Create a public IP -  Uncoment for public ip usage
-
+/*
 resource "azurerm_public_ip" "public_ip" {
   name                = "${var.vm_name}-public_ip"
   location            = data.azurerm_resource_group.resource_group.location
@@ -50,11 +50,18 @@ resource "azurerm_public_ip" "public_ip" {
   allocation_method   = "Dynamic"
 }
 
+output "public_ip" {
+  value = azurerm_public_ip.public_ip.ip_address
+  depends_on = [
+    azurerm_network_interface.nic
+  ]
+}
+*/
 
 # Create network interface
 resource "azurerm_network_interface" "nic" {
   depends_on = [
-    azurerm_public_ip.public_ip # Uncoment for public ip usage
+    # azurerm_public_ip.public_ip # Uncoment for public ip usage
   ]
   name                = "${var.vm_name}-nic"
   location            = data.azurerm_resource_group.resource_group.location
@@ -64,7 +71,7 @@ resource "azurerm_network_interface" "nic" {
     name                          = "internal"
     subnet_id                     = data.azurerm_subnet.lab-subnet.id
     private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = azurerm_public_ip.public_ip.id # Uncoment for public ip usage
+    #public_ip_address_id          = azurerm_public_ip.public_ip.id # Uncoment for public ip usage
   }
 }
 
@@ -127,13 +134,4 @@ resource "azurerm_dev_test_global_vm_shutdown_schedule" "auto-shutdown-bastion" 
   notification_settings {
     enabled = false
   }
-}
-
-# Uncoment for public ip usage
-
-output "public_ip" {
-  value = azurerm_public_ip.public_ip.ip_address
-  depends_on = [
-    azurerm_network_interface.nic
-  ]
 }

@@ -42,7 +42,7 @@ data "azurerm_subnet" "lab-subnet" {
 # Uncoment for public ip usage
 
 #Create a public IP -  Uncoment for public ip usage
-
+/*
 resource "azurerm_public_ip" "public_ip" {
   name                = "${var.vm_name}-public_ip"
   location            = data.azurerm_resource_group.resource_group.location
@@ -58,11 +58,11 @@ output "public_ip" {
   ]
 }
 
-
+*/
 # Create network interface
 resource "azurerm_network_interface" "nic" {
   depends_on = [
-    azurerm_public_ip.public_ip # Uncoment for public ip usage
+    # azurerm_public_ip.public_ip # Uncoment for public ip usage
   ]
   name                = "${var.vm_name}-nic"
   location            = data.azurerm_resource_group.resource_group.location
