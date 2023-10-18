@@ -2,7 +2,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 4.0"
+      version = "~> 5.0"
     }
   }
 }
@@ -10,9 +10,6 @@ terraform {
 provider "aws" {
   region = var.aws_region
 
-}
-
-provider "cloudinit" {
 }
 
 locals {
@@ -29,7 +26,7 @@ data "aws_ami" "ami" {
 }
 
 resource "aws_security_group" "accessmanager_sg" {
-  name        = "firewall-${var.product_name}"
+  name        = "firewall-${var.product_name}-lab"
   description = "Allow traffic for ${var.product_name}"
   vpc_id      = var.aws_vpc_id
   count       = var.product_name == "access-manager" ? 1 : 0
@@ -66,12 +63,12 @@ resource "aws_security_group" "accessmanager_sg" {
   }
 
   tags = {
-    Name = "firewall-${var.product_name}"
+    Name = "firewall-${var.product_name}-lab"
   }
 }
 
 resource "aws_security_group" "bastion_sg" {
-  name        = "firewall-${var.product_name}"
+  name        = "firewall-${var.product_name}-lab"
   description = "Allow traffic for ${var.product_name}"
   vpc_id      = var.aws_vpc_id
   count       = var.product_name == "bastion" ? 1 : 0
@@ -121,7 +118,7 @@ resource "aws_security_group" "bastion_sg" {
   }
 
   tags = {
-    Name = "firewall-${var.product_name}"
+    Name = "firewall-${var.product_name}-lab"
   }
 }
 

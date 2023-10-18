@@ -77,7 +77,7 @@ resource "azurerm_network_interface" "nic" {
 
 data "azurerm_storage_account" "anduril" {
   name                = var.storage_account_name
-  resource_group_name = "001PAM-001FRA-004RAD"
+  resource_group_name = var.resource_group_name
 }
 
 # Create virtual machine

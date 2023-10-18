@@ -1,5 +1,5 @@
 bastion_version = "10.0.2.9"
-resource_group_name = "001PAM-802ACL-005SUP"
+resource_group_name = "LAB_RG"
 ssh_key = "ssh-rsa RSA KEY"
 storage_account_name = "wallix"
 subnet_name = "default"

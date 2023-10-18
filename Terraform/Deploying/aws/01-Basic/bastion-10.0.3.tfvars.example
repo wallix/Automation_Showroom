@@ -1,8 +1,8 @@
 product_name    = "bastion"
-product_version = "10.4.0.4"
+product_version = "10.0.3.10"
 
 allowed_ip        = ["0.0.0.0/0"]
 aws_instance_size = "t2.small"
 aws_key_name      = "demo_terraform"
-aws_region        = "eu-west-1"
-aws_vpc_id        = "vpc-00b68c65"
+aws_region        = "eu-west-3"
+aws_vpc_id        = "vpc-cvxcvxcvcxcvxvcxcvxc"

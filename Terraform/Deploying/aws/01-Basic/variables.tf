@@ -8,7 +8,6 @@ variable "product_version" {
 }
 variable "allowed_ip" {
   description = "Specifies the ip allowed to access the instance."
-  type        = string
 }
 
 variable "aws_region" {
