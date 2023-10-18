@@ -1,0 +1,9 @@
+product_name    = "access-manager"
+product_version = "4.4.0.7"
+
+allowed_ip        = ["0.0.0.0/0"]
+aws_instance_size = "t2.small"
+aws_key_name      = "R&D-Cross-QA"
+aws_region        = "eu-west-1"
+aws_vpc_id        = "vpc-00b68c65"
+
