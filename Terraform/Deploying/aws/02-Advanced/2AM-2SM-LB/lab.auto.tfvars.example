@@ -1,0 +1,20 @@
+bastion_version       = "10.0.4.14"
+acces_manager_version = "4.0.4.0"
+
+allowed_ips = [
+  "90.255.255.255/32"
+]
+
+aws_instance_size        = "t2.small"
+aws_instance_size_debian = "t2.small"
+aws_region               = "eu-west-3"
+
+primary_az   = "eu-west-3a"
+secondary_az = "eu-west-3b"
+
+vpc_cidr      = "10.18.0.0/16"
+subnet_az1_AM = "10.18.90.0/27"
+subnet_az1_SM = "10.18.88.0/24"
+
+subnet_az2_AM = "10.18.90.32/27"
+subnet_az2_SM = "10.18.89.0/24"
