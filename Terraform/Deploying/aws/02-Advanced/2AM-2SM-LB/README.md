@@ -31,6 +31,14 @@ terraform apply     # apply configuration
 
 Connect to the integration host by ssh.
 
+There is restriction set for appliance configuration and global organisation on both AM throught LoadBalancer rules and not HTTPS access to Session Manager from outside the VPC.
+Use x11 forwarding and run firefox on the Debian Host to access it.
+
+```bash
+ssh -i private_key.pem -X admin@<ip_debian_host>
+admin# firefox
+```
+
 Connect and configure Access and Session Manager on port 2242 :
 
 * Set Password
