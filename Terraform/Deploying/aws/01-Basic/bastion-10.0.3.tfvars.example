@@ -6,3 +6,9 @@ aws_instance_size = "t2.small"
 aws_key_name      = "demo_terraform"
 aws_region        = "eu-west-3"
 aws_vpc_id        = "vpc-cvxcvxcvcxcvxvcxcvxc"
+subnet_cidr       = "10.10.1.0/24"
+
+# TAGS
+
+Project_Owner = "lab@wallix.com"
+Project_Name  = "Lab_Wallix"

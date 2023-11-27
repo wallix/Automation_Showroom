@@ -52,7 +52,8 @@ resource "aws_lb_target_group" "front_am" {
   }
 
   tags = {
-    Project = local.project_name
+    Project_Name  = local.project_name
+    Project_Owner = var.project_owner
   }
 
 }
@@ -83,7 +84,31 @@ resource "aws_lb" "front_am" {
   enable_deletion_protection = false
 
   tags = {
-    Project = local.project_name
+    Project_Name  = local.project_name
+    Project_Owner = var.project_owner
+  }
+
+}
+
+resource "aws_lb_listener" "HTTP_to_HTTPS_Redirect" {
+  load_balancer_arn = aws_lb.front_am.arn
+  port              = "80"
+  protocol          = "HTTP"
+
+  default_action {
+    type = "redirect"
+
+    redirect {
+      port        = "443"
+      protocol    = "HTTPS"
+      status_code = "HTTP_301"
+    }
+
+  }
+
+  tags = {
+    Project_Name  = local.project_name
+    Project_Owner = var.project_owner
   }
 
 }
@@ -101,7 +126,8 @@ resource "aws_lb_listener" "Frontend_AM" {
   }
 
   tags = {
-    Project = local.project_name
+    Project_Name  = local.project_name
+    Project_Owner = var.project_owner
   }
 
 }
@@ -126,7 +152,8 @@ resource "aws_lb_listener_rule" "redirect" {
   }
 
   tags = {
-    Project = local.project_name
+    Project_Name  = local.project_name
+    Project_Owner = var.project_owner
   }
 
 
