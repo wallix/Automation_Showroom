@@ -21,7 +21,8 @@ resource "aws_lb_target_group" "front_bastion_rdp" {
   }
 
   tags = {
-    Project = local.project_name
+    Project_Name  = local.project_name
+    Project_Owner = var.project_owner
   }
 
 }
@@ -61,7 +62,8 @@ resource "aws_lb_target_group" "front_bastion_ssh" {
   }
 
   tags = {
-    Project = local.project_name
+    Project_Name  = local.project_name
+    Project_Owner = var.project_owner
   }
 
 }
@@ -91,11 +93,12 @@ resource "aws_lb" "front_sm" {
     aws_subnet.subnet_az1_SM.id,
     aws_subnet.subnet_az2_SM.id
   ]
-  
+
   enable_deletion_protection = false
 
   tags = {
-    Project = local.project_name
+    Project_Name  = local.project_name
+    Project_Owner = var.project_owner
   }
 
 }
@@ -111,11 +114,12 @@ resource "aws_lb_listener" "front_end_SSH" {
   }
 
   tags = {
-    Project = local.project_name
+    Project_Name  = local.project_name
+    Project_Owner = var.project_owner
+
   }
 
 }
-
 resource "aws_lb_listener" "front_end_RDP" {
   load_balancer_arn = aws_lb.front_sm.arn
   port              = "3389"
@@ -127,7 +131,8 @@ resource "aws_lb_listener" "front_end_RDP" {
   }
 
   tags = {
-    Project = local.project_name
+    Project_Name  = local.project_name
+    Project_Owner = var.project_owner
   }
 
 }

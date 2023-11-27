@@ -22,7 +22,9 @@ resource "aws_network_interface" "debian-linux" {
   security_groups = [aws_security_group.debian_admin.id]
 
   tags = {
-    Name = "primary_network_interface"
+    Name          = "primary_network_interface"
+    Project_Name  = local.project_name
+    Project_Owner = var.project_owner
   }
 
 }
@@ -42,7 +44,9 @@ resource "aws_instance" "debian_admin" {
   }
 
   tags = {
-    Project = local.project_name
+    Name          = "Integration_Debian-${local.project_name}"
+    Project_Name  = local.project_name
+    Project_Owner = var.project_owner
   }
 
 }
@@ -53,7 +57,8 @@ resource "aws_eip" "ip_public_debian_admin" {
   network_interface = aws_network_interface.debian-linux.id
 
   tags = {
-    Project = local.project_name
+    Project_Name  = local.project_name
+    Project_Owner = var.project_owner
   }
 
 }
@@ -109,7 +114,9 @@ resource "aws_security_group" "debian_admin" {
   }
 
   tags = {
-    Project = local.project_name
+    Name          = "Integration_Debian-${local.project_name}"
+    Project_Name  = local.project_name
+    Project_Owner = var.project_owner
   }
 
 }

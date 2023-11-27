@@ -59,3 +59,22 @@ resource "local_sensitive_file" "private_key" {
 
 }
 
+
+// Generate random passwords
+
+
+resource "random_string" "password" {
+  length           = 16
+  special          = true
+  override_special = "!#$%&*()-_=+[]{}<>:?"
+}
+
+// Generate Wallix Cloud Init file from template
+
+data "template_file" "wallix" {
+  template = file("cloud-init-conf-WALLIX.tpl")
+  vars = {
+    wallix_password = random_string.password.id
+    wallix_sshkey   = tls_private_key.key_pair.public_key_openssh
+  }
+}

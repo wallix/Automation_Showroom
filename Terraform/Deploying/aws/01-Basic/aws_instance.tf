@@ -5,6 +5,7 @@ terraform {
       version = "~> 5.0"
     }
   }
+
 }
 
 provider "aws" {
@@ -14,7 +15,7 @@ provider "aws" {
 
 locals {
   image_name    = "${var.product_name}-${var.product_version}-aws"
-  instance_name = "instance-${var.product_name}-${var.product_version}"
+  instance_name = "instance-${var.product_name}-${var.product_version}-${var.Project_Name}"
 }
 data "aws_ami" "ami" {
   most_recent = true
@@ -23,6 +24,19 @@ data "aws_ami" "ami" {
     values = [local.image_name]
   }
   owners = ["519101999238"] # WALLIX
+
+}
+
+resource "aws_subnet" "labnet" {
+  vpc_id     = var.aws_vpc_id
+  cidr_block = var.subnet_cidr
+
+  tags = {
+    Name          = "subnet-${var.product_name}-${var.Project_Name}"
+    Project_Name  = var.Project_Name
+    Project_Owner = var.Project_Owner
+  }
+
 }
 
 resource "aws_security_group" "accessmanager_sg" {
@@ -63,8 +77,11 @@ resource "aws_security_group" "accessmanager_sg" {
   }
 
   tags = {
-    Name = "firewall-${var.product_name}-lab"
+    Name          = "firewall-${var.product_name}-${var.Project_Name}"
+    Project_Name  = var.Project_Name
+    Project_Owner = var.Project_Owner
   }
+
 }
 
 resource "aws_security_group" "bastion_sg" {
@@ -115,20 +132,29 @@ resource "aws_security_group" "bastion_sg" {
     protocol         = "-1"
     cidr_blocks      = ["0.0.0.0/0"]
     ipv6_cidr_blocks = ["::/0"]
+
   }
 
   tags = {
-    Name = "firewall-${var.product_name}-lab"
+    Name          = "firewall-${var.product_name}-${var.Project_Name}"
+    Project_Name  = var.Project_Name
+    Project_Owner = var.Project_Owner
   }
+
 }
 
 resource "aws_instance" "product_instance" {
-  ami           = data.aws_ami.ami.id
-  instance_type = var.aws_instance_size
+  ami                         = data.aws_ami.ami.id
+  instance_type               = var.aws_instance_size
+  subnet_id                   = aws_subnet.labnet.id
+  vpc_security_group_ids      = [try(aws_security_group.bastion_sg[0].id, aws_security_group.accessmanager_sg[0].id)]
+  key_name                    = var.aws_key_name
+  associate_public_ip_address = true
 
-  vpc_security_group_ids = [try(aws_security_group.bastion_sg[0].id, aws_security_group.accessmanager_sg[0].id)]
-  key_name               = var.aws_key_name
   tags = {
-    Name = local.instance_name
+    Name          = local.instance_name
+    Project_Name  = var.Project_Name
+    Project_Owner = var.Project_Owner
   }
+
 }

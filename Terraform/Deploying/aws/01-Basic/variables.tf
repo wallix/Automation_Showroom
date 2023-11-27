@@ -27,3 +27,17 @@ variable "aws_vpc_id" {
   description = "Specifies the vpc in which the VM will be deployed."
   type        = string
 }
+
+variable "subnet_cidr" {
+  description = "Specifies the CIDR used for the creation of the subnet"
+  type        = string
+}
+
+variable "Project_Owner" {
+  description = "Specifies the Project Owner name : very useful for FinOps"
+  type        = string
+}
+variable "Project_Name" {
+  description = "Specifies the Project name"
+  type        = string
+}
