@@ -64,7 +64,8 @@ resource "aws_subnet" "subnet_az2_SM" {
   availability_zone = var.secondary_az
 
   tags = {
-    Project = local.project_name
+    Project_Name  = local.project_name
+    Project_Owner = var.project_owner
   }
 
 }
@@ -76,7 +77,8 @@ resource "aws_internet_gateway" "cluster_gateway" {
   vpc_id = aws_vpc.cluster.id
 
   tags = {
-    Project = local.project_name
+    Project_Name  = local.project_name
+    Project_Owner = var.project_owner
   }
 
 }

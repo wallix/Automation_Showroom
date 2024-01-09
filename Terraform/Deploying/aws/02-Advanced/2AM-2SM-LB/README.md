@@ -54,7 +54,7 @@ You must accept [terms and condition of Debian 11](https://aws.amazon.com/market
 
 ### Failing to import certificate on loadbalancer
 
-For some reason there is a 403 error while importing certificate on LB listener.
+For some reason there is sometimes a 403 error while importing certificate on LB listener, it's linked to the rights to access certificate's vault.
 You need to manually create the listener and import it before refreshing and re-apply configuration.
 
 ```bash

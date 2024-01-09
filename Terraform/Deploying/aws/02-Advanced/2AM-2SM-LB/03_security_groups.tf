@@ -16,6 +16,11 @@ resource "aws_default_security_group" "default" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+  tags = {
+    Project_Name  = local.project_name
+    Project_Owner = var.project_owner
+    Name          = "Default_SG-${local.project_name}"
+  }
 
 }
 // generate list of network for SG rules
@@ -86,7 +91,9 @@ resource "aws_security_group" "accessmanager_sg" {
   }
 
   tags = {
-    Project = local.project_name
+    Project_Name  = local.project_name
+    Project_Owner = var.project_owner
+    Name          = "AM_SG-${local.project_name}"
   }
 
 }
@@ -146,7 +153,9 @@ resource "aws_security_group" "bastion_sg" {
   }
 
   tags = {
-    Project = local.project_name
+    Project_Name  = local.project_name
+    Project_Owner = var.project_owner
+    Name          = "SM_SG-${local.project_name}"
   }
 
 }
@@ -198,7 +207,9 @@ resource "aws_security_group" "lb" {
   }
 
   tags = {
-    Project = local.project_name
+    Project_Name  = local.project_name
+    Project_Owner = var.project_owner
+    Name          = "LB_SG-${local.project_name}"
   }
 
 }

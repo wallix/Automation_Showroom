@@ -1,5 +1,9 @@
-bastion_version       = "10.0.4.14"
+bastion_version       = "10.0.5.12"
 acces_manager_version = "4.0.4.0"
+
+
+project_name  = "lab_WALLIX"
+project_owner = "noreply@wallix.com"
 
 allowed_ips = [
   "90.255.255.255/32"

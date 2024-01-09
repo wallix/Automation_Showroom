@@ -36,3 +36,7 @@ output "private_ip_bastion_2" {
 output "lb_dns" {
   value = aws_lb.front_am.dns_name
 }
+
+output "wallix_password" {
+  value = random_string.password.result
+}

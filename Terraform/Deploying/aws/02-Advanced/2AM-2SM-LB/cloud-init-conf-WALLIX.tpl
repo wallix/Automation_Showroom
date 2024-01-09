@@ -3,12 +3,21 @@
 users:
   - name: wabadmin
     lock_passwd: false
-    plain_text_passwd: ${wabadmin_password}
+    plain_text_passwd: ${wallix_password}
+    ssh_authorized_keys:
+      - ${wallix_sshkey}
   - name: wabsuper   
     lock_passwd: false
-    plain_text_passwd: ${wabsuper_password}
+    plain_text_passwd: ${wallix_password}
+    ssh_authorized_keys:
+      - ${wallix_sshkey}
   - name: wabupgrade
     lock_passwd: false
-    plain_text_passwd: ${wabupgrade_password}
+    plain_text_passwd: ${wallix_password}
+    ssh_authorized_keys:
+      - ${wallix_sshkey}
+  - name: root
+    ssh_authorized_keys:
+      - ${wallix_sshkey}    
 preserve_hostname: False
 manage_etc_hosts: localhost

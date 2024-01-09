@@ -1,0 +1,20 @@
+config:
+  aws:region: eu-west-2 #AWS default region for Pulumi
+  bastion4aws:Project: "" #Project tag
+  bastion4aws:Owner: "" #Owner tag
+  bastion4aws:VpcCidr: "" #VPC CIDR to create
+  bastion4aws:JumpCidr: "" #Jumpserver subnet CIDR to create
+  bastion4aws:AmZoneACidr: "" #AccessManager zone A subnet CIDR to create
+  bastion4aws:AmZoneBCidr: "" #AccessManager zone B subnet CIDR to create
+  bastion4aws:BastionZoneACidr: "" #Bastion zone A subnet CIDR to create
+  bastion4aws:BastionZoneBCidr: "" #Bastion zone B subnet CIDR to create
+  bastion4aws:LbCidr: "" #ALB subnet CIDR to create
+  bastion4aws:KeyName: "" #SSH key name for instances
+  bastion4aws:AmAmi: "" #AccessManager AMI
+  bastion4aws:BastionAmi: "" #Bastion AMI
+  bastion4aws:CertArn: "" #ALB certificate ARN
+  bastion4aws:RdsUser: "" #RDS DB username
+  bastion4aws:RdsPswd: "" #RDS DB password
+  bastion4aws:Az_A: "" #Availability zone A
+  bastion4aws:Az_B: "" #Availibility zone B
+  bastion4aws:SourceIp: "" #IP source to restrict access in CIDR

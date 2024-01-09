@@ -4,6 +4,11 @@ variable "project_name" {
   default     = "Wallix_Lab"
 }
 
+variable "project_owner" {
+  description = "Specifies the Project Owner name : very useful for FinOps"
+  type        = string
+}
+
 variable "bastion_version" {
   description = "Specifies the version of the bastion or access-manager"
   type        = string
