@@ -1,0 +1,6 @@
+name: bastion4aws
+runtime:
+  name: python
+  options:
+    virtualenv: venv
+description: Deploying WOPAM on AWS
