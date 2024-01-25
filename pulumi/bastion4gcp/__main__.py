@@ -13,7 +13,6 @@ JUMP_SERVER_SUBNET = configproject.get("JumpCidr")
 BASTION_SUBNET_1 = configproject.get("Bastion1Cidr")
 BASTION_SUBNET_2 = configproject.get("Bastion2Cidr")
 AM_SUBNET = configproject.get("Am1Cidr")
-LB_SUBNET = configproject.get("LbCidr")
 AVAILABILITY_ZONE_A = configproject.get("Az1")
 AVAILABILITY_ZONE_B = configproject.get("Az2")
 AVAILABILITY_ZONE_C = configproject.get("Az3")
@@ -78,15 +77,6 @@ amsubnet = gcp.compute.Subnetwork("AmSubnet",
                 private_ip_google_access = True,
                 region = PROJECT_REGION
 )
-
-lbsubnet = gcp.compute.Subnetwork("LbSubnet",
-                ip_cidr_range = LB_SUBNET,
-                network = vpc_network.id,
-                name = f"{PROJECT_NAME}-lbsubnet",
-                private_ip_google_access = True,
-                region = PROJECT_REGION
-)
-
 
 db_ip_reserved_range = gcp.compute.GlobalAddress(
                 "DbIpRange",
