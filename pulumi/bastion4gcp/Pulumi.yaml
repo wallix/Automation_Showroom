@@ -1,0 +1,6 @@
+name: bastion4gcp
+runtime:
+  name: python
+  options:
+    virtualenv: venv
+description: deploy Bastion infra on GCP
