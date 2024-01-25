@@ -1,11 +1,10 @@
 config:
-  gcp:project: 
+  gcp:project: infratest-408115
   gcp:region: europe-west9
   bastion4gcp:JumpCidr: "10.0.1.0/24" #Jumpserver subnet CIDR
   bastion4gcp:Bastion1Cidr: "10.0.2.0/24" #Bastion subnet 1 CIDR
   bastion4gcp:Bastion2Cidr: "10.0.3.0/24" #Bastion subnet 2 CIDR
   bastion4gcp:Am1Cidr: "10.0.4.0/24" #Am subnet 1 CIDR
-  bastion4gcp:LbCidr: "10.0.5.0/24" #Lb CIDR
   bastion4gcp:VpcRoutingMode: "GLOBAL" #Define the vpc routing mode
   bastion4gcp:Project: "" #GCP Project Name will prefix each resource
   bastion4gcp:Az1: "europe-west9-a" #Availability zone 1
