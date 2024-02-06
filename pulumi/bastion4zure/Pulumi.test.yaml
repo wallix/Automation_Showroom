@@ -1,0 +1,26 @@
+config:
+  azure-native:location: francecentral
+  bastion4azure:ResourceGroup: "xxxxxxxx" #Azure resource group to create
+  bastion4azure:VnetCidr: "10.0.0.0/16" #Am subnet 1 CIDR
+  bastion4azure:JumpCidr: "10.0.1.0/24" #Jumpserver subnet CIDR
+  bastion4azure:Bastion1Cidr: "10.0.2.0/24" #Bastion subnet 1 CIDR
+  bastion4azure:Bastion2Cidr: "10.0.3.0/24" #Bastion subnet 2 CIDR
+  bastion4azure:Am1Cidr: "10.0.4.0/24" #Am subnet 1 CIDR
+  bastion4azure:Am2Cidr: "10.0.5.0/24" #Am subnet 2 CIDR
+  bastion4azure:AlbCidr: "10.0.6.0/24" #LB subnet 1 CIDR
+  bastion4azure:DbCidr: "10.0.7.0/24" #DB subnet CIDR  
+  bastion4azure:ProjectName: "xxxxxxx" #Azure Project Name will prefix each resource
+  bastion4azure:Owner: "xxxxxxxx" #Azure Project Name will prefix each resource
+  bastion4azure:ProjectTag: "Project_name" #Azure Project Name will prefix each resource
+  bastion4azure:OwnerTag: "Project_owner" #Azure Project Name will prefix each resource
+  bastion4azure:SshKey : "" #SSH Public key to connect to VMs
+  bastion4azure:SshUsername: "xxxxxx" #SSH username to create in instances
+  bastion4azure:SourceIp: "0.0.0.0/32" #Source IP to restrict access to
+  bastion4azure:BastionType: "Standard_B2s" #Bastion Machine type
+  bastion4azure:AmType: "Standard_B2s" # Am Machine type
+  bastion4azure:DbUserName: "xxxx" #Database username
+  bastion4azure:DbPassword: "xxxxxxx" #Database password
+  bastion4azure:DbPrivZoneName: "xxxx.private.mysql.database.azure.com" #DNS Private zone root domain(keep from .private=>.com)
+  bastion4azure:LbCertpath : "/xxxxx/xxxxx" #Path for base64 encoded certificate i.e /home/toto/cert.pfx.64
+  bastion4azure:LBCertPassword: "xxxxxxxxxx" #Password for pfx certificate
+  bastion4azure:AmBackendHostname: "xxxxx.xxxxx.xxxx" #Certificate common name (CN)
