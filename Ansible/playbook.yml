@@ -1,0 +1,22 @@
+---
+
+- name: Playbok to create assets and users in Bastion
+  hosts: all
+  gather_facts: false
+  remote_user: "{{ ssh_username }}"
+  vars_files:
+    - users_to_create.yml
+    - api_creds.yml
+    - devices_to_create.yml
+  tasks:
+    - name: Get Bastion auth cookie
+      ansible.builtin.include_role:
+        name: bastion-auth
+
+    - name: Create users in Bastion
+      ansible.builtin.include_role:
+        name: users
+
+    - name: Create devices in Bastion
+      ansible.builtin.include_role:
+        name: devices

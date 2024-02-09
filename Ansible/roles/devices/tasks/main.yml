@@ -1,0 +1,18 @@
+---
+# tasks file for devices
+- name: "Creating devices"
+  ansible.builtin.uri:
+    url: "{{ bastion_url }}/devices"
+    method: POST
+    body_format: json
+    validate_certs: false
+    status_code:
+      - 204
+    headers:
+      Cookie: "wab_session_id={{ auth_response.cookies['wab_session_id'] }}"
+    body: |
+      {
+        "device_name": "{{ item.device_name }}",
+        "host": "{{ item.device_host }}",
+      }
+  loop: "{{ devices }}"
