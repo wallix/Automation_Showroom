@@ -1,0 +1,23 @@
+---
+# tasks file for users
+- name: "Creating users"
+  ansible.builtin.uri:
+    url: "{{ bastion_url }}/users"
+    method: POST
+    body_format: json
+    validate_certs: false
+    status_code:
+      - 204
+    headers:
+      Cookie: "wab_session_id={{ auth_response.cookies['wab_session_id'] }}"
+    body: |
+      {
+        "user_name": "{{ item.user_name }}",
+        "email": "{{ item.user_email }}",
+        "password": "{{ item.user_password }}",
+        "profile": "user",
+        "user_auths": [
+          "local_password"
+        ]
+      }
+  loop: "{{ users }}"

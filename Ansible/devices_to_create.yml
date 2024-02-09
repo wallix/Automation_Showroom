@@ -1,0 +1,9 @@
+devices:
+  - { device_name: "debian", device_host: "10.11.12.13" }
+  - { device_name: "mailserver", device_host: "10.11.12.14" }
+  - { device_name: "dnsserver", device_host: "10.11.12.15" }
+  - { device_name: "firewall", device_host: "10.11.12.16" }
+  - { device_name: "fileserver", device_host: "10.11.12.17" }
+  - { device_name: "vpnserver", device_host: "10.11.12.18" }
+  - { device_name: "centos", device_host: "10.11.12.19" }
+

@@ -1,0 +1,17 @@
+---
+# tasks file for bastion-auth
+- name: "Getting auth cookie"
+  ansible.builtin.uri:
+    url: "{{ bastion_url }}"
+    method: GET
+    url_username: "{{ api_user }}"
+    url_password: "{{ api_password }}"
+    validate_certs: false
+    force_basic_auth: true
+    status_code:
+      - 204
+  register: auth_response
+
+- name: Store the request answer cookies
+  ansible.builtin.set_fact:
+    auth_cookie: "{{ auth_response }}"
