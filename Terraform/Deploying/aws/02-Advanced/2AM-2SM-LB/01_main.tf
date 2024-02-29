@@ -1,4 +1,3 @@
-
 // Get get Access Manager AMI ID
 data "aws_ami" "am_ami" {
   most_recent = true
@@ -62,19 +61,50 @@ resource "local_sensitive_file" "private_key" {
 
 // Generate random passwords
 
-
-resource "random_string" "password" {
+resource "random_string" "password_wabadmin" {
   length           = 16
   special          = true
   override_special = "!#$%&*()-_=+[]{}<>:?"
+
+}
+
+resource "random_string" "password_wabsuper" {
+  length           = 16
+  special          = true
+  override_special = "!#$%&*()-_=+[]{}<>:?"
+
+}
+
+resource "random_string" "password_wabupgrade" {
+  length           = 16
+  special          = true
+  override_special = "!#$%&*()-_=+[]{}<>:?"
+
 }
 
 // Generate Wallix Cloud Init file from template
 
-data "template_file" "wallix" {
-  template = file("cloud-init-conf-WALLIX.tpl")
+data "template_file" "am" {
+  template = file("cloud-init-conf-WALLIX_AM.tpl")
   vars = {
-    wallix_password = random_string.password.id
-    wallix_sshkey   = tls_private_key.key_pair.public_key_openssh
+    wallix_sshkey               = tls_private_key.key_pair.public_key_openssh
+    wallix_sshkey               = tls_private_key.key_pair.public_key_openssh
+    wallix_password_wabadmin    = random_string.password_wabadmin.id
+    wallix_password_wabsuper    = random_string.password_wabsuper.id
+    wallix_password_wabupgrade  = random_string.password_wabupgrade.id
+    http_host_trusted_hostnames = aws_lb.front_am.dns_name
   }
+
+}
+
+data "template_file" "bastion" {
+  template = file("cloud-init-conf-WALLIX_BASTION.tpl")
+  vars = {
+    wallix_sshkey              = tls_private_key.key_pair.public_key_openssh
+    wallix_password_wabadmin   = random_string.password_wabadmin.id
+    wallix_password_wabsuper   = random_string.password_wabsuper.id
+    wallix_password_wabupgrade = random_string.password_wabupgrade.id
+
+  }
+
 }

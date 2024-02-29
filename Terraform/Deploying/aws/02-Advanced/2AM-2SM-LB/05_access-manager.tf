@@ -18,7 +18,7 @@ resource "aws_network_interface_sg_attachment" "am1" {
 resource "aws_instance" "am_1" {
   ami           = data.aws_ami.am_ami.id
   instance_type = var.aws_instance_size
-  user_data     = data.template_file.wallix.rendered
+  user_data     = data.template_file.am.rendered
   key_name      = aws_key_pair.key_pair.key_name
 
   network_interface {
@@ -54,7 +54,7 @@ resource "aws_network_interface_sg_attachment" "am2" {
 resource "aws_instance" "am_2" {
   ami           = data.aws_ami.am_ami.id
   instance_type = var.aws_instance_size
-  user_data     = data.template_file.wallix.rendered
+  user_data     = data.template_file.am.rendered
   key_name      = aws_key_pair.key_pair.key_name
 
   network_interface {
@@ -67,4 +67,5 @@ resource "aws_instance" "am_2" {
     Project_Owner = var.project_owner
     Name          = "Access_Manager_02-${local.project_name}"
   }
+
 }

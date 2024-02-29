@@ -35,7 +35,8 @@ There is restriction set for appliance configuration and global organisation on 
 Use x11 forwarding and run firefox on the Debian Host to access it.
 
 ```bash
-ssh -i private_key.pem -X admin@<ip_debian_host>
+ssh -Xi private_key.pem admin@<ip_debian_host>
+chmod 400 /home/admin/.ssh/id_rsa 
 admin# firefox
 ```
 
@@ -43,7 +44,7 @@ Connect and configure Access and Session Manager on port 2242 :
 
 * Set Password
 * Set Hostname
-* Set http_host_trusted_hostnames (/var/wab/etc/wabengine.conf)
+* Verify http_host_trusted_hostnames (/var/wab/etc/wabengine.conf)
 * Setup Replication
 
 ## Known issues
