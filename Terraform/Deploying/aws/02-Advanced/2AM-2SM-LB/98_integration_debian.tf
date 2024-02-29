@@ -1,5 +1,4 @@
 // Generate Deian Cloud Init file from template
-
 data "template_file" "debian" {
   template = file("cloud-init-conf-DEBIAN.tpl")
 }
@@ -62,6 +61,7 @@ resource "aws_eip" "ip_public_debian_admin" {
   }
 
 }
+
 // Push the generated ssh key on the debian host
 resource "null_resource" "provisionning" {
   depends_on = [

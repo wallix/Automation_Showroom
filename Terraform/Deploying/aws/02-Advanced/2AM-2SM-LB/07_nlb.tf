@@ -1,4 +1,6 @@
 /*
+
+# Currently Network loadbalancer are not compatible with WALLIX Session Manager
 resource "aws_lb_target_group" "front_bastion_rdp" {
   name     = "Session-Manager-Group-RDP"
   port     = 3389
