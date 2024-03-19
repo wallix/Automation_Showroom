@@ -101,7 +101,7 @@ resource "aws_lb_listener" "HTTP_to_HTTPS_Redirect" {
 
   default_action {
     type = "redirect"
-   
+
     redirect {
       port        = "443"
       protocol    = "HTTPS"

@@ -17,9 +17,16 @@ resource "aws_network_interface_sg_attachment" "am1" {
 
 resource "aws_instance" "am_1" {
   ami           = data.aws_ami.am_ami.id
-  instance_type = var.aws_instance_size
+  instance_type = var.aws_instance_size_am
   user_data     = data.template_file.am.rendered
   key_name      = aws_key_pair.key_pair.key_name
+
+  ebs_block_device {
+    device_name           = "/dev/sda1"
+    volume_size           = var.am_disk_size
+    volume_type           = var.am_disk_type
+    delete_on_termination = true
+  }
 
   network_interface {
     network_interface_id = aws_network_interface.am_1.id
@@ -53,9 +60,16 @@ resource "aws_network_interface_sg_attachment" "am2" {
 
 resource "aws_instance" "am_2" {
   ami           = data.aws_ami.am_ami.id
-  instance_type = var.aws_instance_size
+  instance_type = var.aws_instance_size_am
   user_data     = data.template_file.am.rendered
   key_name      = aws_key_pair.key_pair.key_name
+
+  ebs_block_device {
+    device_name           = "/dev/sda1"
+    volume_size           = var.am_disk_size
+    volume_type           = var.am_disk_type
+    delete_on_termination = true
+  }
 
   network_interface {
     network_interface_id = aws_network_interface.am_2.id

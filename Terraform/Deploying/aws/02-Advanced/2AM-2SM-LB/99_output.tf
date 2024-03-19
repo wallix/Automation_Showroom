@@ -4,9 +4,22 @@ output "aws_instance_ip" {
 }
 */
 
+output "project_name" {
+  value = local.project_name
+
+}
+
 output "aws_vpc" {
   value = aws_vpc.cluster.id
 
+}
+
+output "bastion1_instance_id" {
+  value = aws_instance.bastion_1.id
+}
+
+output "bastion2_instance_id" {
+  value = aws_instance.bastion_2.id
 }
 
 output "public_ip_debian_admin" {
@@ -61,6 +74,6 @@ output "wallix_password_wabupgrade" {
 }
 
 output "z_connect" {
-  value = "Connect to the debian instance: ssh -Xi ./private_key.pem admin@${aws_instance.debian_admin.public_ip} "
+  value = "Connect to the debian instance: ssh -Xi ./private_key.pem admin@${aws_instance.debian_admin.public_ip}"
 
 }

@@ -29,16 +29,22 @@ variable "aws_region" {
   type        = string
 }
 
-variable "aws_instance_size" {
+variable "aws_instance_size_am" {
   description = "Specifies the instance sizing."
   type        = string
-  default     = "t2.small"
+  default     = "t3.xlarge"
+}
+
+variable "aws_instance_size_sm" {
+  description = "Specifies the instance sizing."
+  type        = string
+  default     = "t3.xlarge"
 }
 
 variable "aws_instance_size_debian" {
   description = "Specifies the instance sizing."
   type        = string
-  default     = "t2.small"
+  default     = "t3.large"
 }
 
 variable "vpc_cidr" {
@@ -74,4 +80,30 @@ variable "subnet_az1_SM" {
 variable "subnet_az2_SM" {
   description = "A map of availability zones to CIDR blocks, which will be set up as subnets."
   type        = string
+}
+
+
+variable "am_disk_size" {
+  description = "AM disk sizing"
+  type        = number
+  default     = 10
+}
+
+variable "am_disk_type" {
+  description = "AM disk sizing"
+  type        = string
+  default     = "gp3"
+}
+
+
+variable "sm_disk_size" {
+  description = "AM disk sizing"
+  type        = number
+  default     = 10
+}
+
+variable "sm_disk_type" {
+  description = "AM disk sizing"
+  type        = string
+  default     = "gp3"
 }

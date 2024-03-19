@@ -1,7 +1,8 @@
 resource "aws_elb" "elb_bastion" {
-  name               = "session-manager-elb"
+  name = "session-manager-elb"
   #availability_zones = [var.primary_az, var.secondary_az]
-  subnets = [ aws_subnet.subnet_az1_SM.id, aws_subnet.subnet_az2_SM.id]
+  subnets         = [aws_subnet.subnet_az1_SM.id, aws_subnet.subnet_az2_SM.id]
+  security_groups = [aws_security_group.lb.id]
   listener {
     instance_port     = 3389
     instance_protocol = "TCP"
@@ -29,6 +30,10 @@ resource "aws_elb" "elb_bastion" {
   idle_timeout                = 400
   connection_draining         = true
   connection_draining_timeout = 400
+
+  lifecycle {
+    create_before_destroy = true
+  }
 
   tags = {
     Project_Name  = local.project_name

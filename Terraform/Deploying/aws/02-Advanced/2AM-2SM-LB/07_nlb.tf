@@ -33,6 +33,7 @@ resource "aws_lb_target_group_attachment" "attach_sm1_rdp" {
   target_id        = aws_instance.bastion_1.id
   target_group_arn = aws_lb_target_group.front_bastion_rdp.arn
   port             = 3389
+
 }
 
 
@@ -40,6 +41,7 @@ resource "aws_lb_target_group_attachment" "attach_sm2_rdp" {
   target_id        = aws_instance.bastion_2.id
   target_group_arn = aws_lb_target_group.front_bastion_rdp.arn
   port             = 3389
+
 }
 
 resource "aws_lb_target_group" "front_bastion_ssh" {
@@ -122,6 +124,7 @@ resource "aws_lb_listener" "front_end_SSH" {
   }
 
 }
+
 resource "aws_lb_listener" "front_end_RDP" {
   load_balancer_arn = aws_lb.front_sm.arn
   port              = "3389"

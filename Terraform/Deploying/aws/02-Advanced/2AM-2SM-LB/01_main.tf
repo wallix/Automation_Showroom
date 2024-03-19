@@ -64,21 +64,21 @@ resource "local_sensitive_file" "private_key" {
 resource "random_string" "password_wabadmin" {
   length           = 16
   special          = true
-  override_special = "!#$%&*()-_=+[]{}<>:?"
+  override_special = "!()-_=+[]<>:?"
 
 }
 
 resource "random_string" "password_wabsuper" {
   length           = 16
   special          = true
-  override_special = "!#$%&*()-_=+[]{}<>:?"
+  override_special = "!()-_=+[]<>:?"
 
 }
 
 resource "random_string" "password_wabupgrade" {
   length           = 16
   special          = true
-  override_special = "!#$%&*()-_=+[]{}<>:?"
+  override_special = "!()-_=+[]<>:?"
 
 }
 
@@ -98,7 +98,7 @@ data "template_file" "am" {
 }
 
 data "template_file" "bastion" {
-  template = file("cloud-init-conf-WALLIX_BASTION.tpl")
+  template = file("cloud-init-conf-WALLIX_SM.tpl")
   vars = {
     wallix_sshkey              = tls_private_key.key_pair.public_key_openssh
     wallix_password_wabadmin   = random_string.password_wabadmin.id
