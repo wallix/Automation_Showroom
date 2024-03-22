@@ -55,11 +55,18 @@ output "alb_dns" {
   value = aws_lb.front_am.dns_name
 
 }
+
+output "nlb_dns" {
+  value = aws_lb.front_sm.dns_name
+
+}
+
+/*
 output "elb_dns" {
   value = aws_elb.elb_bastion.dns_name
 
 }
-
+*/
 output "wallix_password_wabadmin" {
   value = random_string.password_wabadmin.result
 

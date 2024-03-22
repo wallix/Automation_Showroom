@@ -1,3 +1,4 @@
+/*
 resource "aws_elb" "elb_bastion" {
   name = "session-manager-elb"
   #availability_zones = [var.primary_az, var.secondary_az]
@@ -40,3 +41,4 @@ resource "aws_elb" "elb_bastion" {
     Project_Owner = var.project_owner
   }
 }
+*/
