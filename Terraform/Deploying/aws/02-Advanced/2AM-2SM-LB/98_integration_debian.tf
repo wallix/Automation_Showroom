@@ -1,7 +1,7 @@
 // Generate Deian Cloud Init file from template
-
 data "template_file" "debian" {
   template = file("cloud-init-conf-DEBIAN.tpl")
+
 }
 
 // Get latest Debian Linux AMI
@@ -62,6 +62,7 @@ resource "aws_eip" "ip_public_debian_admin" {
   }
 
 }
+
 // Push the generated ssh key on the debian host
 resource "null_resource" "provisionning" {
   depends_on = [
@@ -72,6 +73,26 @@ resource "null_resource" "provisionning" {
   provisioner "file" {
     source      = "private_key.pem"
     destination = "/home/admin/.ssh/id_rsa"
+
+    connection {
+      type        = "ssh"
+      user        = "admin"
+      private_key = tls_private_key.key_pair.private_key_pem
+      host        = aws_instance.debian_admin.public_ip
+    }
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "chmod 400 /home/admin/.ssh/id_rsa",
+      "sudo apt install -y xrdp",
+      "sudo useradd -m rdpuser",
+      "sudo adduser xrdp ssl-cert",
+      "sudo systemctl restart xrdp",
+      "sudo systemctl enable xrdp ",
+      "sudo groupadd tsusers",
+      "sudo adduser rdpuser tsusers"
+    ]
 
     connection {
       type        = "ssh"
@@ -93,6 +114,14 @@ resource "aws_security_group" "debian_admin" {
     description = "SSH"
     from_port   = 22
     to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = concat(var.allowed_ips, local.sm_instances)
+  }
+
+  ingress {
+    description = "RDP"
+    from_port   = 3389
+    to_port     = 3389
     protocol    = "tcp"
     cidr_blocks = concat(var.allowed_ips, local.sm_instances)
   }

@@ -47,7 +47,6 @@ resource "aws_subnet" "subnet_az1_SM" {
   map_public_ip_on_launch = false
 
   availability_zone = var.primary_az
-
   tags = {
     Project = local.project_name
   }
@@ -69,8 +68,6 @@ resource "aws_subnet" "subnet_az2_SM" {
   }
 
 }
-
-
 
 //  An Internet Gateway for the VPC.
 resource "aws_internet_gateway" "cluster_gateway" {

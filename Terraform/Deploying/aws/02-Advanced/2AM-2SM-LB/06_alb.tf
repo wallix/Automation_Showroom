@@ -1,5 +1,6 @@
 resource "tls_private_key" "example" {
   algorithm = "RSA"
+
 }
 
 resource "tls_self_signed_cert" "example" {
@@ -17,6 +18,7 @@ resource "tls_self_signed_cert" "example" {
     "digital_signature",
     "server_auth",
   ]
+
 }
 
 resource "aws_acm_certificate" "cert" {
@@ -62,6 +64,7 @@ resource "aws_lb_target_group_attachment" "attach_am1" {
   target_id        = aws_instance.am_1.id
   target_group_arn = aws_lb_target_group.front_am.arn
   port             = 443
+
 }
 
 
@@ -69,10 +72,11 @@ resource "aws_lb_target_group_attachment" "attach_am2" {
   target_id        = aws_instance.am_2.id
   target_group_arn = aws_lb_target_group.front_am.arn
   port             = 443
+
 }
 
 resource "aws_lb" "front_am" {
-  name               = "Access-Manager-Front"
+  name               = "access-manager-front"
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.lb.id]
@@ -155,6 +159,5 @@ resource "aws_lb_listener_rule" "redirect" {
     Project_Name  = local.project_name
     Project_Owner = var.project_owner
   }
-
 
 }

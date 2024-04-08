@@ -3,17 +3,17 @@
 users:
   - name: wabadmin
     lock_passwd: false
-    plain_text_passwd: ${wallix_password}
+    plain_text_passwd: ${wallix_password_wabadmin}
     ssh_authorized_keys:
       - ${wallix_sshkey}
   - name: wabsuper   
     lock_passwd: false
-    plain_text_passwd: ${wallix_password}
+    plain_text_passwd: ${wallix_password_wabsuper}
     ssh_authorized_keys:
       - ${wallix_sshkey}
   - name: wabupgrade
     lock_passwd: false
-    plain_text_passwd: ${wallix_password}
+    plain_text_passwd: ${wallix_password_wabupgrade}
     ssh_authorized_keys:
       - ${wallix_sshkey}
   - name: root
@@ -21,3 +21,5 @@ users:
       - ${wallix_sshkey}    
 preserve_hostname: False
 manage_etc_hosts: localhost
+runcmd:
+  - [ sh, -xc, "sed -i -e '$ahttp_host_trusted_hostnames=${http_host_trusted_hostnames}' /var/wab/etc/wabengine.conf" ]
