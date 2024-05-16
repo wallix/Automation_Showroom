@@ -1,0 +1,31 @@
+bastion_version       = "10.0.6.23"
+acces_manager_version = "4.0.4.0"
+
+project_name  = "lab_WALLIX"
+project_owner = "noreply@wallix.com"
+
+allowed_ips = [
+  "90.255.255.255/32"
+]
+
+aws_instance_size_am = "t3.large"
+aws_instance_size_sm = "t3.large"
+
+aws_instance_size_debian = "t3.large"
+
+am_disk_size = 50
+am_disk_type = "gp3"
+
+sm_disk_size = 50
+sm_disk_type = "gp3"
+
+aws_region   = "eu-west-2"
+primary_az   = "eu-west-2a"
+secondary_az = "eu-west-2b"
+
+vpc_cidr      = "10.18.0.0/16"
+subnet_az1_AM = "10.18.90.0/27"
+subnet_az1_SM = "10.18.88.0/24"
+
+subnet_az2_AM = "10.18.90.32/27"
+subnet_az2_SM = "10.18.89.0/24"
