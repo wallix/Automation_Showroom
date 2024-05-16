@@ -85,7 +85,6 @@ resource "null_resource" "provisionning" {
   provisioner "remote-exec" {
     inline = [
       "chmod 400 /home/admin/.ssh/id_rsa",
-      "sudo apt update",
       "sudo useradd -m rdpuser",
       "sudo adduser xrdp ssl-cert",
       "sudo systemctl restart xrdp",
