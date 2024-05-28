@@ -1,9 +1,3 @@
-// Generate Debian Cloud Init file from template
-data "template_file" "debian" {
-  template = file("cloud-init-conf-DEBIAN.tpl")
-
-}
-
 // Get latest Debian Linux AMI
 data "aws_ami" "debian-linux" {
   most_recent = true
@@ -23,6 +17,16 @@ resource "random_string" "password_rdpuser" {
 
 }
 
+// Generate Debian Cloud Init file from template
+data "template_file" "debian" {
+  template = file("cloud-init-conf-DEBIAN.tpl")
+
+  vars = {
+    password_rdpuser = random_string.password_rdpuser.id
+
+  }
+
+}
 
 // Create a network interface
 resource "aws_network_interface" "debian-linux" {
@@ -95,7 +99,6 @@ resource "null_resource" "provisionning" {
       "chmod 400 /home/admin/.ssh/id_rsa",
       "sudo apt update",
       "sudo apt full-upgrade -y",
-      "sudo useradd -p \"$(openssl passwd -6 ${random_string.password_rdpuser.id})\" -m rdpuser ",
       "sudo adduser xrdp ssl-cert",
       "sudo systemctl restart xrdp",
       "sudo systemctl enable xrdp ",
@@ -158,8 +161,6 @@ resource "aws_security_group" "debian_admin" {
   }
 
 }
-
-
 
 output "public_ip_debian_admin" {
   value = aws_instance.debian_admin.public_ip
