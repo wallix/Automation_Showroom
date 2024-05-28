@@ -1,9 +1,3 @@
-// Generate Deian Cloud Init file from template
-data "template_file" "debian" {
-  template = file("cloud-init-conf-DEBIAN.tpl")
-
-}
-
 // Get latest Debian Linux AMI
 data "aws_ami" "debian-linux" {
   most_recent = true
@@ -12,6 +6,24 @@ data "aws_ami" "debian-linux" {
   filter {
     name   = "name"
     values = ["debian-11*"]
+  }
+
+}
+// Generate rdpuser password
+resource "random_string" "password_rdpuser" {
+  length           = 16
+  special          = true
+  override_special = "!-_=+<>:?"
+
+}
+
+// Generate Debian Cloud Init file from template
+data "template_file" "debian" {
+  template = file("cloud-init-conf-DEBIAN.tpl")
+
+  vars = {
+    password_rdpuser = random_string.password_rdpuser.id
+
   }
 
 }
@@ -86,7 +98,7 @@ resource "null_resource" "provisionning" {
     inline = [
       "chmod 400 /home/admin/.ssh/id_rsa",
       "sudo apt update",
-      "sudo useradd -m rdpuser",
+      "sudo apt full-upgrade -y",
       "sudo adduser xrdp ssl-cert",
       "sudo systemctl restart xrdp",
       "sudo systemctl enable xrdp ",
@@ -147,5 +159,25 @@ resource "aws_security_group" "debian_admin" {
     Project_Name  = local.project_name
     Project_Owner = var.project_owner
   }
+
+}
+
+output "public_ip_debian_admin" {
+  value = aws_instance.debian_admin.public_ip
+
+}
+
+output "private_ip_debian_admin" {
+  value = aws_instance.debian_admin.private_ip
+
+}
+
+output "debian_rdpuser_password" {
+  value = random_string.password_rdpuser.id
+
+}
+
+output "z_connect" {
+  value = "Connect to the debian instance: ssh -Xi ./private_key.pem admin@${aws_instance.debian_admin.public_ip}"
 
 }

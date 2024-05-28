@@ -22,16 +22,6 @@ output "bastion2_instance_id" {
   value = aws_instance.bastion_2.id
 }
 
-output "public_ip_debian_admin" {
-  value = aws_instance.debian_admin.public_ip
-
-}
-
-output "private_ip_debian_admin" {
-  value = aws_instance.debian_admin.private_ip
-
-}
-
 output "private_ip_am_1" {
   value = aws_instance.am_1.private_ip
 }
@@ -77,10 +67,5 @@ output "wallix_password_wabsuper" {
 }
 output "wallix_password_wabupgrade" {
   value = random_string.password_wabupgrade.result
-
-}
-
-output "z_connect" {
-  value = "Connect to the debian instance: ssh -Xi ./private_key.pem admin@${aws_instance.debian_admin.public_ip}"
 
 }
