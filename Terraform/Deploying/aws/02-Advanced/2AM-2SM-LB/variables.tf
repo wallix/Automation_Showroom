@@ -65,6 +65,10 @@ variable "subnet_az2_SM" {
 variable "allowed_ips" {
   description = "Specifies the ips/networks allowed to access integration instance. e.g: [''10.0.0.0/16'',''90.15.25.21/32''] "
   type        = list(any)
+  validation {
+    condition     = (contains(var.allowed_ips, "127.0.0.1/32") == false)
+    error_message = "Please change this range to a valid value. 0.0.0.0/0 is not recommanded"
+  }
 }
 
 
