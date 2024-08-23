@@ -12,7 +12,7 @@ Those modules can be use independatly, therefore contains their own README.
 * AMI were shared by WALLIX Support if not available on MarketPlace.
 * terraform is installed
 
-Adapt samples to your needs
+Adapt samples to your needs, ( Make sure to use AMI-ID available on your aws region and change the allowed-ips)
 
 ```bash
 cp lab.auto.tfvars.example lab.auto.tfvars
@@ -22,10 +22,10 @@ vi lab.auto.tfvars
 ## Deploy
 
 ```bash
-terraform init      # initializes the working directory
-terraform fmt --recursive      # format files
-terraform validate  # validates the configuration files
-terraform apply     # apply configuration
+terraform init              # initializes the working directory
+terraform fmt --recursive   # format files
+terraform validate          # validates the configuration files
+terraform apply             # apply configuration
 ```
 
 Some outputs are marked as sensible. Example: `sm_password_wabadmin = <sensitive>`
