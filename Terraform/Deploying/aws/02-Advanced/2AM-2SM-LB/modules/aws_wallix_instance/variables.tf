@@ -15,9 +15,9 @@ variable "instance_name" {
 }
 
 variable "common_tags" {
-  default = {}
+  default     = {}
   description = "Map of tags to apply on instances resources."
-  type    = map(string)
+  type        = map(string)
 }
 
 variable "disk_size" {

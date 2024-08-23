@@ -68,8 +68,3 @@ terraform import aws_lb_listener.Frontend_AM arn:aws:elasticloadbalancing:eu-wes
 ### I can't access the Debian Machine from my IP
 
 Have you set the allowed ip variable with your public IP ?
-
-## TO DO
-
-* Keep working on the different README and variable.tf for better clarity.
-* Add example of mix and match of modules.
