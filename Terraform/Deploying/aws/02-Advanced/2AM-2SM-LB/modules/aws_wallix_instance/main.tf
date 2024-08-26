@@ -26,14 +26,14 @@ resource "aws_instance" "wallix" {
   user_data     = var.user_data
   key_name      = var.key_pair_name
   root_block_device {
-    encrypted = true
+    encrypted = false
   }
   ebs_block_device {
     device_name           = "/dev/sda1"
     volume_size           = var.disk_size
     volume_type           = var.disk_type
     delete_on_termination = true
-    encrypted             = true
+    encrypted             = false
   }
 
   network_interface {

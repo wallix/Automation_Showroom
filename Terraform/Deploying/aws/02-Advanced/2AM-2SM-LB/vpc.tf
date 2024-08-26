@@ -21,7 +21,7 @@ data "aws_availability_zones" "available" {
 resource "aws_subnet" "subnet_az_AM" {
   count                   = var.number-of-am <= 1 ? 2 : var.number-of-am
   vpc_id                  = aws_vpc.cluster.id
-  cidr_block              = cidrsubnet(var.vpc_cidr, 6, count.index + 4)
+  cidr_block              = cidrsubnet(var.vpc_cidr, 6, count.index + 3)
   map_public_ip_on_launch = false
 
   availability_zone = data.aws_availability_zones.available.names[count.index]
