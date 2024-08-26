@@ -24,6 +24,7 @@ resource "aws_default_security_group" "default" {
 }
 
 // Access Manager
+
 resource "aws_security_group" "accessmanager_sg" {
 
   name        = "firewall-am-${local.project_name}"
@@ -70,6 +71,7 @@ resource "aws_security_group" "accessmanager_sg" {
   }
 
   egress {
+    description      = "Allow egress"
     from_port        = 0
     to_port          = 0
     protocol         = "-1"
@@ -84,6 +86,11 @@ resource "aws_security_group" "accessmanager_sg" {
 
 }
 
+resource "aws_network_interface_sg_attachment" "wallix-am" {
+  count                = var.number-of-am
+  security_group_id    = aws_security_group.accessmanager_sg.id
+  network_interface_id = module.instance_access_manager[count.index].instance_network_interface_id
+}
 // Bastion
 resource "aws_security_group" "bastion_sg" {
   description = "Allow traffic for ${local.project_name}"
@@ -131,6 +138,7 @@ resource "aws_security_group" "bastion_sg" {
   }
 
   egress {
+    description      = "Allow egress"
     from_port        = 0
     to_port          = 0
     protocol         = "-1"
@@ -144,7 +152,11 @@ resource "aws_security_group" "bastion_sg" {
   )
 
 }
-
+resource "aws_network_interface_sg_attachment" "wallix-sm" {
+  count                = var.number-of-sm
+  security_group_id    = aws_security_group.bastion_sg.id
+  network_interface_id = module.instance_bastion[count.index].instance_network_interface_id
+}
 // Load Balancer
 resource "aws_security_group" "alb" {
   description = "Allow traffic for ${local.project_name} on Loadbalancer"
@@ -168,6 +180,7 @@ resource "aws_security_group" "alb" {
   }
 
   egress {
+    description      = "Allow egress"
     from_port        = 0
     to_port          = 0
     protocol         = "-1"
@@ -192,17 +205,17 @@ resource "aws_security_group" "nlb" {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = var.allowed_ips
   }
-
+  /*
   ingress {
     description = "HTTP"
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = var.allowed_ips
   }
-
+*/
   ingress {
     description = "RDP"
     from_port   = 3389
@@ -220,6 +233,7 @@ resource "aws_security_group" "nlb" {
   }
 
   egress {
+    description      = "Allow egress"
     from_port        = 0
     to_port          = 0
     protocol         = "-1"
@@ -228,7 +242,7 @@ resource "aws_security_group" "nlb" {
   }
 
   tags = merge(
-    { Name = "SG_ALB" },
+    { Name = "SG_NLB" },
     var.tags
   )
 

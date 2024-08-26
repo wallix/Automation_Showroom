@@ -75,19 +75,19 @@ variable "allowed_ips" {
 // Instance Sizing
 
 variable "aws_instance_size_am" {
-  default     = "t2.medium"
+  default     = "t3.medium"
   description = "Specifies the instance sizing."
   type        = string
 }
 
 variable "aws_instance_size_sm" {
-  default     = "t2.medium"
+  default     = "t3.medium"
   description = "Specifies the instance sizing."
   type        = string
 }
 
 variable "aws_instance_size_debian" {
-  default     = "t2.medium"
+  default     = "t3.medium"
   description = "Specifies the instance sizing."
   type        = string
 }
@@ -114,4 +114,33 @@ variable "sm_disk_type" {
   default     = "gp3"
   description = "SM disk type"
   type        = string
+}
+
+
+variable "bastion-version" {
+  default     = ""
+  description = "Bastion version to use. It can be partial or full value (5, 4.0 , 4.4.1, 4.4.1.8).\n Can be empty for latest pushed image."
+}
+
+variable "access-manager-version" {
+  default     = ""
+  description = "Bastion version to use. It can be partial or full value (12, 11.0 , 10.4.3, 10.0.7.28).\n Can be empty for latest pushed image."
+}
+
+variable "number-of-am" {
+  default     = 2
+  description = "Number of AM to be deployed"
+  validation {
+    condition     = (var.number-of-am <= 3)
+    error_message = "Value should be between 0 and 3 !"
+  }
+}
+
+variable "number-of-sm" {
+  default     = 2
+  description = "Number of SM to be deployed"
+  validation {
+    condition     = (var.number-of-sm <= 3)
+    error_message = "Value should be between 0 and 3 !"
+  }
 }

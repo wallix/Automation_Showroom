@@ -9,54 +9,36 @@ resource "aws_vpc" "cluster" {
   )
 }
 
+// Retrieve availability zones
+
+data "aws_availability_zones" "available" {
+  state = "available"
+}
+
+
+
 //  Create AM subnet for AZ 1.
-resource "aws_subnet" "subnet_az1_AM" {
-
+resource "aws_subnet" "subnet_az_AM" {
+  count                   = var.number-of-am <= 1 ? 2 : var.number-of-am
   vpc_id                  = aws_vpc.cluster.id
-  cidr_block              = var.subnet_az1_AM
+  cidr_block              = cidrsubnet(var.vpc_cidr, 6, count.index + 4)
   map_public_ip_on_launch = false
 
-  availability_zone = local.primary_az
+  availability_zone = data.aws_availability_zones.available.names[count.index]
 
   tags = var.tags
 
 }
 
-//  Create AM subnet for AZ 2
-resource "aws_subnet" "subnet_az2_AM" {
-
+//  Create SM subnets
+resource "aws_subnet" "subnet_az_SM" {
+  count                   = var.number-of-sm <= 1 ? 2 : var.number-of-sm
   vpc_id                  = aws_vpc.cluster.id
-  cidr_block              = var.subnet_az2_AM
+  cidr_block              = cidrsubnet(var.vpc_cidr, 6, count.index)
   map_public_ip_on_launch = false
 
-  availability_zone = local.secondary_az
-
-  tags = var.tags
-
-}
-
-//  Create SM subnet for AZ 1
-resource "aws_subnet" "subnet_az1_SM" {
-
-  vpc_id                  = aws_vpc.cluster.id
-  cidr_block              = var.subnet_az1_SM
-  map_public_ip_on_launch = false
-
-  availability_zone = local.primary_az
+  availability_zone = data.aws_availability_zones.available.names[count.index]
   tags              = var.tags
-
-}
-
-//  Create SM subnet for AZ 2
-resource "aws_subnet" "subnet_az2_SM" {
-
-  vpc_id                  = aws_vpc.cluster.id
-  cidr_block              = var.subnet_az2_SM
-  map_public_ip_on_launch = true
-
-  availability_zone = local.secondary_az
-
-  tags = var.tags
 
 }
 
@@ -74,4 +56,12 @@ resource "aws_route" "default_route" {
   destination_cidr_block = "0.0.0.0/0"
   gateway_id             = aws_internet_gateway.cluster_gateway.id
 
+}
+
+locals {
+  test = <<EOF
+  "${cidrsubnet(var.vpc_cidr, 1, 1)}"
+  "${cidrsubnet(var.vpc_cidr, 6, 4)}"
+  "${var.vpc_cidr}"
+  EOF
 }

@@ -5,14 +5,7 @@ locals {
 
   // generate list of network for SG rules
 
-  all_az1_az2_subnets = [
-    var.subnet_az1_AM,
-    var.subnet_az2_AM,
-    var.subnet_az1_SM,
-    var.subnet_az2_SM,
-  ]
-
-  am_instances = ["${module.instance_access_manager1.instance_private_ip}/32", "${module.instance_access_manager2.instance_private_ip}/32"]
-  sm_instances = ["${module.instance_bastion1.instance_private_ip}/32", "${module.instance_bastion2.instance_private_ip}/32"]
-
+  all_az1_az2_subnets = concat(aws_subnet.subnet_az_AM.*.cidr_block, aws_subnet.subnet_az_SM.*.cidr_block)
+  am_instances        = formatlist("%s/32", module.instance_access_manager[*].instance_private_ip)
+  sm_instances        = formatlist("%s/32", module.instance_bastion[*].instance_private_ip)
 }

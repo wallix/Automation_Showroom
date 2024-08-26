@@ -13,3 +13,11 @@ output "instance_private_ip" {
 output "instance_network_interface_id" {
   value = aws_network_interface.wallix.id
 }
+
+output "ami-info" {
+  value = <<EOT
+  "Image Name = ${data.aws_ami.wallix-ami.name}"
+  "Image ID   = ${data.aws_ami.wallix-ami.id}"
+  "Owner ID   = ${data.aws_ami.wallix-ami.owner_id}"
+  EOT
+}

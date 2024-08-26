@@ -22,16 +22,9 @@ resource "aws_lb_target_group" "front_bastion_rdp" {
   tags = var.tags
 }
 
-resource "aws_lb_target_group_attachment" "attach_sm1_rdp" {
-  target_id        = module.instance_bastion1.instance-id
-  target_group_arn = aws_lb_target_group.front_bastion_rdp.arn
-  port             = 3389
-
-}
-
-
-resource "aws_lb_target_group_attachment" "attach_sm2_rdp" {
-  target_id        = module.instance_bastion2.instance-id
+resource "aws_lb_target_group_attachment" "attach_sm_rdp" {
+  count            = var.number-of-sm
+  target_id        = module.instance_bastion[count.index].instance-id
   target_group_arn = aws_lb_target_group.front_bastion_rdp.arn
   port             = 3389
 
@@ -62,16 +55,9 @@ resource "aws_lb_target_group" "front_bastion_ssh" {
 
 }
 
-resource "aws_lb_target_group_attachment" "attach_sm1_ssh" {
-  target_id        = module.instance_bastion1.instance-id
-  target_group_arn = aws_lb_target_group.front_bastion_ssh.arn
-  port             = 22
-
-}
-
-
-resource "aws_lb_target_group_attachment" "attach_sm2_ssh" {
-  target_id        = module.instance_bastion2.instance-id
+resource "aws_lb_target_group_attachment" "attach_sm_ssh" {
+  count            = var.number-of-sm
+  target_id        = module.instance_bastion[count.index].instance-id
   target_group_arn = aws_lb_target_group.front_bastion_ssh.arn
   port             = 22
 
@@ -102,16 +88,9 @@ resource "aws_lb_target_group" "front_bastion_https" {
 
 }
 
-resource "aws_lb_target_group_attachment" "attach_sm1_https" {
-  target_id        = module.instance_bastion1.instance-id
-  target_group_arn = aws_lb_target_group.front_bastion_https.arn
-  port             = 443
-
-}
-
-
-resource "aws_lb_target_group_attachment" "attach_sm2_https" {
-  target_id        = module.instance_bastion2.instance-id
+resource "aws_lb_target_group_attachment" "attach_sm_https" {
+  count            = var.number-of-sm
+  target_id        = module.instance_bastion[count.index].instance-id
   target_group_arn = aws_lb_target_group.front_bastion_https.arn
   port             = 443
 
@@ -123,10 +102,7 @@ resource "aws_lb" "front_sm" {
   load_balancer_type               = "network"
   security_groups                  = [aws_security_group.nlb.id]
   enable_cross_zone_load_balancing = true
-  subnets = [
-    aws_subnet.subnet_az1_SM.id,
-    aws_subnet.subnet_az2_SM.id
-  ]
+  subnets                          = aws_subnet.subnet_az_SM.*.id
 
   enable_deletion_protection = false
 

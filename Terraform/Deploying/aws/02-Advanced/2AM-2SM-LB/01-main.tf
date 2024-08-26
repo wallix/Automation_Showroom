@@ -1,9 +1,9 @@
 terraform {
-  # This module was only being tested with Terraform 1.9.x. However, to make upgrading easier, we are setting 1.0.0 as the minimum version.
-  required_version = ">= 1.0.0"
+  // This module will only work with Terraform > 1.9.4.
+  required_version = ">= 1.9.0"
 }
 
-# Configure the AWS Provider
+// Configure the AWS Provider
 provider "aws" {
   region = var.aws-region
 }

@@ -48,7 +48,7 @@ resource "aws_lb_target_group" "front_am" {
     unhealthy_threshold = 2
     timeout             = 2
     interval            = 5
-    matcher             = "200" # has to be HTTP 200 or fails
+    matcher             = "200" // has to be code HTTP 200 or considered unhealthy
   }
 
   stickiness {
@@ -61,16 +61,9 @@ resource "aws_lb_target_group" "front_am" {
 
 }
 
-resource "aws_lb_target_group_attachment" "attach_am1" {
-  target_id        = module.instance_access_manager1.instance-id
-  target_group_arn = aws_lb_target_group.front_am.arn
-  port             = 443
-
-}
-
-
-resource "aws_lb_target_group_attachment" "attach_am2" {
-  target_id        = module.instance_access_manager2.instance-id
+resource "aws_lb_target_group_attachment" "attach_am" {
+  count            = var.number-of-am
+  target_id        = module.instance_access_manager[count.index].instance-id
   target_group_arn = aws_lb_target_group.front_am.arn
   port             = 443
 
@@ -81,13 +74,10 @@ resource "aws_lb" "front_am" {
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb.id]
-  subnets = [
-    aws_subnet.subnet_az1_AM.id,
-    aws_subnet.subnet_az2_AM.id
-  ]
+  subnets            = aws_subnet.subnet_az_AM.*.id
 
   enable_deletion_protection = false
-
+  drop_invalid_header_fields = true
   tags = merge(
     { Name = "ALB-AccessManager-${var.project_name}" },
     var.tags
