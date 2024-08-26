@@ -88,7 +88,3 @@ output "debianpassword_rdpuser" {
 output "availability_zones" {
   value = data.aws_availability_zones.available.names[0]
 }
-
-output "test" {
-  value = local.test
-}

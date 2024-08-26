@@ -57,11 +57,3 @@ resource "aws_route" "default_route" {
   gateway_id             = aws_internet_gateway.cluster_gateway.id
 
 }
-
-locals {
-  test = <<EOF
-  "${cidrsubnet(var.vpc_cidr, 1, 1)}"
-  "${cidrsubnet(var.vpc_cidr, 6, 4)}"
-  "${var.vpc_cidr}"
-  EOF
-}
