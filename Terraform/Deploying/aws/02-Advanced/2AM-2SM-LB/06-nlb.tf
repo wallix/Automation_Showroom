@@ -97,7 +97,7 @@ resource "aws_lb_target_group_attachment" "attach_sm_https" {
 }
 
 resource "aws_lb" "front_sm" {
-  name                             = "session-manager-front-${var.project_name}"
+  name                             = "sm-front-${var.project_name}"
   internal                         = true
   load_balancer_type               = "network"
   security_groups                  = [aws_security_group.nlb.id]
