@@ -1,12 +1,10 @@
 allowed_ips              = ["127.0.0.1/32"]
-am_ami                   = "ami-04ff59002de0d6daf"
 aws_instance_size_am     = "t3.large"
 aws_instance_size_debian = "t3.large"
 aws_instance_size_sm     = "t3.large"
 aws-region               = "eu-west-2"
 key_pair_name            = "lab-wallix"
 project_name             = "BootCamp-IAC"
-sm_ami                   = "ami-03a8695a351370f7d"
 subnet_az1_AM            = "10.18.90.0/27"
 subnet_az1_SM            = "10.18.88.0/24"
 subnet_az2_AM            = "10.18.90.32/27"

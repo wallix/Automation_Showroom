@@ -35,7 +35,7 @@ resource "aws_acm_certificate" "cert" {
 }
 
 resource "aws_lb_target_group" "front_am" {
-  name     = "Access-Manager-Group-${var.project_name}"
+  name     = "AM-Group-${var.project_name}"
   port     = 443
   protocol = "HTTPS"
   vpc_id   = aws_vpc.cluster.id
@@ -70,7 +70,7 @@ resource "aws_lb_target_group_attachment" "attach_am" {
 }
 
 resource "aws_lb" "front_am" {
-  name               = "access-manager-front-${var.project_name}"
+  name               = "am-front-${var.project_name}"
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb.id]

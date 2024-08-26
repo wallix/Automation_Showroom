@@ -24,16 +24,6 @@ variable "aws-region" {
   type = string
 }
 
-variable "sm_ami" {
-  type        = string
-  description = "AMI ID to use for session manager"
-}
-
-variable "am_ami" {
-  type        = string
-  description = "AMI ID to use for access manager"
-}
-
 // AWS Networking
 
 variable "vpc_cidr" {
