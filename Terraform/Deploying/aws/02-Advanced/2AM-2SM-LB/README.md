@@ -17,14 +17,14 @@ This example is intended to present good practices but keeping the ease of use i
 
 Adapt samples to your needs, ( Make sure to change the allowed-ips)
 
-```bash
+```shell
 cp lab.auto.tfvars.example lab.auto.tfvars
 vi lab.auto.tfvars
 ```
 
 ## Deploy
 
-```bash
+```shell
 terraform init              # initializes the working directory
 terraform fmt --recursive   # format files
 terraform validate          # validates the configuration files
@@ -52,6 +52,62 @@ admin# firefox
 Connect and configure Access and Session Manager on port 2242 :
 
 * The setup of the replication is not automated. (yet!)
+
+## Cost
+
+```txt
+ Name                                                       Monthly Qty  Unit              Monthly Cost   
+                                                                                                          
+ module.instance_bastion[0].aws_instance.wallix                                                           
+ ├─ Instance usage (Linux/UNIX, on-demand, t3.medium)               730  hours                   $33.29   
+ ├─ root_block_device                                                                                     
+ │  └─ Storage (general purpose SSD, gp2)                             8  GB                       $0.88   
+ └─ ebs_block_device[0]                                                                                   
+    └─ Storage (general purpose SSD, gp3)                            31  GB                       $2.73   
+                                                                                                          
+ module.instance_bastion[1].aws_instance.wallix                                                           
+ ├─ Instance usage (Linux/UNIX, on-demand, t3.medium)               730  hours                   $33.29   
+ ├─ root_block_device                                                                                     
+ │  └─ Storage (general purpose SSD, gp2)                             8  GB                       $0.88   
+ └─ ebs_block_device[0]                                                                                   
+    └─ Storage (general purpose SSD, gp3)                            31  GB                       $2.73   
+                                                                                                          
+ module.instance_access_manager[0].aws_instance.wallix                                                    
+ ├─ Instance usage (Linux/UNIX, on-demand, t3.medium)               730  hours                   $33.29   
+ ├─ root_block_device                                                                                     
+ │  └─ Storage (general purpose SSD, gp2)                             8  GB                       $0.88   
+ └─ ebs_block_device[0]                                                                                   
+    └─ Storage (general purpose SSD, gp3)                            30  GB                       $2.64   
+                                                                                                          
+ module.instance_access_manager[1].aws_instance.wallix                                                    
+ ├─ Instance usage (Linux/UNIX, on-demand, t3.medium)               730  hours                   $33.29   
+ ├─ root_block_device                                                                                     
+ │  └─ Storage (general purpose SSD, gp2)                             8  GB                       $0.88   
+ └─ ebs_block_device[0]                                                                                   
+    └─ Storage (general purpose SSD, gp3)                            30  GB                       $2.64   
+                                                                                                          
+ module.instance_access_manager[2].aws_instance.wallix                                                    
+ ├─ Instance usage (Linux/UNIX, on-demand, t3.medium)               730  hours                   $33.29   
+ ├─ root_block_device                                                                                     
+ │  └─ Storage (general purpose SSD, gp2)                             8  GB                       $0.88   
+ └─ ebs_block_device[0]                                                                                   
+    └─ Storage (general purpose SSD, gp3)                            30  GB                       $2.64   
+                                                                                                          
+ module.integration_debian[0].aws_instance.debian_admin                                                   
+ ├─ Instance usage (Linux/UNIX, on-demand, t3.medium)               730  hours                   $33.29   
+ └─ root_block_device                                                                                     
+    └─ Storage (general purpose SSD, gp2)                             8  GB                       $0.88   
+                                                                                                          
+ aws_lb.front_am                                                                                          
+ ├─ Application load balancer                                       730  hours                   $18.40   
+ └─ Load balancer capacity units                         Monthly cost depends on usage: $5.84 per LCU     
+                                                                                                          
+ aws_lb.front_sm                                                                                          
+ ├─ Network load balancer                                           730  hours                   $18.40   
+ └─ Load balancer capacity units                         Monthly cost depends on usage: $4.38 per LCU     
+                                                                                                          
+ OVERALL TOTAL                                                                                 $255.18 
+```
 
 ## Known issues
 
