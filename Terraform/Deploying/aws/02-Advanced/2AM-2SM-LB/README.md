@@ -1,5 +1,7 @@
 <!-- markdownlint-disable MD033 -->
-# Deploy WALLIX access manager and Bastion cluster with loadbalancer on AWS
+# Deploy WALLIX Access Manager and Session Manager (Bastion) clusters with loadbalancer on AWS
+
+## Introduction
 
 This is an example of AWS deployment with cluster setup.
 It contains mutiples modules to help understands the steps of creation.
@@ -9,11 +11,31 @@ This example is intended to present good practices but keeping the ease of use i
 
 ![Architecture](AWS_2AM-2SM-LB.drawio.png)
 
+## Table of Content
+
+- [Deploy WALLIX Access Manager and Session Manager (Bastion) clusters with loadbalancer on AWS](#deploy-wallix-access-manager-and-session-manager-bastion-clusters-with-loadbalancer-on-aws)
+  - [Introduction](#introduction)
+  - [Table of Content](#table-of-content)
+  - [What to check before starting ?](#what-to-check-before-starting-)
+  - [Deploy](#deploy)
+  - [Configure](#configure)
+  - [Cost](#cost)
+  - [Known issues](#known-issues)
+    - [Debian Terms and Conditions not accepted](#debian-terms-and-conditions-not-accepted)
+    - [Failing to import certificate on loadbalancer](#failing-to-import-certificate-on-loadbalancer)
+    - [I can't access the Debian Machine from my IP](#i-cant-access-the-debian-machine-from-my-ip)
+  - [Requirements](#requirements)
+  - [Providers](#providers)
+  - [Modules](#modules)
+  - [Resources](#resources)
+  - [Inputs](#inputs)
+  - [Outputs](#outputs)
+
 ## What to check before starting ?
 
-* Access and Right to AWS
-* AMI were shared by WALLIX Support if the versions you want to test are not available on MarketPlace.
-* terraform is installed
+- Access and Right to AWS
+- AMI were shared by WALLIX Support if the versions you want to test are not available on MarketPlace.
+- terraform is installed
 
 Adapt samples to your needs, ( Make sure to change the allowed-ips)
 
@@ -32,6 +54,7 @@ terraform apply             # apply configuration
 ```
 
 Some outputs are marked as sensible. Example: `sm_password_wabadmin = <sensitive>`
+
 Use `terraform output <name of the output>` to show them. Example :`terraform output sm_password_wabadmin`
 
 ## Configure
@@ -51,7 +74,9 @@ admin# firefox
 
 Connect and configure Access and Session Manager on port 2242 :
 
-* The setup of the replication is not automated. (yet!)
+- The following setup are not yet automated :
+  - Database replication
+  - WebUI Admin password and Encryption.
 
 ## Cost
 
