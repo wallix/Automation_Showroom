@@ -41,7 +41,7 @@ resource "aws_instance" "wallix" {
   }
 
   tags = merge(
-    { Name = "${var.instance_name}-${var.project_name}" },
+    { Name = "${var.instance_name}" },
     var.common_tags
   )
 }
