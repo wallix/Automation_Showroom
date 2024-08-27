@@ -1,19 +1,23 @@
 output "wallix_password_wabadmin" {
-  value     = random_password.password["wabadmin"].result
-  sensitive = true
+  description = "Wabadmin password"
+  value       = random_password.password["wabadmin"].result
+  sensitive   = true
 }
 
 output "wallix_password_wabsuper" {
-  value     = random_password.password["wabsuper"].result
-  sensitive = true
+  description = "Wabsuper password"
+  value       = random_password.password["wabsuper"].result
+  sensitive   = true
 }
 
 output "wallix_password_wabupgrade" {
-  value     = random_password.password
-  sensitive = true
+  description = "Wabupgrade password"
+  value       = random_password.password
+  sensitive   = true
 }
 
 output "cloudinit_config" {
-  value     = data.cloudinit_config.wallix_appliance.rendered
-  sensitive = true
+  description = "The rendered user-data / cloud-init data"
+  value       = data.cloudinit_config.wallix_appliance.rendered
+  sensitive   = true
 }

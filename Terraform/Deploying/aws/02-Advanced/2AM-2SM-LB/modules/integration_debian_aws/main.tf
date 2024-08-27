@@ -5,7 +5,7 @@ data "aws_ami" "debian-linux" {
 
   filter {
     name   = "name"
-    values = ["debian-12*"]
+    values = ["debian-${var.debian_version}*"]
   }
 
   filter {
@@ -81,6 +81,7 @@ resource "aws_security_group" "debian_admin" {
   }
 
   egress {
+    description      = "Allow egress"
     from_port        = 0
     to_port          = 0
     protocol         = "-1"

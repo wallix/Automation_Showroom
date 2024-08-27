@@ -9,16 +9,25 @@ resource "aws_network_interface" "wallix" {
 
 }
 
-resource "aws_network_interface_sg_attachment" "wallix" {
-  security_group_id    = var.security_group_id
-  network_interface_id = aws_network_interface.wallix.id
+locals {
+  ami-owner = var.ami-from-aws-marketplace ? "aws-marketplace" : "519101999238" // 519101999238 -> WALLIX
+}
+
+data "aws_ami" "wallix-ami" {
+  most_recent = true
+  owners      = ["${local.ami-owner}"]
+  name_regex  = "^${var.product_name}-${var.product_version}.*aws"
+
 }
 
 resource "aws_instance" "wallix" {
-  ami           = var.wallix_ami
+  ami           = var.ami-override != "" ? var.ami-override : data.aws_ami.wallix-ami.id
   instance_type = var.aws_instance_size
   user_data     = var.user_data
   key_name      = var.key_pair_name
+  root_block_device {
+    delete_on_termination = true
+  }
   ebs_block_device {
     device_name           = "/dev/sda1"
     volume_size           = var.disk_size

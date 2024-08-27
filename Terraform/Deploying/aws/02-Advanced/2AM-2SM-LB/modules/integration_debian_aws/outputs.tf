@@ -1,24 +1,29 @@
 
 output "public_ip_debian_admin" {
-  value = aws_eip.public_ip_debian.public_ip
+  description = "Public IP of the debian instance."
+  value       = aws_eip.public_ip_debian.public_ip
 
 }
 
 output "private_ip_debian_admin" {
-  value = aws_instance.debian_admin.private_ip
+  description = "Private IP of the debian instance."
+  value       = aws_instance.debian_admin.private_ip
 
 }
 
 output "password_rdpuser" {
-  value     = random_password.password_rdpuser.result
-  sensitive = true
+  description = "Generated password for rdp connexion with rdpuser."
+  value       = random_password.password_rdpuser.result
+  sensitive   = true
 }
 
 output "z_connect" {
-  value = "Connect to the debian instance: ssh -Xi ./private_key.pem admin@${aws_eip.public_ip_debian.public_ip}"
+  description = "How to connect to instance."
+  value       = "Connect to the debian instance: ssh -Xi ./private_key.pem admin@${aws_eip.public_ip_debian.public_ip}"
 
 }
 
 output "cloudinit_config" {
-  value = data.cloudinit_config.integration_debian.rendered
+  description = "Content of the cloud init. Mostly for debug"
+  value       = data.cloudinit_config.integration_debian.rendered
 }

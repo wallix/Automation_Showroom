@@ -35,7 +35,7 @@ resource "aws_acm_certificate" "cert" {
 }
 
 resource "aws_lb_target_group" "front_am" {
-  name     = "Access-Manager-Group-${var.project_name}"
+  name     = "AM-Group-${var.project_name}"
   port     = 443
   protocol = "HTTPS"
   vpc_id   = aws_vpc.cluster.id
@@ -48,7 +48,7 @@ resource "aws_lb_target_group" "front_am" {
     unhealthy_threshold = 2
     timeout             = 2
     interval            = 5
-    matcher             = "200" # has to be HTTP 200 or fails
+    matcher             = "200" // has to be code HTTP 200 or considered unhealthy
   }
 
   stickiness {
@@ -57,40 +57,30 @@ resource "aws_lb_target_group" "front_am" {
     cookie_duration = 3600
   }
 
-  tags = var.tags
+  tags = local.common_tags
 
 }
 
-resource "aws_lb_target_group_attachment" "attach_am1" {
-  target_id        = module.instance_access_manager1.instance-id
-  target_group_arn = aws_lb_target_group.front_am.arn
-  port             = 443
-
-}
-
-
-resource "aws_lb_target_group_attachment" "attach_am2" {
-  target_id        = module.instance_access_manager2.instance-id
+resource "aws_lb_target_group_attachment" "attach_am" {
+  count            = var.number-of-am
+  target_id        = module.instance_access_manager[count.index].instance-id
   target_group_arn = aws_lb_target_group.front_am.arn
   port             = 443
 
 }
 
 resource "aws_lb" "front_am" {
-  name               = "access-manager-front-${var.project_name}"
-  internal           = false
+  name               = "am-front-${var.project_name}"
+  internal           = var.alb_internal
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb.id]
-  subnets = [
-    aws_subnet.subnet_az1_AM.id,
-    aws_subnet.subnet_az2_AM.id
-  ]
+  subnets            = aws_subnet.subnet_az_AM.*.id
 
   enable_deletion_protection = false
-
+  drop_invalid_header_fields = true
   tags = merge(
     { Name = "ALB-AccessManager-${var.project_name}" },
-    var.tags
+    local.common_tags
   )
 
 }
@@ -111,7 +101,7 @@ resource "aws_lb_listener" "HTTP_to_HTTPS_Redirect" {
 
   }
 
-  tags = var.tags
+  tags = local.common_tags
 
 }
 
@@ -127,7 +117,7 @@ resource "aws_lb_listener" "Frontend_AM" {
     target_group_arn = aws_lb_target_group.front_am.arn
   }
 
-  tags = var.tags
+  tags = local.common_tags
 
 }
 
@@ -150,6 +140,6 @@ resource "aws_lb_listener_rule" "redirect" {
     }
   }
 
-  tags = var.tags
+  tags = local.common_tags
 
 }
