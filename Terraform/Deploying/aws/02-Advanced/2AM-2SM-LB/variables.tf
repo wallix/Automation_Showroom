@@ -1,27 +1,49 @@
-//TODO: document the variables
 // MISC
-
 variable "project_name" {
   description = "Specifies the project name"
   type        = string
 }
 
-variable "key_pair_name" {
-  type = string
-}
-
-variable "deploy-integration-debian" {
-  default = false
-  type    = bool
+variable "ami-from-aws-marketplace" {
+  type        = bool
+  default     = true
+  description = "Should we use the marketplace image ? If false, the shared image by WALLIX will be use."
 }
 
 variable "tags" {
-  default = {}
-  type    = map(string)
+  default     = {}
+  description = "Map of tags to apply on resources."
+  type        = map(string)
 }
 
 variable "aws-region" {
-  type = string
+  type        = string
+  description = "Aws region to deploy resources"
+}
+
+variable "key_pair_name" {
+  description = "Name of the key pair that will be use to connect to the instance."
+  type        = string
+}
+
+// Booleans
+
+variable "alb_internal" {
+  description = "Should Application Load Balancer be internal ?"
+  default     = false
+  type        = bool
+}
+
+variable "nlb_internal" {
+  description = "Should Network Load Balancer be internal ?\n Setting it to false is risky."
+  default     = true
+  type        = bool
+}
+
+variable "deploy-integration-debian" {
+  description = "Should a debian instance for integration be deployed ?"
+  default     = true
+  type        = bool
 }
 
 // AWS Networking
@@ -31,27 +53,6 @@ variable "vpc_cidr" {
   type        = string
 }
 
-variable "subnet_az1_AM" {
-  description = "A map of availability zones to CIDR blocks, which will be set up as subnets."
-  type        = string
-}
-
-variable "subnet_az2_AM" {
-  description = "A map of availability zones to CIDR blocks, which will be set up as subnets."
-  type        = string
-}
-
-variable "subnet_az1_SM" {
-  description = "A map of availability zones to CIDR blocks, which will be set up as subnets."
-  type        = string
-}
-
-variable "subnet_az2_SM" {
-  description = "A map of availability zones to CIDR blocks, which will be set up as subnets."
-  type        = string
-}
-
-
 variable "allowed_ips" {
   description = "Specifies the ips/networks allowed to access integration instance. e.g: [''10.0.0.0/16'',''90.15.25.21/32''] "
   type        = list(any)
@@ -60,7 +61,6 @@ variable "allowed_ips" {
     error_message = "Please change this range to a valid value. 0.0.0.0/0 is not recommanded"
   }
 }
-
 
 // Instance Sizing
 
@@ -81,7 +81,6 @@ variable "aws_instance_size_debian" {
   description = "Specifies the instance sizing."
   type        = string
 }
-
 variable "am_disk_size" {
   default     = 30
   description = "AM disk sizing"
@@ -105,7 +104,6 @@ variable "sm_disk_type" {
   description = "SM disk type"
   type        = string
 }
-
 
 variable "bastion-version" {
   default     = ""

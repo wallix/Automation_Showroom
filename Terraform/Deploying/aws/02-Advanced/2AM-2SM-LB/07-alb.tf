@@ -57,7 +57,7 @@ resource "aws_lb_target_group" "front_am" {
     cookie_duration = 3600
   }
 
-  tags = var.tags
+  tags = local.common_tags
 
 }
 
@@ -71,7 +71,7 @@ resource "aws_lb_target_group_attachment" "attach_am" {
 
 resource "aws_lb" "front_am" {
   name               = "am-front-${var.project_name}"
-  internal           = false
+  internal           = var.alb_internal
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb.id]
   subnets            = aws_subnet.subnet_az_AM.*.id
@@ -80,7 +80,7 @@ resource "aws_lb" "front_am" {
   drop_invalid_header_fields = true
   tags = merge(
     { Name = "ALB-AccessManager-${var.project_name}" },
-    var.tags
+    local.common_tags
   )
 
 }
@@ -101,7 +101,7 @@ resource "aws_lb_listener" "HTTP_to_HTTPS_Redirect" {
 
   }
 
-  tags = var.tags
+  tags = local.common_tags
 
 }
 
@@ -117,7 +117,7 @@ resource "aws_lb_listener" "Frontend_AM" {
     target_group_arn = aws_lb_target_group.front_am.arn
   }
 
-  tags = var.tags
+  tags = local.common_tags
 
 }
 
@@ -140,6 +140,6 @@ resource "aws_lb_listener_rule" "redirect" {
     }
   }
 
-  tags = var.tags
+  tags = local.common_tags
 
 }
