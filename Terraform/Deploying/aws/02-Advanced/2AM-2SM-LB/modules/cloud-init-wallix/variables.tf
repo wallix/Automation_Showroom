@@ -33,8 +33,8 @@ variable "http_host_trusted_hostnames" {
 
 }
 
-variable "change_webui_password" {
+variable "set_webui_password_and_crypto" {
   default     = false
-  description = "Should we change password for WebUI Admin ?"
+  description = " !!! Session Manager Only !!!\nShould we change password for WebUI Admin and set encryption key?"
   type        = bool
 }
