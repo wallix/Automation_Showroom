@@ -17,6 +17,7 @@ module "cloud-init-sm" {
   set_service_user_password   = true
   use_of_lb                   = true
   http_host_trusted_hostnames = aws_lb.front_sm.dns_name
+  change_webui_password       = true
 
 }
 

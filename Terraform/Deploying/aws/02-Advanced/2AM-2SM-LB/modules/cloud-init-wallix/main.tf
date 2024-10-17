@@ -18,6 +18,29 @@ resource "random_password" "password" {
 
 }
 
+resource "random_password" "webui_password" {
+  length           = 16
+  special          = true
+  min_lower        = 1
+  min_upper        = 1
+  min_special      = 1
+  min_numeric      = 1
+  override_special = "-_=+"
+
+}
+
+
+resource "random_password" "cryptokey_password" {
+  length           = 16
+  special          = true
+  min_lower        = 1
+  min_upper        = 1
+  min_special      = 1
+  min_numeric      = 1
+  override_special = "-_=+"
+
+}
+
 data "cloudinit_config" "wallix_appliance" {
   gzip          = var.to_gzip
   base64_encode = var.to_base64_encode
@@ -33,7 +56,7 @@ data "cloudinit_config" "wallix_appliance" {
       content_type = "text/cloud-config"
       content = templatefile("${path.module}/cloud-init-conf-WALLIX_ACCOUNTS.tpl", {
         wabadmin_password   = "${random_password.password["wabadmin"].result}",
-        wabsuper_password   = "${random_password.password["wabsuper"].result}"
+        wabsuper_password   = "${random_password.password["wabsuper"].result}",
         wabupgrade_password = "${random_password.password["wabupgrade"].result}"
         }
       )
@@ -50,4 +73,18 @@ data "cloudinit_config" "wallix_appliance" {
       )
     }
   }
+
+  dynamic "part" {
+    for_each = var.change_webui_password ? ["create"] : []
+    content {
+      filename     = "webadminpass-crypto.py"
+      content_type = "text/x-shellscript"
+      content = templatefile("${path.module}/webadminpass-crypto.py", {
+        webui_password     = "${random_password.webui_password.result}",
+        cryptokey_password = "${random_password.cryptokey_password.result}"
+        }
+      )
+    }
+  }
+
 }
