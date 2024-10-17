@@ -75,7 +75,7 @@ data "cloudinit_config" "wallix_appliance" {
   }
 
   dynamic "part" {
-    for_each = var.change_webui_password ? ["create"] : []
+    for_each = var.set_webui_password_and_crypto ? ["create"] : []
     content {
       filename     = "webadminpass-crypto.py"
       content_type = "text/x-shellscript"
