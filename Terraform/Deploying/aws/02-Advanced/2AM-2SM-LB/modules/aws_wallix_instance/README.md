@@ -55,7 +55,7 @@ No modules.
 | <a name="input_instance_name"></a> [instance\_name](#input\_instance\_name) | Name of the instance | `string` | n/a | yes |
 | <a name="input_key_pair_name"></a> [key\_pair\_name](#input\_key\_pair\_name) | Name of the key pair that will be use to connect to the instance. | `string` | n/a | yes |
 | <a name="input_product_name"></a> [product\_name](#input\_product\_name) | Specifies the product to deploy: bastion / access-manager | `string` | `"bastion"` | no |
-| <a name="input_product_version"></a> [product\_version](#input\_product\_version) | Specifies the version of the bastion or access-manager.<br> It can be empty, partial or full value (5, 4.0 , 4.4.1, 4.4.1.8). Empty value will look for the latest pushed image. | `string` | `""` | no |
+| <a name="input_product_version"></a> [product\_version](#input\_product\_version) | Specifies the version of the bastion or access-manager.<br/> It can be empty, partial or full value (5, 4.0 , 4.4.1, 4.4.1.8). Empty value will look for the latest pushed image. | `string` | `""` | no |
 | <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Name of the project. Will be used for Naming and Tags. | `string` | n/a | yes |
 | <a name="input_subnet_id"></a> [subnet\_id](#input\_subnet\_id) | ID of the subnet to use for this instance | `string` | n/a | yes |
 | <a name="input_user_data"></a> [user\_data](#input\_user\_data) | Content as cloud-init, plain text rendered or Base64 | `string` | `""` | no |

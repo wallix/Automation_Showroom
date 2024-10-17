@@ -113,8 +113,16 @@ resource "aws_lb_listener" "Frontend_AM" {
   certificate_arn   = aws_acm_certificate.cert.arn
 
   default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.front_am.arn
+    type = "forward"
+    forward {
+      stickiness {
+        duration = 3600
+        enabled  = true
+      }
+      target_group {
+        arn = aws_lb_target_group.front_am.arn
+      }
+    }
   }
 
   tags = local.common_tags
