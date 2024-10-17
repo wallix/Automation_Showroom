@@ -40,9 +40,9 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_change_webui_password"></a> [change\_webui\_password](#input\_change\_webui\_password) | !!! Session Manager Only !!!<br/>Should we change password for WebUI Admin and set encryption key? | `bool` | `false` | no |
 | <a name="input_http_host_trusted_hostnames"></a> [http\_host\_trusted\_hostnames](#input\_http\_host\_trusted\_hostnames) | fqdn of the loadbalancers which will be added to http\_host\_trusted\_hostnames.<br/> If muliple values, should be separated by a comma. | `string` | `""` | no |
 | <a name="input_set_service_user_password"></a> [set\_service\_user\_password](#input\_set\_service\_user\_password) | Should we changepasswd for WALLIX Service user ?<br/> ( Wabadmin, Wabsuper, Wabupgrade) | `bool` | `false` | no |
+| <a name="input_set_webui_password_and_crypto"></a> [set\_webui\_password\_and\_crypto](#input\_set\_webui\_password\_and\_crypto) | !!! Session Manager Only !!!<br/>Should we change password for WebUI Admin and set encryption key? | `bool` | `false` | no |
 | <a name="input_to_base64_encode"></a> [to\_base64\_encode](#input\_to\_base64\_encode) | Should the user-data be encoded in base64? | `bool` | `false` | no |
 | <a name="input_to_gzip"></a> [to\_gzip](#input\_to\_gzip) | Should the user-data be compressed ? | `bool` | `false` | no |
 | <a name="input_use_of_lb"></a> [use\_of\_lb](#input\_use\_of\_lb) | Are you going to use a loadbalancer ? | `bool` | `false` | no |
