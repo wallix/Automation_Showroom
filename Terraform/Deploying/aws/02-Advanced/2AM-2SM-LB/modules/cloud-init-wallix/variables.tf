@@ -32,3 +32,9 @@ variable "http_host_trusted_hostnames" {
   }
 
 }
+
+variable "change_webui_password" {
+  default     = false
+  description = "Should we change password for WebUI Admin ?"
+  type        = bool
+}

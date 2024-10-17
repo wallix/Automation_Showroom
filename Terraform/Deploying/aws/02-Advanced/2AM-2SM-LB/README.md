@@ -171,10 +171,10 @@ Have you set the allowed ip variable with your public IP ?
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 5.64.0 |
-| <a name="provider_http"></a> [http](#provider\_http) | 3.4.4 |
-| <a name="provider_local"></a> [local](#provider\_local) | 2.5.1 |
-| <a name="provider_tls"></a> [tls](#provider\_tls) | 4.0.5 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 5.72.1 |
+| <a name="provider_http"></a> [http](#provider\_http) | 3.4.5 |
+| <a name="provider_local"></a> [local](#provider\_local) | 2.5.2 |
+| <a name="provider_tls"></a> [tls](#provider\_tls) | 4.0.6 |
 
 ## Modules
 
@@ -230,7 +230,7 @@ Have you set the allowed ip variable with your public IP ?
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_access-manager-version"></a> [access-manager-version](#input\_access-manager-version) | Bastion version to use. It can be partial or full value (12, 11.0 , 10.4.3, 10.0.7.28).<br> Can be empty for latest pushed image. | `string` | `""` | no |
+| <a name="input_access-manager-version"></a> [access-manager-version](#input\_access-manager-version) | Bastion version to use. It can be partial or full value (12, 11.0 , 10.4.3, 10.0.7.28).<br/> Can be empty for latest pushed image. | `string` | `""` | no |
 | <a name="input_alb_internal"></a> [alb\_internal](#input\_alb\_internal) | Should Application Load Balancer be internal ? | `bool` | `false` | no |
 | <a name="input_allowed_ips"></a> [allowed\_ips](#input\_allowed\_ips) | Specifies the ips/networks allowed to access integration instance. e.g: [''10.0.0.0/16'',''90.15.25.21/32''] | `list(any)` | n/a | yes |
 | <a name="input_am_disk_size"></a> [am\_disk\_size](#input\_am\_disk\_size) | AM disk sizing | `number` | `30` | no |
@@ -240,10 +240,10 @@ Have you set the allowed ip variable with your public IP ?
 | <a name="input_aws_instance_size_am"></a> [aws\_instance\_size\_am](#input\_aws\_instance\_size\_am) | Specifies the instance sizing. | `string` | `"t3.medium"` | no |
 | <a name="input_aws_instance_size_debian"></a> [aws\_instance\_size\_debian](#input\_aws\_instance\_size\_debian) | Specifies the instance sizing. | `string` | `"t3.medium"` | no |
 | <a name="input_aws_instance_size_sm"></a> [aws\_instance\_size\_sm](#input\_aws\_instance\_size\_sm) | Specifies the instance sizing. | `string` | `"t3.medium"` | no |
-| <a name="input_bastion-version"></a> [bastion-version](#input\_bastion-version) | Bastion version to use. It can be partial or full value (5, 4.0 , 4.4.1, 4.4.1.8).<br> Can be empty for latest pushed image. | `string` | `""` | no |
+| <a name="input_bastion-version"></a> [bastion-version](#input\_bastion-version) | Bastion version to use. It can be partial or full value (5, 4.0 , 4.4.1, 4.4.1.8).<br/> Can be empty for latest pushed image. | `string` | `""` | no |
 | <a name="input_deploy-integration-debian"></a> [deploy-integration-debian](#input\_deploy-integration-debian) | Should a debian instance for integration be deployed ? | `bool` | `true` | no |
 | <a name="input_key_pair_name"></a> [key\_pair\_name](#input\_key\_pair\_name) | Name of the key pair that will be use to connect to the instance. | `string` | n/a | yes |
-| <a name="input_nlb_internal"></a> [nlb\_internal](#input\_nlb\_internal) | Should Network Load Balancer be internal ?<br> Setting it to false is risky. | `bool` | `true` | no |
+| <a name="input_nlb_internal"></a> [nlb\_internal](#input\_nlb\_internal) | Should Network Load Balancer be internal ?<br/> Setting it to false is risky. | `bool` | `true` | no |
 | <a name="input_number-of-am"></a> [number-of-am](#input\_number-of-am) | Number of AM to be deployed | `number` | `2` | no |
 | <a name="input_number-of-sm"></a> [number-of-sm](#input\_number-of-sm) | Number of SM to be deployed | `number` | `2` | no |
 | <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Specifies the project name | `string` | n/a | yes |
@@ -263,15 +263,19 @@ Have you set the allowed ip variable with your public IP ?
 | <a name="output_am_private_ip"></a> [am\_private\_ip](#output\_am\_private\_ip) | List of the private ip used for Access Manager. |
 | <a name="output_am_url_alb"></a> [am\_url\_alb](#output\_am\_url\_alb) | Url to connect to the AM cluster from Application Load Balancer. |
 | <a name="output_availability_zones"></a> [availability\_zones](#output\_availability\_zones) | Availability zones of the select region. |
+| <a name="output_cloud_init_am"></a> [cloud\_init\_am](#output\_cloud\_init\_am) | Show Cloud-init rendered file for AM |
+| <a name="output_cloud_init_sm"></a> [cloud\_init\_sm](#output\_cloud\_init\_sm) | Show Cloud-init rendered file for SM |
 | <a name="output_debian_connect"></a> [debian\_connect](#output\_debian\_connect) | How to connect to the Debian instance. |
 | <a name="output_debian_public_ip"></a> [debian\_public\_ip](#output\_debian\_public\_ip) | Public IP of the Debian instance. |
 | <a name="output_debianpassword_rdpuser"></a> [debianpassword\_rdpuser](#output\_debianpassword\_rdpuser) | Generated password for rdp connexion with rdpuser. |
 | <a name="output_sm-ami"></a> [sm-ami](#output\_sm-ami) | Description of the AMI used for Session Manager. |
 | <a name="output_sm_fqdn_nlb"></a> [sm\_fqdn\_nlb](#output\_sm\_fqdn\_nlb) | FQDN of the Network Load Balancer. |
 | <a name="output_sm_ids"></a> [sm\_ids](#output\_sm\_ids) | List of sm ids. Useful to find the default admin password (admin-<instance-id) |
+| <a name="output_sm_password_crypto"></a> [sm\_password\_crypto](#output\_sm\_password\_crypto) | WebUI password. |
 | <a name="output_sm_password_wabadmin"></a> [sm\_password\_wabadmin](#output\_sm\_password\_wabadmin) | Wabadmin password. |
 | <a name="output_sm_password_wabsuper"></a> [sm\_password\_wabsuper](#output\_sm\_password\_wabsuper) | Wabsuper password. |
 | <a name="output_sm_password_wabupgrade"></a> [sm\_password\_wabupgrade](#output\_sm\_password\_wabupgrade) | Wabupgrade password. |
+| <a name="output_sm_password_webui"></a> [sm\_password\_webui](#output\_sm\_password\_webui) | WebUI password. |
 | <a name="output_sm_private_ip"></a> [sm\_private\_ip](#output\_sm\_private\_ip) | List of the private ip used for Session Manager. |
 | <a name="output_ssh_private_key"></a> [ssh\_private\_key](#output\_ssh\_private\_key) | The SSH Private key in openssh format. |
 | <a name="output_warning_allowed_ips_too_wild"></a> [warning\_allowed\_ips\_too\_wild](#output\_warning\_allowed\_ips\_too\_wild) | IP Warnings. |

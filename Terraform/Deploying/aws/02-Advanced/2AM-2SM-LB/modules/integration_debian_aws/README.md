@@ -57,7 +57,7 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_allowed_ips"></a> [allowed\_ips](#input\_allowed\_ips) | Specifies the ips/networks allowed to access integration instance. e.g: [''10.0.0.0/16'',''90.15.25.21/32''] | `list(string)` | <pre>[<br>  "127.0.0.1/32"<br>]</pre> | no |
+| <a name="input_allowed_ips"></a> [allowed\_ips](#input\_allowed\_ips) | Specifies the ips/networks allowed to access integration instance. e.g: [''10.0.0.0/16'',''90.15.25.21/32''] | `list(string)` | <pre>[<br/>  "127.0.0.1/32"<br/>]</pre> | no |
 | <a name="input_am-instances"></a> [am-instances](#input\_am-instances) | list of AM IP or Network in CIDR Format. | `list(string)` | n/a | yes |
 | <a name="input_aws_instance_size"></a> [aws\_instance\_size](#input\_aws\_instance\_size) | Specifies the instance sizing. | `string` | `"t3.medium"` | no |
 | <a name="input_common_tags"></a> [common\_tags](#input\_common\_tags) | Map of tags to apply on instances resources. | `map(string)` | `{}` | no |

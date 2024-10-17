@@ -23,6 +23,18 @@ output "sm_password_wabupgrade" {
   sensitive   = true
 }
 
+output "sm_password_webui" {
+  description = "WebUI password."
+  value       = module.cloud-init-sm.wallix_password_webui
+  sensitive   = true
+}
+
+output "sm_password_crypto" {
+  description = "WebUI password."
+  value       = module.cloud-init-sm.wallix_crypto
+  sensitive   = true
+}
+
 output "sm_private_ip" {
   description = "List of the private ip used for Session Manager."
   value       = (var.number-of-sm != 0 ? module.instance_bastion.*.instance_private_ip : null)
@@ -120,4 +132,17 @@ output "warning_nlb_internal_false" {
   description = "NLB Warnings."
   value       = var.nlb_internal == false ? "!!!Warning!!!\nYou did nlb_internal set as false.\nIt is fun to open NLB in the wild. But this is totally risky.\n NLB works only with 0.0.0.0/0 as ingress. Keep it internal!" : null
 
+}
+
+
+output "cloud_init_sm" {
+  description = "Show Cloud-init rendered file for SM"
+  sensitive   = true
+  value       = module.cloud-init-sm.cloudinit_config
+}
+
+output "cloud_init_am" {
+  description = "Show Cloud-init rendered file for AM"
+  sensitive   = true
+  value       = module.cloud-init-am.cloudinit_config
 }
