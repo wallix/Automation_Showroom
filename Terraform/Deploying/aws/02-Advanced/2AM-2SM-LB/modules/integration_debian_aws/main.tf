@@ -22,7 +22,7 @@ resource "random_password" "password_rdpuser" {
   min_numeric      = 2
   min_special      = 2
   min_upper        = 2
-  override_special = "!-_=+:?"
+  override_special = "-_=+:?"
   special          = true
 
 }
