@@ -4,16 +4,6 @@ resource "wallix-bastion_device" "demo" {
   host        = "server1"
 }
 
-# Configure a service on device
-resource "wallix-bastion_device_service" "demo" {
-  service_name      = "demossh"
-  device_id         = wallix-bastion_device.demo.id
-  connection_policy = "SSH"
-  port              = 22
-  protocol          = "SSH"
-  subprotocols      = ["SSH_SHELL_SESSION"]
-}
-
 # Configure a global domain
 resource "wallix-bastion_domain" "demo" {
   domain_name = "globdomexample.com"
@@ -24,16 +14,33 @@ resource "wallix-bastion_domain_account" "demo" {
   domain_id     = wallix-bastion_domain.demo.id
   account_name  = "admin"
   account_login = "admin"
+  resources = [
+    "${wallix-bastion_device.demo.device_name}:${wallix-bastion_device_service.demo.service_name}"
+  ]
 }
 
 # Configure a credential on account of global domain
-
 resource "wallix-bastion_domain_account_credential" "demo" {
   domain_id  = wallix-bastion_domain_account.demo.domain_id
   account_id = wallix-bastion_domain_account.demo.id
   type       = "password"
   password   = random_string.demo.result
 
+}
+
+# Configure a service on device
+resource "wallix-bastion_device_service" "demo" {
+  service_name      = "demossh"
+  device_id         = wallix-bastion_device.demo.id
+  connection_policy = "SSH"
+  port              = 22
+  protocol          = "SSH"
+  subprotocols = [
+    "SSH_SHELL_SESSION"
+  ]
+  global_domains = [
+    wallix-bastion_domain.demo.domain_name
+  ]
 }
 
 # Configure a target group
