@@ -46,5 +46,6 @@ module "integration_debian" {
   vpc_id            = aws_vpc.cluster.id
   key_pair_name     = module.ssh_aws.key_pair_name
   private_key       = module.ssh_aws.ssh_private_key
+  public_ssh_key    = module.ssh_aws.ssh_public_key
 
 }

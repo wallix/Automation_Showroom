@@ -41,3 +41,8 @@ terraform.rc
 # Ignore sensible files
 
 *.pem
+info_replication.txt
+
+# temp
+
+Terraform/Deploying/azure/02-Advanced

@@ -19,6 +19,7 @@ This example is intended to present good practices but keeping the ease of use i
   - [What to check before starting ?](#what-to-check-before-starting-)
   - [Deploy](#deploy)
   - [Configure](#configure)
+  - [Repplication](#repplication)
   - [Cost](#cost)
   - [Known issues](#known-issues)
     - [Debian Terms and Conditions not accepted](#debian-terms-and-conditions-not-accepted)
@@ -63,7 +64,7 @@ Connect to the integration host by ssh.
 
 There is restriction set for appliance configuration and global organisation on both AM throught LoadBalancer rules and not HTTPS access to Session Manager from outside the VPC.
 
-Use `rdpuser` to connect to the debian integration's instance with RDP
+Use `rdpuser` to connect to the debian integration's instance with RDP. The private key is copied to the user so you can access WALLIX Target on admin interface with it.
 
 You can also use x11 forwarding and run firefox on the Debian Host to access it.
 
@@ -77,6 +78,11 @@ Connect and configure Access and Session Manager on port 2242 :
 - The following setup are not yet automated :
   - Database replication
   - WebUI Admin password and Encryption.
+
+## Repplication
+
+If there is 2 Session Manager, a file `info_replication.txt` will be generated. This can be used for extra automation on setting up the replication.
+This is not yet shown as an example as bastion replication installation is dependant on the version you use.
 
 ## Cost
 
@@ -152,7 +158,7 @@ terraform import aws_lb_listener.Frontend_AM arn:aws:elasticloadbalancing:eu-wes
 If you have imported the listener for the port 80 by mistake, delete the resource target and redo the import.
 
 ```bash
-terraform destroy -target aws_lb_listener.Frontend_AM 
+terraform destroy -target aws_lb_listener.Frontend_AM
 terraform import aws_lb_listener.Frontend_AM arn:aws:elasticloadbalancing:eu-west-3:519101999238:listener/app/Access-Manager-Front/059ce0c7d3b69254/9c0b0d80abe0ef50
 ```
 
@@ -221,6 +227,7 @@ Have you set the allowed ip variable with your public IP ?
 | [aws_subnet.subnet_az_SM](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet) | resource |
 | [aws_vpc.cluster](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc) | resource |
 | [local_sensitive_file.private_key](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/sensitive_file) | resource |
+| [local_sensitive_file.replication_master](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/sensitive_file) | resource |
 | [tls_private_key.example](https://registry.terraform.io/providers/hashicorp/tls/latest/docs/resources/private_key) | resource |
 | [tls_self_signed_cert.example](https://registry.terraform.io/providers/hashicorp/tls/latest/docs/resources/self_signed_cert) | resource |
 | [aws_availability_zones.available](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/availability_zones) | data source |
@@ -271,7 +278,7 @@ Have you set the allowed ip variable with your public IP ?
 | <a name="output_sm-ami"></a> [sm-ami](#output\_sm-ami) | Description of the AMI used for Session Manager. |
 | <a name="output_sm_fqdn_nlb"></a> [sm\_fqdn\_nlb](#output\_sm\_fqdn\_nlb) | FQDN of the Network Load Balancer. |
 | <a name="output_sm_ids"></a> [sm\_ids](#output\_sm\_ids) | List of sm ids. Useful to find the default admin password (admin-<instance-id) |
-| <a name="output_sm_password_crypto"></a> [sm\_password\_crypto](#output\_sm\_password\_crypto) | WebUI password. |
+| <a name="output_sm_password_crypto"></a> [sm\_password\_crypto](#output\_sm\_password\_crypto) | Bastion passphrase. |
 | <a name="output_sm_password_wabadmin"></a> [sm\_password\_wabadmin](#output\_sm\_password\_wabadmin) | Wabadmin password. |
 | <a name="output_sm_password_wabsuper"></a> [sm\_password\_wabsuper](#output\_sm\_password\_wabsuper) | Wabsuper password. |
 | <a name="output_sm_password_wabupgrade"></a> [sm\_password\_wabupgrade](#output\_sm\_password\_wabupgrade) | Wabupgrade password. |

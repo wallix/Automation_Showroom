@@ -45,7 +45,11 @@ data "cloudinit_config" "integration_debian" {
   part {
     filename     = "cloud-config.yaml"
     content_type = "text/cloud-config"
-    content      = templatefile("${path.module}/cloud-init-conf-DEBIAN.tpl", { password_rdpuser = "${random_password.password_rdpuser.result}", private_key = "${local.encoded_private_key}" })
+    content = templatefile("${path.module}/cloud-init-conf-DEBIAN.tpl", {
+      password_rdpuser = "${random_password.password_rdpuser.result}",
+      private_key      = "${local.encoded_private_key}"
+      ssh_key_public   = var.public_ssh_key
+    })
   }
 }
 
