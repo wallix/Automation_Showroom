@@ -14,7 +14,9 @@ resource "wallix-bastion_domain_account" "demo" {
   domain_id     = wallix-bastion_domain.demo.id
   account_name  = "admin"
   account_login = "admin"
-  resources     = ["${wallix-bastion_device.demo.device_name}:${wallix-bastion_device_service.demo.protocol}"]
+  resources = [
+    "${wallix-bastion_device.demo.device_name}:${wallix-bastion_device_service.demo.service_name}"
+  ]
 }
 
 # Configure a credential on account of global domain
@@ -33,8 +35,12 @@ resource "wallix-bastion_device_service" "demo" {
   connection_policy = "SSH"
   port              = 22
   protocol          = "SSH"
-  subprotocols      = ["SSH_SHELL_SESSION"]
-  global_domains    = [wallix-bastion_domain.demo.domain_name]
+  subprotocols = [
+    "SSH_SHELL_SESSION"
+  ]
+  global_domains = [
+    wallix-bastion_domain.demo.domain_name
+  ]
 }
 
 # Configure a target group

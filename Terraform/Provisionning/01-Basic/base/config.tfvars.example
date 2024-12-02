@@ -1,6 +1,6 @@
 
 bastion_info_ip          = "10.10.53.208"
 bastion_info_token       = ""
-bastion_info_api_version = "v3.8"
+bastion_info_api_version = "v3.12"
 bastion_info_user        = "admin"
 bastion_info_port        = "443"
