@@ -65,6 +65,7 @@ No modules.
 | <a name="input_key_pair_name"></a> [key\_pair\_name](#input\_key\_pair\_name) | Name of the key pair that will be use to connect to the instance. | `string` | n/a | yes |
 | <a name="input_private_key"></a> [private\_key](#input\_private\_key) | Private key to be added in /home/admin/.ssh/ to connect to WALLIX Instances. | `string` | n/a | yes |
 | <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Name of the project. Will be used for Naming and Tags. | `string` | n/a | yes |
+| <a name="input_public_ssh_key"></a> [public\_ssh\_key](#input\_public\_ssh\_key) | Public key to be added in /home/rdpuser/.ssh/authorized\_keys. | `string` | n/a | yes |
 | <a name="input_sm-instances"></a> [sm-instances](#input\_sm-instances) | list of SM IP or Network in CIDR Format. | `list(string)` | n/a | yes |
 | <a name="input_subnet_id"></a> [subnet\_id](#input\_subnet\_id) | ID of the subnet to use for this instance | `string` | n/a | yes |
 | <a name="input_tags"></a> [tags](#input\_tags) | Map of tags to apply on instances resources. | `map(string)` | `{}` | no |
