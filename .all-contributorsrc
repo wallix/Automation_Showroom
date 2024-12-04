@@ -1,0 +1,28 @@
+{
+  "files": [
+    "README.md"
+  ],
+  "imageSize": 100,
+  "commit": false,
+  "commitType": "docs",
+  "commitConvention": "angular",
+  "contributors": [
+    {
+      "login": "swcortetWALLIX",
+      "name": "swcortetWALLIX",
+      "avatar_url": "https://avatars.githubusercontent.com/u/190351850?v=4",
+      "profile": "https://github.com/swcortetWALLIX",
+      "contributions": [
+        "code",
+        "test",
+        "review"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7,
+  "skipCi": true,
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "projectName": "Automation_Showroom",
+  "projectOwner": "wallix"
+}
