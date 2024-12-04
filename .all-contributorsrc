@@ -1,9 +1,28 @@
 {
-  "projectName": "Automation_Showroom",
-  "projectOwner": "wallix",
-  "badgeTemplate": "[![All Contributors](https://img.shields.io/github/all-contributors/<%= projectOwner %>/<%= projectName %>?color=ee8449&style=flat-square)](#contributors)",
-  "contributorTemplate": "<a href=\"<%= contributor.profile %>\"><img src=\"<%= contributor.avatar_url %>\" width=\"<%= options.imageSize %>px;\" alt=\"\"/><br /><sub><b><%= contributor.name %></b></sub></a>",
-  "linkToUsage": true,
+  "files": [
+    "README.md"
+  ],
+  "imageSize": 100,
+  "commit": false,
+  "commitType": "docs",
+  "commitConvention": "angular",
+  "contributors": [
+    {
+      "login": "bsimonWallix",
+      "name": "bsimon-wallix",
+      "avatar_url": "https://avatars.githubusercontent.com/u/130672981?v=4",
+      "profile": "https://github.com/bsimonWallix",
+      "contributions": [
+        "code",
+        "test",
+        "review"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7,
   "skipCi": true,
-  "contributors": []
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "projectName": "Automation_Showroom",
+  "projectOwner": "wallix"
 }
