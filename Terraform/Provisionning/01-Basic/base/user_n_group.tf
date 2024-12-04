@@ -2,17 +2,22 @@
 
 resource "wallix-bastion_usergroup" "demo" {
   group_name = random_pet.group.id
-  timeframes = ["allthetime"]
+  timeframes = [
+    "allthetime"
+  ]
 }
 
 
 
 # Configure an user
 resource "wallix-bastion_user" "demo" {
-  user_name          = random_pet.user.id
-  email              = "${random_pet.user.id}@none.none"
-  profile            = "user"
-  user_auths         = ["local_password", "local_sshkey"]
+  user_name = random_pet.user.id
+  email     = "${random_pet.user.id}@none.none"
+  profile   = "user"
+  user_auths = [
+    "local_password",
+    "local_sshkey"
+  ]
   force_change_pwd   = false
   preferred_language = "en"
   password           = random_string.demo.result
