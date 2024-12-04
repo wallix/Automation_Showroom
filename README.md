@@ -16,6 +16,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
   <tbody>
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/bsimonWallix"><img src="https://avatars.githubusercontent.com/u/130672981?v=4?s=100" width="100px;" alt="bsimon-wallix"/><br /><sub><b>bsimon-wallix</b></sub></a><br /><a href="https://github.com/wallix/Automation_Showroom/commits?author=bsimonWallix" title="Code">💻</a> <a href="https://github.com/wallix/Automation_Showroom/commits?author=bsimonWallix" title="Tests">⚠️</a> <a href="https://github.com/wallix/Automation_Showroom/pulls?q=is%3Apr+reviewed-by%3AbsimonWallix" title="Reviewed Pull Requests">👀</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/moulip"><img src="https://avatars.githubusercontent.com/u/805421?v=4?s=100" width="100px;" alt="moulip"/><br /><sub><b>moulip</b></sub></a><br /><a href="https://github.com/wallix/Automation_Showroom/commits?author=moulip" title="Code">💻</a> <a href="https://github.com/wallix/Automation_Showroom/commits?author=moulip" title="Tests">⚠️</a> <a href="https://github.com/wallix/Automation_Showroom/pulls?q=is%3Apr+reviewed-by%3Amoulip" title="Reviewed Pull Requests">👀</a></td>
     </tr>
   </tbody>
 </table>

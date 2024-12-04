@@ -8,10 +8,17 @@
   "commitConvention": "angular",
   "contributors": [
     {
+<<<<<<< HEAD
       "login": "bsimonWallix",
       "name": "bsimon-wallix",
       "avatar_url": "https://avatars.githubusercontent.com/u/130672981?v=4",
       "profile": "https://github.com/bsimonWallix",
+=======
+      "login": "moulip",
+      "name": "moulip",
+      "avatar_url": "https://avatars.githubusercontent.com/u/805421?v=4",
+      "profile": "https://github.com/moulip",
+>>>>>>> origin/all-contributors/add-moulip
       "contributions": [
         "code",
         "test",
