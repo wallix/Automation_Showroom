@@ -1,0 +1,161 @@
+############################
+# Configuration of targets #
+############################
+
+### DEVICES ###
+# Create Wallix Bastion devices
+resource "wallix-bastion_device" "CustAdm_IT_Bastion01_Devices" {
+  provider = wallix-bastion.CustAdm-IT-Bastion01
+  for_each = local.it_vm_inventory
+
+  # Device attributes
+  device_name = each.value.name # Set the device name
+  host        = each.value.ip   # Set the host IP address
+}
+
+### DOMAINS ###
+resource "wallix-bastion_domain" "CustAdm_IT_Bastion01_Domains" {
+  provider = wallix-bastion.CustAdm-IT-Bastion01
+  # Iterate on all users
+  for_each = wallix-bastion_usergroup.CustAdm_IT_Bastion01_User_Groups
+  # group creation
+  domain_name = each.value.group_name
+}
+
+### DOMAIN ACCOUNTS ###
+resource "wallix-bastion_domain_account" "CustAdm_IT_Bastion01_Domain_Accounts" {
+  depends_on = [
+    wallix-bastion_domain.CustAdm_IT_Bastion01_Domains,
+    wallix-bastion_device_service.CustAdm_IT_Bastion01_Service_rdp_3389,
+    wallix-bastion_device_service.CustAdm_IT_Bastion01_Service_ssh_2242,
+    wallix-bastion_device_service.CustAdm_IT_Bastion01_Service_ssh_2282
+  ]
+  provider = wallix-bastion.CustAdm-IT-Bastion01
+
+  for_each = {
+    for user in local.yaml-Bastion["custadm_bastion_provisionning_users"]["users"] : user => local.yaml-Bastion["all_users"][user]
+  }
+
+  domain_id     = wallix-bastion_domain.CustAdm_IT_Bastion01_Domains[each.key].id
+  account_name  = "${terraform.workspace}-${each.value["user_name"]}"
+  account_login = "${terraform.workspace}-${each.value["user_name"]}"
+  resources = [
+    for vm in local.it_vm_inventory : "${vm.name}:${vm.service}"
+  ]
+}
+
+### DOMAIN ACCOUNT CREDENTIALS ###
+resource "wallix-bastion_domain_account_credential" "CustAdm_IT_Bastion01_Domain_Accounts_Credentials_SSH" {
+  provider    = wallix-bastion.CustAdm-IT-Bastion01
+  for_each    = wallix-bastion_domain_account.CustAdm_IT_Bastion01_Domain_Accounts
+  domain_id   = each.value.domain_id
+  account_id  = each.value.id
+  type        = "ssh_key"
+  private_key = "generate:ED25519"
+}
+
+resource "wallix-bastion_domain_account_credential" "CustAdm_IT_Bastion01_Domain_Accounts_Credentials_Password" {
+  provider   = wallix-bastion.CustAdm-IT-Bastion01
+  for_each   = wallix-bastion_domain_account.CustAdm_IT_Bastion01_Domain_Accounts
+  domain_id  = each.value.domain_id
+  account_id = each.value.id
+  type       = "password"
+  #  password   = local.custadm_it_bastion_secondary_accounts_secrets["${each.value.account_name}-password"].result
+  password = random_password.custadm_bastion_secondary_accounts[each.key].result
+}
+
+
+### Services ###
+# if service is ssh_2282 -> assign ssh service with good port
+resource "wallix-bastion_device_service" "CustAdm_IT_Bastion01_Service_ssh_2282" {
+  provider = wallix-bastion.CustAdm-IT-Bastion01
+  for_each = {
+    for key, vm in local.it_vm_inventory : key => vm
+    if vm.port == 2282
+  }
+
+  global_domains    = [for domain in wallix-bastion_domain.CustAdm_IT_Bastion01_Domains : domain.domain_name]
+  service_name      = "SSH"
+  device_id         = wallix-bastion_device.CustAdm_IT_Bastion01_Devices[each.key].id # ID of the associated device
+  connection_policy = "SSH"                                                           # Define SSH as the connection policy
+  port              = 2282                                                            # SSH port
+  protocol          = "SSH"                                                           # Protocol used
+  subprotocols = ["SSH_SHELL_SESSION",
+    "SSH_SHELL_SESSION",
+    "SSH_REMOTE_COMMAND",
+    "SSH_SCP_UP",
+    "SSH_SCP_DOWN",
+    "SFTP_SESSION",
+  ] # Define SSH shell session as the subprotocol
+}
+
+# if service is ssh_2242 -> assign ssh service with good port
+resource "wallix-bastion_device_service" "CustAdm_IT_Bastion01_Service_ssh_2242" {
+  provider = wallix-bastion.CustAdm-IT-Bastion01
+  for_each = {
+    for key, vm in local.it_vm_inventory : key => vm
+    if vm.port == 2242
+  }
+
+  global_domains    = [for domain in wallix-bastion_domain.CustAdm_IT_Bastion01_Domains : domain.domain_name]
+  service_name      = "SSH"
+  device_id         = wallix-bastion_device.CustAdm_IT_Bastion01_Devices[each.key].id # ID of the associated device
+  connection_policy = "SSH"                                                           # Define SSH as the connection policy
+  port              = 2242                                                            # SSH port
+  protocol          = "SSH"                                                           # Protocol used
+  subprotocols = ["SSH_SHELL_SESSION",
+    "SSH_SHELL_SESSION",
+    "SSH_REMOTE_COMMAND",
+    "SSH_SCP_UP",
+    "SSH_SCP_DOWN",
+    "SFTP_SESSION",
+  ] # Define SSH shell session as the subprotocol
+}
+# if service port is 3389 -> assign rdp service with good port
+resource "wallix-bastion_device_service" "CustAdm_IT_Bastion01_Service_rdp_3389" {
+  provider = wallix-bastion.CustAdm-IT-Bastion01
+  for_each = {
+    for key, vm in local.it_vm_inventory : key => vm
+    if vm.port == 3389
+  }
+  global_domains    = [for domain in wallix-bastion_domain.CustAdm_IT_Bastion01_Domains : domain.domain_name]
+  device_id         = wallix-bastion_device.CustAdm_IT_Bastion01_Devices[each.key].id # ID of the associated device
+  service_name      = "RDP"
+  connection_policy = "RDP"
+  port              = 3389
+  protocol          = "RDP"
+  subprotocols = [ # STATIC CODE
+    "RDP_CLIPBOARD_UP",
+    "RDP_CLIPBOARD_DOWN",
+    "RDP_CLIPBOARD_FILE",
+    "RDP_PRINTER",
+    "RDP_COM_PORT",
+    "RDP_DRIVE",
+    "RDP_SMARTCARD",
+    "RDP_AUDIO_OUTPUT"
+  ]
+}
+
+### TARGET GROUPS ###
+resource "wallix-bastion_targetgroup" "CustAdm-IT-Bastion01_Target_Groups" {
+  provider = wallix-bastion.CustAdm-IT-Bastion01
+  depends_on = [
+    wallix-bastion_device.CustAdm_IT_Bastion01_Devices,
+    wallix-bastion_domain_account.CustAdm_IT_Bastion01_Domain_Accounts
+  ]
+  for_each   = wallix-bastion_domain_account.CustAdm_IT_Bastion01_Domain_Accounts
+  group_name = "${each.value.account_name}-${local.yaml-Bastion.custadm_bastion_scope}"
+
+  # Dynamic block for second for_each in 'session_accounts'
+  dynamic "session_accounts" {
+    for_each = local.it_vm_inventory # Iterate on VM inventory
+
+    content {
+      account     = each.value.account_name
+      domain      = "${each.value.account_name}-${local.yaml-Bastion.custadm_bastion_scope}"
+      domain_type = "global"
+      device      = session_accounts.value.name
+      service     = session_accounts.value.service
+    }
+  }
+}
