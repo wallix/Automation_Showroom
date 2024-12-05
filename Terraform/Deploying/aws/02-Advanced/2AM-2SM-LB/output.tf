@@ -30,7 +30,7 @@ output "sm_password_webui" {
 }
 
 output "sm_password_crypto" {
-  description = "WebUI password."
+  description = "Bastion passphrase."
   value       = module.cloud-init-sm.wallix_crypto
   sensitive   = true
 }
@@ -133,7 +133,6 @@ output "warning_nlb_internal_false" {
   value       = var.nlb_internal == false ? "!!!Warning!!!\nYou did nlb_internal set as false.\nIt is fun to open NLB in the wild. But this is totally risky.\n NLB works only with 0.0.0.0/0 as ingress. Keep it internal!" : null
 
 }
-
 
 output "cloud_init_sm" {
   description = "Show Cloud-init rendered file for SM"

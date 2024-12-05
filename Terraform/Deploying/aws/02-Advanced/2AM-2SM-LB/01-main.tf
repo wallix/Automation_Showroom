@@ -40,3 +40,17 @@ resource "local_sensitive_file" "private_key" {
   file_permission = "400"
 
 }
+
+resource "local_sensitive_file" "replication_master" {
+  count    = var.number-of-sm == 2 ? 1 : 0
+  filename = "info_replication.txt"
+  content = templatefile("${path.module}/info_replication_master_master.tpl", {
+    wabadmin_password  = module.cloud-init-sm.wallix_password_wabadmin,
+    wabsuper_password  = module.cloud-init-sm.wallix_password_wabsuper,
+    cryptokey_password = module.cloud-init-sm.wallix_crypto,
+    webui_password     = module.cloud-init-sm.wallix_password_webui,
+    ip1                = module.instance_bastion[0].instance_private_ip,
+    ip2                = module.instance_bastion[1].instance_private_ip
+    }
+  )
+}

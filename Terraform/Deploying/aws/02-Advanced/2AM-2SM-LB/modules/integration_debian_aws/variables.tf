@@ -36,6 +36,11 @@ variable "private_key" {
   type        = string
 }
 
+variable "public_ssh_key" {
+  description = "Public key to be added in /home/rdpuser/.ssh/authorized_keys."
+  type        = string
+}
+
 variable "project_name" {
   description = "Name of the project. Will be used for Naming and Tags."
   type        = string
