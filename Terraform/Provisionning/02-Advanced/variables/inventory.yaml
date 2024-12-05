@@ -1,0 +1,35 @@
+#############################
+### Bastion Provisionning ###
+#############################
+users_inventory:
+  "Demo1":
+      user_name: "Demo1"
+      display_name: "Demo1"
+      email: "Demo1@demo.com"
+      profile: "product_administrator"
+      user_auths: ["local_password","local_sshkey"]
+      force_change_pwd: true
+      ssh_public_key: ""
+  "Demo2":
+      user_name: "Demo2"
+      display_name: "Demo2"
+      email: "demo2@demo.com"
+      profile: "user"
+      user_auths: ["local_password","local_sshkey"]
+      force_change_pwd: true
+      ssh_public_key: ""
+
+
+vms_inventory:    
+  "windows01":
+    name    : "Windows01"
+    ip      : "192.168.1.10"
+    service : "RDP"
+    port    : 3389
+    url     : "https://Windows01.demo.com"
+  "linux01":
+    name    : "Debian01"
+    ip      : "192.168.1.11"
+    service : "SSH"
+    port    : 22
+    url     : ""
