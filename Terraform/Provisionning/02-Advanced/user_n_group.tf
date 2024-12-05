@@ -17,7 +17,7 @@ resource "wallix-bastion_user" "Demo_Users" {
 ##############################
 # Configure a group of users #
 ##############################
-resource "wallix-bastion_usergroup" "CustAdm_IT_Bastion01_User_Groups" {
+resource "wallix-bastion_usergroup" "Demo_User_Groups" {
   # Iterate on all users
   for_each = {
     for user_key, user_value in wallix-bastion_user.Demo_Users : user_key => user_value
