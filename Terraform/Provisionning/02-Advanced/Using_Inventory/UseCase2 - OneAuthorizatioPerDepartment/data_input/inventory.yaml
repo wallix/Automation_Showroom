@@ -1,0 +1,57 @@
+#############################
+### Bastion Provisionning ###
+#############################
+users_inventory:
+  "User_IT1":
+      user_name: "User_IT1"
+      display_name: "User_IT1"
+      email: "user_it1@demo.com"
+      profile: "product_administrator"
+      user_auths: ["local_password","local_sshkey"]
+      force_change_pwd: true
+      ssh_public_key: ""
+  "User_IT2":
+      user_name: "User_IT2"
+      display_name: "User_IT2"
+      email: "user_it2@demo.com"
+      profile: "product_administrator"
+      user_auths: ["local_password","local_sshkey"]
+      force_change_pwd: true
+      ssh_public_key: ""
+  "User_Dev1":
+      user_name: "User_Dev1"
+      display_name: "User_Dev1"
+      email: "user_Dev1@demo.com"
+      profile: "user"
+      user_auths: ["local_password","local_sshkey"]
+      force_change_pwd: true
+      ssh_public_key: ""
+  "User_Dev2":
+      user_name: "User_Dev2"
+      display_name: "User_Dev2"
+      email: "user_dev2@demo.com"
+      profile: "user"
+      user_auths: ["local_password","local_sshkey"]
+      force_change_pwd: true
+      ssh_public_key: ""
+
+group_inventory:
+  "IT": ["User_IT1", "User_IT2"]
+  "Dev": ["User_Dev1", "User_Dev2"]
+
+
+
+
+vms_inventory:    
+  "windows01":
+    name    : "Windows01"
+    ip      : "192.168.1.10"
+    service : "RDP"
+    port    : 3389
+    url     : "https://Windows01.demo.com"
+  "linux01":
+    name    : "Debian01"
+    ip      : "192.168.1.11"
+    service : "SSH"
+    port    : 22
+    url     : ""

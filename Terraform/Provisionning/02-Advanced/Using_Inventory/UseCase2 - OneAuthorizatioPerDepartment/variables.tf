@@ -11,7 +11,7 @@ variable "bastion_info_token" {
 }
 variable "bastion_info_api_version" {
   description = "This is the version of api used to call api."
-  default     = "v3.8"
+  default     = "v3.3"
   type        = string
 }
 variable "bastion_info_user" {

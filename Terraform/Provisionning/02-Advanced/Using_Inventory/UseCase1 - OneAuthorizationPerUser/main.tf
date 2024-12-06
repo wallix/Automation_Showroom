@@ -24,5 +24,5 @@ data "wallix-bastion_version" "version" {}
 
 
 locals {
-  yaml_inventory = yamldecode(file("./variables/inventory.yaml"))
+  yaml_inventory = yamldecode(file("./data_input/inventory.yaml"))
 }
