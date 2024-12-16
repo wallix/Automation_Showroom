@@ -4,9 +4,9 @@ bastion_info_api_version = "v3.12"
 bastion_info_user        = "admin"
 bastion_info_port        = "443"
 profil_mapping = {
-    "PAM_Approver_EntraID_Group"  = "approver",
-    "PAM_Auditor_EntraIDGroup"    = "product_administrator",
-    "PAM_Operation_Administrator" = "operation_administrator",
-    "PAM_System_Administrator"    = "system_administrator",
-    "PAM_User"                    = "user"
-  }
+  "PAM_Approver"                = "approver",
+  "PAM_Auditor"                 = "product_administrator",
+  "PAM_Operation_Administrator" = "operation_administrator",
+  "PAM_System_Administrator"    = "system_administrator",
+  "PAM_User"                    = "user",
+}
