@@ -26,5 +26,6 @@ Thanks goes to these wonderful people :
 <!-- prettier-ignore-end -->
 
 <!-- ALL-CONTRIBUTORS-LIST:END -->
+Check the legend for the [emoji keys here](https://allcontributors.org/docs/en/emoji-key)
 
 This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
