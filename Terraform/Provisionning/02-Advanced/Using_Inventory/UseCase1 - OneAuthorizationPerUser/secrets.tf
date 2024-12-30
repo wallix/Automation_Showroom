@@ -2,12 +2,12 @@
 locals {
   primary_accounts = {
     for user_key, user in local.yaml_inventory["users_inventory"] :
-    user["user_name"] => "${user["user_name"]}-primary-password"
+    user_key => "${user_key}-primary-password"
   }
 
   secondary_accounts = {
     for user_key, user in local.yaml_inventory["users_inventory"] :
-    user["user_name"] => "${user["user_name"]}-target-password"
+    user_key => "${user_key}-target-password"
   }
 
 }

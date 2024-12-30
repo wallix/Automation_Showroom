@@ -1,35 +1,56 @@
-#############################
-### Bastion Provisionning ###
-#############################
+#######################################################################
+#   Put here all your users, devices and groups inventory.            #
+#   This file is a YAML format, please respect the naming convention  #
+#######################################################################
+
+# Inventory of all your users, one user_group will be created per user
 users_inventory:
-  "Demo1":
-      user_name: "Demo1"
-      display_name: "Demo1"
-      email: "Demo1@demo.com"
+  "demo01":
+      user_name: "Demo01"
+      display_name: "Demo01"
+      email: "demo01@demo.com"
       profile: "product_administrator"
       user_auths: ["local_password","local_sshkey"]
       force_change_pwd: true
-      ssh_public_key: ""
-  "Demo2":
-      user_name: "Demo2"
-      display_name: "Demo2"
-      email: "demo2@demo.com"
+      ssh_public_key: "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBJiRVOBtwqJzp2O+U2eLDCTlgFvoRS6AeyRh+/HedHJhMrlFC4HX1rTLb80RA0B5NH5wtNNwrSg+wMCGGWEAaQ0= demo01@demo.com"
+  "demo02":
+      user_name: "Demo02"
+      display_name: "Demo02"
+      email: "demo02@demo.com"
       profile: "user"
       user_auths: ["local_password","local_sshkey"]
       force_change_pwd: true
       ssh_public_key: ""
 
-
-vms_inventory:    
-  "windows01":
-    name    : "Windows01"
+# Inventory of all your servers
+vms_inventory:  
+  "windows_common01":
+    name    : "Windows_Common01"
     ip      : "192.168.1.10"
     service : "RDP"
     port    : 3389
-    url     : "https://Windows01.demo.com"
-  "linux01":
-    name    : "Debian01"
+    url     : ""  
+  "windows_demo01":
+    name    : "Windows_Demo01"
     ip      : "192.168.1.11"
+    service : "RDP"
+    port    : 3389
+    url     : ""
+  "windows_demo02":
+    name    : "Windows_Demo02"
+    ip      : "192.168.1.12"
+    service : "RDP"
+    port    : 3389
+    url     : ""
+  
+  "linux01_common":
+    name    : "Debian01"
+    ip      : "192.168.1.13"
     service : "SSH"
     port    : 22
-    url     : ""
+    url     : "https://linux01_Common.wallix.demo"
+
+
+# Define the users accesses
+demo01_inventory: [windows_common01, windows_demo01, linux01_common]
+demo02_inventory: [windows_common01, windows_demo02, linux01_common]
