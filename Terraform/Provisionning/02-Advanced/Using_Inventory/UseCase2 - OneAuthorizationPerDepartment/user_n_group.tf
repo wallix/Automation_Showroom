@@ -1,7 +1,11 @@
-##########################
-# Configuration of users #
-##########################
-resource "wallix-bastion_user" "Demo_Users" {
+######################################################################################################
+#   Here you will find the configuration for users and usergroups. If you need more options, please  # 
+#   refer to: https://registry.terraform.io/providers/wallix/wallix-bastion/latest/docs              #
+######################################################################################################
+
+### USERS ###
+# Configuration of users
+resource "wallix-bastion_user" "Demo_UseCase2_Users" {
   for_each = local.yaml_inventory["users_inventory"]
 
   user_name        = each.value["user_name"]
@@ -14,24 +18,23 @@ resource "wallix-bastion_user" "Demo_Users" {
   ssh_public_key   = each.value["ssh_public_key"]
 }
 
-##############################
-# Configure a group of users #
-##############################
-resource "wallix-bastion_usergroup" "Demo_User_Groups" {
-  depends_on = [wallix-bastion_user.Demo_Users]
-  # Iterate on all users
+### USER GROUPS ###
+# Configure a group of users 
+resource "wallix-bastion_usergroup" "Demo_UseCase2_User_Groups" {
+  depends_on = [wallix-bastion_user.Demo_UseCase2_Users]
+  # Iterate through each group and its corresponding users in the YAML inventory
   for_each = {
-    for group, users in local.yaml_inventory["group_inventory"] :
+    for group, users in local.yaml_inventory["user_group_inventory"] :
     group => {
-      group_name = group
-      users      = [for user in users : local.yaml_inventory["users_inventory"][user].user_name]
+      group_name = group                                                                         # Corresponds to the key of each iteration in user_group_inventory 
+      users      = [for user in users : local.yaml_inventory["users_inventory"][user].user_name] # list of users in each group in user_group_inventory
     }
   }
 
-  # group creation
+  # Set the group name
   group_name = each.value.group_name
   timeframes = ["allthetime"]
 
-  # put users in groups
+  # Assign users to the current group
   users = each.value.users
 }

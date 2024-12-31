@@ -1,6 +1,10 @@
-##########################
-# Configuration of users #
-##########################
+######################################################################################################
+#   Here you will find the configuration for users and usergroups. If you need more options, please  # 
+#   refer to: https://registry.terraform.io/providers/wallix/wallix-bastion/latest/docs              #
+######################################################################################################
+
+### USERS ###
+# Configuration of users
 resource "wallix-bastion_user" "Demo_UseCase1_Users" {
   for_each = local.yaml_inventory.users_inventory
 
@@ -14,18 +18,18 @@ resource "wallix-bastion_user" "Demo_UseCase1_Users" {
   ssh_public_key   = each.value.ssh_public_key
 }
 
-##############################
-# Configure a group of users #
-##############################
+### USER GROUPS ###
+# Configure a group of users 
 resource "wallix-bastion_usergroup" "Demo_UseCase1_User_Groups" {
   # Iterate on all users
   for_each = {
     for user_key, user_value in wallix-bastion_user.Demo_UseCase1_Users : user_key => user_value
   }
-  # group creation
+
+  # Set the group name
   group_name = each.value.user_name
   timeframes = ["allthetime"]
 
-  # put users in groups
+  # Assign users to the current group
   users = [each.value.user_name]
 }
