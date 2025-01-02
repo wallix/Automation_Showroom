@@ -1,0 +1,76 @@
+#######################################################################
+#   Put here all your users, devices and groups inventory.            #
+#   This file is a YAML format, please respect the naming convention  #
+#######################################################################
+
+# Inventory of all your users, one user_group will be created per user
+users_inventory:
+  "Helpdesk_User1":
+      user_name: "Helpdesk_User1"
+      display_name: "Helpdesk_User1"
+      email: "helpdesk_user1@demo.com"
+      profile: "user"
+      user_auths: ["local_password","local_sshkey"]
+      force_change_pwd: true
+      ssh_public_key: ""
+  "Helpdesk_User2":
+      user_name: "Helpdesk_User2"
+      display_name: "Helpdesk_User2"
+      email: "helpdesk_user2@demo.com"
+      profile: "user"
+      user_auths: ["local_password","local_sshkey"]
+      force_change_pwd: true
+      ssh_public_key: ""
+  "Admin_User1":
+      user_name: "Admin_User1"
+      display_name: "Admin_User1"
+      email: "admin_user1@demo.com"
+      profile: "product_administrator"
+      user_auths: ["local_password","local_sshkey"]
+      force_change_pwd: true
+      ssh_public_key: ""
+  "Admin_User2":
+      user_name: "Admin_User2"
+      display_name: "Admin_User2"
+      email: "admin_user2@demo.com"
+      profile: "product_administrator"
+      user_auths: ["local_password","local_sshkey"]
+      force_change_pwd: true
+      ssh_public_key: ""
+
+# Define the users groups, its correspond to the final access rules 
+user_group_inventory:
+  "Windows_AD01_administrator": ["Admin_User1", "Admin_User2"]
+  "Windows_AD01_helpdesk": ["Helpdesk_User1", "Helpdesk_User2"]
+  "Windows_DHCP01_administrator": ["Admin_User1", "Admin_User2"]
+  "Windows_DHCP01_helpdesk": ["Helpdesk_User1", "Helpdesk_User2"]
+  "Linux_Repositories01_root": ["Admin_User1", "Admin_User2"]
+  "Linux_Repositories01_helpdesk": ["Helpdesk_User1", "Helpdesk_User2"]
+  "Linux_Repositories01_repositories": ["Admin_User1", "Admin_User2", "Helpdesk_User1", "Helpdesk_User2"]
+
+
+# Inventory of all your servers
+vms_inventory:  
+  "Windows_AD01":
+    name    : "Windows_AD01"
+    ip      : "192.168.1.10"
+    accounts : ["administrator", "helpdesk"]
+    service : "RDP"
+    port    : 3389
+    url     : ""  
+
+  "Windows_DHCP01":
+    name    : "Windows_DHCP01"
+    ip      : "192.168.1.11"
+    accounts : ["administrator", "helpdesk"]
+    service : "RDP"
+    port    : 3389
+    url     : ""
+  
+  "Linux_Repositories01":
+    name    : "Linux_Repositories01"
+    ip      : "192.168.1.12"
+    accounts : ["root", "helpdesk", "repositories"]
+    service : "SSH"
+    port    : 22
+    url     : "https://Linux_Repositories01.wallix.demo"
