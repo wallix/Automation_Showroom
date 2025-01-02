@@ -157,13 +157,11 @@ resource "wallix-bastion_targetgroup" "Demo_UseCase3_Target_Groups" {
 
   # Group name is dynamically created using name and account
   group_name = "${each.value.name}_${each.value.account}"
-
-  # Dynamic block for session_accounts
   session_accounts {
-    account     = each.value.account                                                                       # Account name
-    domain      = wallix-bastion_device_localdomain.Demo_UseCase3_Localdomain[each.value.name].domain_name # Domain name
-    domain_type = "local"                                                                                  # Static value
-    device      = each.value.name                                                                          # Device name
-    service     = each.value.service                                                                       # Service (port) of the device
+    account     = each.value.account                                                                       # Reference to account of the device
+    domain      = wallix-bastion_device_localdomain.Demo_UseCase3_Localdomain[each.value.name].domain_name # Reference to the created domain
+    domain_type = "local"                                                                                  # Domain type
+    device      = each.value.name                                                                          # Reference to the name of the device
+    service     = each.value.service                                                                       # Reference to the service of the device
   }
 }
