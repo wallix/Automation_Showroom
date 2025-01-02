@@ -1,0 +1,83 @@
+#######################################################################
+#   Put here all your users, devices and groups inventory.            #
+#   This file is a YAML format, please respect the naming convention  #
+#######################################################################
+
+# Inventory of all your users, one user_group will be created per user
+users_inventory:
+  "User_IT1":
+      user_name: "User_IT1"
+      display_name: "User_IT1"
+      email: "user_it1@demo.com"
+      profile: "product_administrator"
+      user_auths: ["local_password","local_sshkey"]
+      force_change_pwd: true
+      ssh_public_key: ""
+  "User_IT2":
+      user_name: "User_IT2"
+      display_name: "User_IT2"
+      email: "user_it2@demo.com"
+      profile: "product_administrator"
+      user_auths: ["local_password","local_sshkey"]
+      force_change_pwd: true
+      ssh_public_key: ""
+  "User_Dev1":
+      user_name: "User_Dev1"
+      display_name: "User_Dev1"
+      email: "user_Dev1@demo.com"
+      profile: "user"
+      user_auths: ["local_password","local_sshkey"]
+      force_change_pwd: true
+      ssh_public_key: ""
+  "User_Dev2":
+      user_name: "User_Dev2"
+      display_name: "User_Dev2"
+      email: "user_dev2@demo.com"
+      profile: "user"
+      user_auths: ["local_password","local_sshkey"]
+      force_change_pwd: true
+      ssh_public_key: ""
+
+# Define the users groups
+user_group_inventory:
+  "IT": ["User_IT1", "User_IT2"]
+  "Dev": ["User_Dev1", "User_Dev2"]
+
+
+# Inventory of all your servers
+vms_inventory:  
+  "Windows_Common01":
+    name    : "Windows_Common01"
+    ip      : "192.168.1.10"
+    account : "administrator"
+    service : "RDP"
+    port    : 3389
+    url     : ""  
+  "Windows_IT01":
+    name    : "Windows_IT01"
+    ip      : "192.168.1.11"
+    account : "administrator"
+    service : "RDP"
+    port    : 3389
+    url     : ""
+  "Windows_Dev01":
+    name    : "Windows_Dev01"
+    ip      : "192.168.1.12"
+    account : "administrator"
+    service : "RDP"
+    port    : 3389
+    url     : ""
+  
+  "Linux_Common01":
+    name    : "Linux_Common01"
+    ip      : "192.168.1.13"
+    account : "root"
+    service : "SSH"
+    port    : 22
+    url     : "https://linux_Common01.wallix.demo"
+
+
+# Define the target group
+target_group_inventory:
+  "IT": ["Windows_Common01", "Windows_IT01", "Linux_Common01"]
+  "Dev": ["Windows_Common01", "Windows_Dev01", "Linux_Common01"]   
