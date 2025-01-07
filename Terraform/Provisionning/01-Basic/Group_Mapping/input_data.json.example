@@ -1,0 +1,27 @@
+[
+  {
+    "id": "0d29eda8-833c-4aec-9dce-c17cfaf6e421",
+    "description": "User with the approver profil",
+    "mailNickname": "PAM_Approver"
+  },
+  {
+    "id": "4df5c8a9-8a76-4bad-bfcf-671a88697f9f",
+    "description": "User with the auditor profil",
+    "mailNickname": "PAM_Auditor"
+  },
+  {
+    "id": "965cba0d-c6a0-4fc0-8b84-8ee36ae511e8",
+    "description": "User with the operation administrator profil",
+    "mailNickname": "PAM_Operation_Administrator"
+  },
+  {
+    "id": "d66679b4-6e62-450a-bdec-575c969ce027",
+    "description": "User with the system administrator profil",
+    "mailNickname": "PAM_System_Administrator"
+  },
+  {
+    "id": "d68da47d-e3b9-40c5-accc-86a1f6ff3f35",
+    "description": "User with the user profil",
+    "mailNickname": "PAM_User"
+  }
+]

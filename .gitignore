@@ -42,7 +42,8 @@ terraform.rc
 
 *.pem
 info_replication.txt
+input_data.json
 
 # temp
 
-Terraform/Deploying/azure/02-Advanced
+Terraform/Deploying/azure/02-Advanced/
