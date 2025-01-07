@@ -1,4 +1,7 @@
-# Base
+<!-- markdownlint-disable-file MD033 -->
+# UseCase1 - OneAuthorizationPerUser
+
+## Base
 
 This is a mix and match example. A bastion should already be on place and an API Key set.
 
@@ -22,7 +25,7 @@ terraform destroy -var-file=config.tvfars
 
 Instructions for using inventory variables in Terraform
 
-1.	Define Inventory Variables
+1. Define Inventory Variables
 All inventory variables are set in the file: data_input/inventory.yml
 
 2. Ensure Proper Formatting
@@ -33,7 +36,6 @@ In the root module’s main.tf, the inventory file is declared as a local variab
 
 4. Access the Variables
 Use local.<key> to call the variables in your Terraform files.
-
 
 <!-- BEGIN_TF_DOCS -->
 ## Requirements

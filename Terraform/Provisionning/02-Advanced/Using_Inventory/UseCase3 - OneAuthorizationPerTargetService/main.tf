@@ -1,4 +1,5 @@
 terraform {
+  required_version = ">=1.2.3"
   required_providers {
     wallix-bastion = {
       source  = "wallix/wallix-bastion"
@@ -19,8 +20,6 @@ provider "wallix-bastion" {
   password    = var.bastion_info_password
   port        = var.bastion_info_port
 }
-
-data "wallix-bastion_version" "version" {}
 
 
 locals {
