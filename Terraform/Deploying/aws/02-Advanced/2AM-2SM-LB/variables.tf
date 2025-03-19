@@ -1,4 +1,10 @@
 // MISC
+variable "aws_profile" {
+  default     = "default"
+  type        = string
+  description = "AWS profile to use!"
+}
+
 variable "project_name" {
   description = "Specifies the project name"
   type        = string
@@ -65,13 +71,13 @@ variable "allowed_ips" {
 // Instance Sizing
 
 variable "aws_instance_size_am" {
-  default     = "t3.medium"
+  default     = "t2.medium"
   description = "Specifies the instance sizing."
   type        = string
 }
 
 variable "aws_instance_size_sm" {
-  default     = "t3.medium"
+  default     = "t2.medium"
   description = "Specifies the instance sizing."
   type        = string
 }
@@ -106,16 +112,19 @@ variable "sm_disk_type" {
 }
 
 variable "bastion-version" {
+  type        = string
   default     = ""
   description = "Bastion version to use. It can be partial or full value (5, 4.0 , 4.4.1, 4.4.1.8).\n Can be empty for latest pushed image."
 }
 
 variable "access-manager-version" {
+  type        = string
   default     = ""
   description = "Bastion version to use. It can be partial or full value (12, 11.0 , 10.4.3, 10.0.7.28).\n Can be empty for latest pushed image."
 }
 
 variable "number-of-am" {
+  type        = number
   default     = 2
   description = "Number of AM to be deployed"
   validation {
@@ -125,6 +134,7 @@ variable "number-of-am" {
 }
 
 variable "number-of-sm" {
+  type        = number
   default     = 2
   description = "Number of SM to be deployed"
   validation {

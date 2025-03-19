@@ -148,8 +148,8 @@ You must accept [terms and condition of Debian 12](https://aws.amazon.com/market
 
 ### Failing to import certificate on loadbalancer
 
-For some reason there is sometimes a 403 error while importing certificate on LB listener, it's linked to the rights to access certificate's vault.
-You need to manually create the listener and import it before refreshing and re-apply configuration.
+For some reason there is sometimes a 403 error while importing certificate on LB listener, it's linked to the rights to access certificate's vault as vault function use assume_role, please read : [Github issue](https://github.com/hashicorp/terraform-provider-aws/issues/2420)
+You may need to manually create the listener and import it before refreshing and re-apply configuration.
 
 ```bash
 terraform import aws_lb_listener.Frontend_AM arn:aws:elasticloadbalancing:eu-west-3:519101999238:listener/app/Access-Manager-Front/059ce0c7d3b69254/9c0b0d80abe0ef50
@@ -172,12 +172,18 @@ Have you set the allowed ip variable with your public IP ?
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.9.0 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >=5.85.0 |
+| <a name="requirement_cloudinit"></a> [cloudinit](#requirement\_cloudinit) | >=2.3.5 |
+| <a name="requirement_http"></a> [http](#requirement\_http) | >=3.4.5 |
+| <a name="requirement_local"></a> [local](#requirement\_local) | >=2.5.2 |
+| <a name="requirement_random"></a> [random](#requirement\_random) | >=3.6.3 |
+| <a name="requirement_tls"></a> [tls](#requirement\_tls) | >=4.0.6 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 5.72.1 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 5.85.0 |
 | <a name="provider_http"></a> [http](#provider\_http) | 3.4.5 |
 | <a name="provider_local"></a> [local](#provider\_local) | 2.5.2 |
 | <a name="provider_tls"></a> [tls](#provider\_tls) | 4.0.6 |
@@ -199,6 +205,8 @@ Have you set the allowed ip variable with your public IP ?
 |------|------|
 | [aws_acm_certificate.cert](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/acm_certificate) | resource |
 | [aws_default_security_group.default](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/default_security_group) | resource |
+| [aws_efs_file_system.efs-example](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/efs_file_system) | resource |
+| [aws_efs_mount_target.efs_mount_target](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/efs_mount_target) | resource |
 | [aws_internet_gateway.cluster_gateway](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/internet_gateway) | resource |
 | [aws_lb.front_am](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb) | resource |
 | [aws_lb.front_sm](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb) | resource |
@@ -222,6 +230,7 @@ Have you set the allowed ip variable with your public IP ?
 | [aws_security_group.accessmanager_sg](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group) | resource |
 | [aws_security_group.alb](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group) | resource |
 | [aws_security_group.bastion_sg](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group) | resource |
+| [aws_security_group.efs_sg](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group) | resource |
 | [aws_security_group.nlb](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group) | resource |
 | [aws_subnet.subnet_az_AM](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet) | resource |
 | [aws_subnet.subnet_az_SM](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet) | resource |
@@ -244,9 +253,10 @@ Have you set the allowed ip variable with your public IP ?
 | <a name="input_am_disk_type"></a> [am\_disk\_type](#input\_am\_disk\_type) | AM disk type | `string` | `"gp3"` | no |
 | <a name="input_ami-from-aws-marketplace"></a> [ami-from-aws-marketplace](#input\_ami-from-aws-marketplace) | Should we use the marketplace image ? If false, the shared image by WALLIX will be use. | `bool` | `true` | no |
 | <a name="input_aws-region"></a> [aws-region](#input\_aws-region) | Aws region to deploy resources | `string` | n/a | yes |
-| <a name="input_aws_instance_size_am"></a> [aws\_instance\_size\_am](#input\_aws\_instance\_size\_am) | Specifies the instance sizing. | `string` | `"t3.medium"` | no |
+| <a name="input_aws_instance_size_am"></a> [aws\_instance\_size\_am](#input\_aws\_instance\_size\_am) | Specifies the instance sizing. | `string` | `"t2.medium"` | no |
 | <a name="input_aws_instance_size_debian"></a> [aws\_instance\_size\_debian](#input\_aws\_instance\_size\_debian) | Specifies the instance sizing. | `string` | `"t3.medium"` | no |
-| <a name="input_aws_instance_size_sm"></a> [aws\_instance\_size\_sm](#input\_aws\_instance\_size\_sm) | Specifies the instance sizing. | `string` | `"t3.medium"` | no |
+| <a name="input_aws_instance_size_sm"></a> [aws\_instance\_size\_sm](#input\_aws\_instance\_size\_sm) | Specifies the instance sizing. | `string` | `"t2.medium"` | no |
+| <a name="input_aws_profile"></a> [aws\_profile](#input\_aws\_profile) | AWS profile to use! | `string` | `"default"` | no |
 | <a name="input_bastion-version"></a> [bastion-version](#input\_bastion-version) | Bastion version to use. It can be partial or full value (5, 4.0 , 4.4.1, 4.4.1.8).<br/> Can be empty for latest pushed image. | `string` | `""` | no |
 | <a name="input_deploy-integration-debian"></a> [deploy-integration-debian](#input\_deploy-integration-debian) | Should a debian instance for integration be deployed ? | `bool` | `true` | no |
 | <a name="input_key_pair_name"></a> [key\_pair\_name](#input\_key\_pair\_name) | Name of the key pair that will be use to connect to the instance. | `string` | n/a | yes |
@@ -275,6 +285,7 @@ Have you set the allowed ip variable with your public IP ?
 | <a name="output_debian_connect"></a> [debian\_connect](#output\_debian\_connect) | How to connect to the Debian instance. |
 | <a name="output_debian_public_ip"></a> [debian\_public\_ip](#output\_debian\_public\_ip) | Public IP of the Debian instance. |
 | <a name="output_debianpassword_rdpuser"></a> [debianpassword\_rdpuser](#output\_debianpassword\_rdpuser) | Generated password for rdp connexion with rdpuser. |
+| <a name="output_efs"></a> [efs](#output\_efs) | FQDN of the EFS |
 | <a name="output_sm-ami"></a> [sm-ami](#output\_sm-ami) | Description of the AMI used for Session Manager. |
 | <a name="output_sm_fqdn_nlb"></a> [sm\_fqdn\_nlb](#output\_sm\_fqdn\_nlb) | FQDN of the Network Load Balancer. |
 | <a name="output_sm_ids"></a> [sm\_ids](#output\_sm\_ids) | List of sm ids. Useful to find the default admin password (admin-<instance-id) |

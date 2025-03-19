@@ -19,7 +19,7 @@ module "instance_access_manager" {
   count                    = var.number-of-am
   source                   = "./modules/aws_wallix_instance"
   ami-from-aws-marketplace = var.ami-from-aws-marketplace
-  aws_instance_size        = var.aws_instance_size_sm
+  aws_instance_size        = var.aws_instance_size_am
   common_tags              = local.common_tags
   disk_size                = var.am_disk_size
   disk_type                = var.am_disk_type

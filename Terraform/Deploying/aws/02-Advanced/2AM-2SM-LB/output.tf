@@ -145,3 +145,9 @@ output "cloud_init_am" {
   sensitive   = true
   value       = module.cloud-init-am.cloudinit_config
 }
+
+output "efs" {
+  description = "FQDN of the EFS"
+  sensitive   = false
+  value       = aws_efs_file_system.efs-example.dns_name
+}

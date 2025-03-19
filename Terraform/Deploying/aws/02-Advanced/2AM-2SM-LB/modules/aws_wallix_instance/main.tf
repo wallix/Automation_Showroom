@@ -1,3 +1,16 @@
+terraform {
+  required_version = ">= 1.9.0"
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = ">=5.85.0"
+    }
+    local = {
+      source  = "hashicorp/local"
+      version = ">=2.5.2"
+    }
+  }
+}
 resource "aws_network_interface" "wallix" {
   subnet_id   = var.subnet_id
   description = "${var.instance_name}-${var.project_name}"
@@ -10,13 +23,14 @@ resource "aws_network_interface" "wallix" {
 }
 
 locals {
-  ami-owner = var.ami-from-aws-marketplace ? "aws-marketplace" : "519101999238" // 519101999238 -> WALLIX
+  ami-owner    = var.ami-from-aws-marketplace ? "aws-marketplace" : "519101999238" // 519101999238 -> WALLIX
+  product_name = replace(var.product_name, "-", ".*")
 }
 
 data "aws_ami" "wallix-ami" {
   most_recent = true
   owners      = ["${local.ami-owner}"]
-  name_regex  = "^${var.product_name}-${var.product_version}.*aws"
+  name_regex  = "^${local.product_name}-${var.product_version}.*aws"
 
 }
 

@@ -53,7 +53,7 @@ variable "product_name" {
   type        = string
   default     = "bastion"
   validation {
-    condition     = (var.product_name == "bastion") || (var.product_name == "access-manager")
+    condition     = (var.product_name == "bastion") || (var.product_name == "access-manager") || (var.product_name == "accessmanager")
     error_message = "Value should be bastion or access-manager !"
   }
 }
