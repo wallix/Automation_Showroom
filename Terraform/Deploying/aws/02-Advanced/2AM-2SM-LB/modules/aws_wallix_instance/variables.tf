@@ -63,13 +63,13 @@ variable "product_version" {
   default     = ""
 }
 
-variable "ami-from-aws-marketplace" {
+variable "ami_from_aws_marketplace" {
   type        = bool
   default     = true
   description = "Should we use the marketplace image ? If false, the shared image by WALLIX will be use."
 }
 
-variable "ami-override" {
+variable "ami_override" {
   default     = ""
   type        = string
   description = "Force the usage of a specifique AMI-ID"

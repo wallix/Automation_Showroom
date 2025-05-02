@@ -1,7 +1,7 @@
 module "instance_bastion" {
-  count                    = var.number-of-sm
+  count                    = var.number_of_sm
   source                   = "./modules/aws_wallix_instance"
-  ami-from-aws-marketplace = var.ami-from-aws-marketplace
+  ami_from_aws_marketplace = var.ami_from_aws_marketplace
   aws_instance_size        = var.aws_instance_size_sm
   common_tags              = local.common_tags
   disk_size                = var.sm_disk_size
@@ -9,16 +9,16 @@ module "instance_bastion" {
   instance_name            = "SM-${local.project_name}-${count.index}"
   key_pair_name            = module.ssh_aws.key_pair_name
   product_name             = "bastion"
-  product_version          = var.bastion-version
+  product_version          = var.bastion_version
   project_name             = local.project_name
   subnet_id                = aws_subnet.subnet_az_SM[count.index].id
   user_data                = module.cloud-init-sm.cloudinit_config
 }
 
 module "instance_access_manager" {
-  count                    = var.number-of-am
+  count                    = var.number_of_am
   source                   = "./modules/aws_wallix_instance"
-  ami-from-aws-marketplace = var.ami-from-aws-marketplace
+  ami_from_aws_marketplace = var.ami_from_aws_marketplace
   aws_instance_size        = var.aws_instance_size_am
   common_tags              = local.common_tags
   disk_size                = var.am_disk_size
@@ -26,14 +26,14 @@ module "instance_access_manager" {
   instance_name            = "AM-${local.project_name}-${count.index}"
   key_pair_name            = module.ssh_aws.key_pair_name
   product_name             = "access-manager"
-  product_version          = var.access-manager-version
+  product_version          = var.access_manager_version
   project_name             = local.project_name
   subnet_id                = aws_subnet.subnet_az_AM[count.index].id
   user_data                = module.cloud-init-am.cloudinit_config
 }
 
 module "integration_debian" {
-  count             = var.deploy-integration-debian ? 1 : 0
+  count             = var.deploy_integration_debian ? 1 : 0
   source            = "./modules/integration_debian_aws"
   tags              = local.common_tags
   sm-instances      = local.sm_instances

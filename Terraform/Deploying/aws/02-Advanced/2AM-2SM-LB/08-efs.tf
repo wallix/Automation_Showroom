@@ -20,7 +20,7 @@ resource "aws_security_group" "efs_sg" {
 }
 
 resource "aws_efs_mount_target" "efs_mount_target" {
-  count           = var.number-of-sm
+  count           = var.number_of_sm
   file_system_id  = aws_efs_file_system.efs-example.id
   subnet_id       = aws_subnet.subnet_az_SM[count.index].id
   security_groups = [aws_security_group.efs_sg.id]

@@ -2,7 +2,7 @@
 
 output "sm-ami" {
   description = "Description of the AMI used for Session Manager."
-  value       = (var.number-of-sm != 0 ? (toset(module.instance_bastion[*].ami-info)) : null)
+  value       = (var.number_of_sm != 0 ? (toset(module.instance_bastion[*].ami-info)) : null)
 }
 
 output "sm_password_wabadmin" {
@@ -37,19 +37,18 @@ output "sm_password_crypto" {
 
 output "sm_private_ip" {
   description = "List of the private ip used for Session Manager."
-  value       = (var.number-of-sm != 0 ? module.instance_bastion.*.instance_private_ip : null)
+  value       = (var.number_of_sm != 0 ? module.instance_bastion[*].instance_private_ip : null)
 }
 output "sm_ids" {
-  description = "List of sm ids. Useful to find the default admin password (admin-<instance-id)"
-  value       = (var.number-of-sm != 0 ? module.instance_bastion.*.instance-id : null)
+  description = "List of sm ids. Useful to find the default admin password (admin-<instance-id>)"
+  value       = (var.number_of_sm != 0 ? module.instance_bastion[*].instance-id : null)
 }
-
 
 // AM
 
 output "am-ami" {
   description = "Description of the AMI used for Access Manager."
-  value       = (var.number-of-am != 0 ? one(toset(module.instance_access_manager[*].ami-info)) : null)
+  value       = (var.number_of_am != 0 ? one(toset(module.instance_access_manager[*].ami-info)) : null)
 }
 
 output "am_password_wabadmin" {
@@ -72,24 +71,24 @@ output "am_password_wabupgrade" {
 
 output "am_private_ip" {
   description = "List of the private ip used for Access Manager."
-  value       = (var.number-of-am != 0 ? module.instance_access_manager.*.instance_private_ip : null)
+  value       = (var.number_of_am != 0 ? module.instance_access_manager[*].instance_private_ip : null)
 }
 
 // Debian
 
 output "debian_public_ip" {
   description = "Public IP of the Debian instance."
-  value       = (var.deploy-integration-debian ? module.integration_debian.*.public_ip_debian_admin : null)
+  value       = (var.deploy_integration_debian ? module.integration_debian[*].public_ip_debian_admin : null)
 }
 
 output "debian_connect" {
   description = "How to connect to the Debian instance."
-  value       = (var.deploy-integration-debian ? module.integration_debian.*.z_connect : null)
+  value       = (var.deploy_integration_debian ? module.integration_debian[*].z_connect : null)
 }
 
 output "debianpassword_rdpuser" {
   description = "Generated password for rdp connexion with rdpuser."
-  value       = (var.deploy-integration-debian ? module.integration_debian.*.password_rdpuser : null)
+  value       = (var.deploy_integration_debian ? module.integration_debian[*].password_rdpuser : null)
   sensitive   = true
 }
 

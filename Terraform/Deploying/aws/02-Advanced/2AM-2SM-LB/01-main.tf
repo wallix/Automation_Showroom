@@ -31,7 +31,7 @@ terraform {
 
 // Configure the AWS Provider
 provider "aws" {
-  region  = var.aws-region
+  region  = var.aws_region
   profile = var.aws_profile
 }
 
@@ -69,7 +69,7 @@ resource "local_sensitive_file" "private_key" {
 }
 
 resource "local_sensitive_file" "replication_master" {
-  count    = var.number-of-sm == 2 ? 1 : 0
+  count    = var.number_of_sm == 2 ? 1 : 0
   filename = "info_replication.txt"
   content = templatefile("${path.module}/info_replication_master_master.tpl", {
     wabadmin_password  = module.cloud-init-sm.wallix_password_wabadmin,

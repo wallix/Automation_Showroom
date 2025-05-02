@@ -23,7 +23,7 @@ resource "aws_network_interface" "wallix" {
 }
 
 locals {
-  ami-owner    = var.ami-from-aws-marketplace ? "aws-marketplace" : "519101999238" // 519101999238 -> WALLIX
+  ami-owner    = var.ami_from_aws_marketplace ? "aws-marketplace" : "519101999238" // 519101999238 -> WALLIX
   product_name = replace(var.product_name, "-", ".*")
 }
 
@@ -35,7 +35,7 @@ data "aws_ami" "wallix-ami" {
 }
 
 resource "aws_instance" "wallix" {
-  ami           = var.ami-override != "" ? var.ami-override : data.aws_ami.wallix-ami.id
+  ami           = var.ami_override != "" ? var.ami_override : data.aws_ami.wallix-ami.id
   instance_type = var.aws_instance_size
   user_data     = var.user_data
   key_name      = var.key_pair_name

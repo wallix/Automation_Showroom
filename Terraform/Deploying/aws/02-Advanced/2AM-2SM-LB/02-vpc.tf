@@ -16,7 +16,7 @@ data "aws_availability_zones" "available" {
 
 //  Create AM subnets.
 resource "aws_subnet" "subnet_az_AM" {
-  count                   = var.number-of-am <= 1 ? 2 : var.number-of-am
+  count                   = var.number_of_am <= 1 ? 2 : var.number_of_am
   vpc_id                  = aws_vpc.cluster.id
   cidr_block              = cidrsubnet(var.vpc_cidr, 6, count.index + 3)
   map_public_ip_on_launch = false
@@ -27,7 +27,7 @@ resource "aws_subnet" "subnet_az_AM" {
 
 //  Create SM subnets.
 resource "aws_subnet" "subnet_az_SM" {
-  count                   = var.number-of-sm <= 1 ? 2 : var.number-of-sm
+  count                   = var.number_of_sm <= 1 ? 2 : var.number_of_sm
   vpc_id                  = aws_vpc.cluster.id
   cidr_block              = cidrsubnet(var.vpc_cidr, 6, count.index)
   map_public_ip_on_launch = false
