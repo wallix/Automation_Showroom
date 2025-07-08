@@ -20,7 +20,7 @@ output "instance_network_interface_id" {
 
 output "ami-info" {
   description = "Info regarding the AMI used."
-  value       = var.ami-override != "" ? "AMI Override was used !" : <<EOT
+  value       = var.ami_override != "" ? "AMI Override was used !" : <<EOT
   "Image Name = ${data.aws_ami.wallix-ami.name}"
   "Image ID   = ${data.aws_ami.wallix-ami.id}"
   "Owner ID   = ${data.aws_ami.wallix-ami.owner_id}"

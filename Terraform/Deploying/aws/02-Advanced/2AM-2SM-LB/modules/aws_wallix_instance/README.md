@@ -22,13 +22,17 @@ module "instance_access_manager" {
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
-No requirements.
+| Name | Version |
+|------|---------|
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.9.0 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >=5.85.0 |
+| <a name="requirement_local"></a> [local](#requirement\_local) | >=2.5.2 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | n/a |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | >=5.85.0 |
 
 ## Modules
 
@@ -46,8 +50,8 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_ami-from-aws-marketplace"></a> [ami-from-aws-marketplace](#input\_ami-from-aws-marketplace) | Should we use the marketplace image ? If false, the shared image by WALLIX will be use. | `bool` | `true` | no |
-| <a name="input_ami-override"></a> [ami-override](#input\_ami-override) | Force the usage of a specifique AMI-ID | `string` | `""` | no |
+| <a name="input_ami_from_aws_marketplace"></a> [ami\_from\_aws\_marketplace](#input\_ami\_from\_aws\_marketplace) | Should we use the marketplace image ? If false, the shared image by WALLIX will be use. | `bool` | `true` | no |
+| <a name="input_ami_override"></a> [ami\_override](#input\_ami\_override) | Force the usage of a specifique AMI-ID | `string` | `""` | no |
 | <a name="input_aws_instance_size"></a> [aws\_instance\_size](#input\_aws\_instance\_size) | Instance size to use. At least t3.xlarge recommended for production. | `string` | `"t2.medium"` | no |
 | <a name="input_common_tags"></a> [common\_tags](#input\_common\_tags) | Map of tags to apply on instances resources. | `map(string)` | `{}` | no |
 | <a name="input_disk_size"></a> [disk\_size](#input\_disk\_size) | Size of the EBS block for /dev/sda1. Use at least 60 for production | `number` | `40` | no |

@@ -81,7 +81,7 @@ resource "aws_lb" "front_sm" {
   load_balancer_type               = "network"
   security_groups                  = [aws_security_group.nlb.id]
   enable_cross_zone_load_balancing = true
-  subnets                          = aws_subnet.subnet_az_SM.*.id
+  subnets                          = aws_subnet.subnet_az_SM[*].id
 
   enable_deletion_protection = false
 
@@ -134,14 +134,14 @@ resource "aws_lb_listener" "front_end_RDP" {
 
 
 resource "aws_lb_target_group_attachment" "attach_sm_ssh" {
-  count            = var.number-of-sm
+  count            = var.number_of_sm
   target_id        = module.instance_bastion[count.index].instance-id
   target_group_arn = aws_lb_target_group.front_bastion_ssh.arn
   port             = 22
 
 }
 resource "aws_lb_target_group_attachment" "attach_sm_https" {
-  count            = var.number-of-sm
+  count            = var.number_of_sm
   target_id        = module.instance_bastion[count.index].instance-id
   target_group_arn = aws_lb_target_group.front_bastion_https.arn
   port             = 443
@@ -149,7 +149,7 @@ resource "aws_lb_target_group_attachment" "attach_sm_https" {
 }
 
 resource "aws_lb_target_group_attachment" "attach_sm_rdp" {
-  count            = var.number-of-sm
+  count            = var.number_of_sm
   target_id        = module.instance_bastion[count.index].instance-id
   target_group_arn = aws_lb_target_group.front_bastion_rdp.arn
   port             = 3389

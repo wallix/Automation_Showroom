@@ -8,15 +8,15 @@ resource "aws_vpc" "cluster" {
   )
 }
 
-// Retrieve availability zones
+// Retrieve availability zones.
 
 data "aws_availability_zones" "available" {
   state = "available"
 }
 
-//  Create AM subnet for AZ 1.
+//  Create AM subnets.
 resource "aws_subnet" "subnet_az_AM" {
-  count                   = var.number-of-am <= 1 ? 2 : var.number-of-am
+  count                   = var.number_of_am <= 1 ? 2 : var.number_of_am
   vpc_id                  = aws_vpc.cluster.id
   cidr_block              = cidrsubnet(var.vpc_cidr, 6, count.index + 3)
   map_public_ip_on_launch = false
@@ -25,9 +25,9 @@ resource "aws_subnet" "subnet_az_AM" {
 
 }
 
-//  Create SM subnets
+//  Create SM subnets.
 resource "aws_subnet" "subnet_az_SM" {
-  count                   = var.number-of-sm <= 1 ? 2 : var.number-of-sm
+  count                   = var.number_of_sm <= 1 ? 2 : var.number_of_sm
   vpc_id                  = aws_vpc.cluster.id
   cidr_block              = cidrsubnet(var.vpc_cidr, 6, count.index)
   map_public_ip_on_launch = false
@@ -43,7 +43,7 @@ resource "aws_internet_gateway" "cluster_gateway" {
 
 }
 
-// Create a default route
+// Create a default route.
 resource "aws_route" "default_route" {
   route_table_id         = aws_vpc.cluster.default_route_table_id
   destination_cidr_block = "0.0.0.0/0"

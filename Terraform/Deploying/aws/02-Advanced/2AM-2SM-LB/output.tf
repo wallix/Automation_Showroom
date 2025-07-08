@@ -2,7 +2,7 @@
 
 output "sm-ami" {
   description = "Description of the AMI used for Session Manager."
-  value       = (var.number-of-sm != 0 ? (toset(module.instance_bastion[*].ami-info)) : null)
+  value       = (var.number_of_sm != 0 ? (toset(module.instance_bastion[*].ami-info)) : null)
 }
 
 output "sm_password_wabadmin" {
@@ -37,19 +37,18 @@ output "sm_password_crypto" {
 
 output "sm_private_ip" {
   description = "List of the private ip used for Session Manager."
-  value       = (var.number-of-sm != 0 ? module.instance_bastion.*.instance_private_ip : null)
+  value       = (var.number_of_sm != 0 ? module.instance_bastion[*].instance_private_ip : null)
 }
 output "sm_ids" {
-  description = "List of sm ids. Useful to find the default admin password (admin-<instance-id)"
-  value       = (var.number-of-sm != 0 ? module.instance_bastion.*.instance-id : null)
+  description = "List of sm ids. Useful to find the default admin password (admin-<instance-id>)"
+  value       = (var.number_of_sm != 0 ? module.instance_bastion[*].instance-id : null)
 }
-
 
 // AM
 
 output "am-ami" {
   description = "Description of the AMI used for Access Manager."
-  value       = (var.number-of-am != 0 ? one(toset(module.instance_access_manager[*].ami-info)) : null)
+  value       = (var.number_of_am != 0 ? one(toset(module.instance_access_manager[*].ami-info)) : null)
 }
 
 output "am_password_wabadmin" {
@@ -72,24 +71,24 @@ output "am_password_wabupgrade" {
 
 output "am_private_ip" {
   description = "List of the private ip used for Access Manager."
-  value       = (var.number-of-am != 0 ? module.instance_access_manager.*.instance_private_ip : null)
+  value       = (var.number_of_am != 0 ? module.instance_access_manager[*].instance_private_ip : null)
 }
 
 // Debian
 
 output "debian_public_ip" {
   description = "Public IP of the Debian instance."
-  value       = (var.deploy-integration-debian ? module.integration_debian.*.public_ip_debian_admin : null)
+  value       = (var.deploy_integration_debian ? module.integration_debian[*].public_ip_debian_admin : null)
 }
 
 output "debian_connect" {
   description = "How to connect to the Debian instance."
-  value       = (var.deploy-integration-debian ? module.integration_debian.*.z_connect : null)
+  value       = (var.deploy_integration_debian ? module.integration_debian[*].z_connect : null)
 }
 
 output "debianpassword_rdpuser" {
   description = "Generated password for rdp connexion with rdpuser."
-  value       = (var.deploy-integration-debian ? module.integration_debian.*.password_rdpuser : null)
+  value       = (var.deploy_integration_debian ? module.integration_debian[*].password_rdpuser : null)
   sensitive   = true
 }
 
@@ -144,4 +143,36 @@ output "cloud_init_am" {
   description = "Show Cloud-init rendered file for AM"
   sensitive   = true
   value       = module.cloud-init-am.cloudinit_config
+}
+
+output "efs" {
+  description = "FQDN of the EFS"
+  sensitive   = false
+  value       = aws_efs_file_system.efs-example.dns_name
+}
+output "all_ips" {
+  description = "All IPs"
+  sensitive   = false
+  value = {
+    am_instances      = module.instance_access_manager[*].instance_private_ip
+    sm_instances      = module.instance_bastion[*].instance_private_ip
+    debian_public_ip  = module.integration_debian[*].public_ip_debian_admin
+    debian_private_ip = module.integration_debian[*].private_ip_debian_admin
+  }
+
+}
+output "all_secrets" {
+  description = "All secret"
+  sensitive   = true
+  value = {
+    am_password_wabadmin   = module.cloud-init-am.wallix_password_wabadmin
+    am_password_wabsuper   = module.cloud-init-am.wallix_password_wabsuper
+    am_password_wabupgrade = module.cloud-init-am.wallix_password_wabupgrade
+    sm_password_crypto     = module.cloud-init-sm.wallix_crypto
+    sm_password_wabadmin   = module.cloud-init-sm.wallix_password_wabadmin
+    sm_password_wabupgrade = module.cloud-init-sm.wallix_password_wabupgrade
+    sm_password_wabsuper   = module.cloud-init-sm.wallix_password_wabsuper
+    sm_password_webui      = module.cloud-init-sm.wallix_password_webui
+    debianpassword_rdpuser = module.integration_debian[*].password_rdpuser
+  }
 }

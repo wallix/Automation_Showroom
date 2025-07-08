@@ -1,11 +1,38 @@
 terraform {
-  // This module will only work with Terraform > 1.9.4.
   required_version = ">= 1.9.0"
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = ">=5.85.0"
+    }
+    random = {
+      source  = "hashicorp/random"
+      version = ">=3.6.3"
+    }
+    http = {
+      source  = "hashicorp/http"
+      version = ">=3.4.5"
+    }
+    local = {
+      source  = "hashicorp/local"
+      version = ">=2.5.2"
+    }
+
+    cloudinit = {
+      source  = "hashicorp/cloudinit"
+      version = ">=2.3.5"
+    }
+    tls = {
+      source  = "hashicorp/tls"
+      version = ">=4.0.6"
+    }
+  }
 }
 
 // Configure the AWS Provider
 provider "aws" {
-  region = var.aws-region
+  region  = var.aws_region
+  profile = var.aws_profile
 }
 
 data "http" "myip" {
@@ -42,7 +69,7 @@ resource "local_sensitive_file" "private_key" {
 }
 
 resource "local_sensitive_file" "replication_master" {
-  count    = var.number-of-sm == 2 ? 1 : 0
+  count    = var.number_of_sm == 2 ? 1 : 0
   filename = "info_replication.txt"
   content = templatefile("${path.module}/info_replication_master_master.tpl", {
     wabadmin_password  = module.cloud-init-sm.wallix_password_wabadmin,

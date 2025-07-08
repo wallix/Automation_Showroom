@@ -1,10 +1,16 @@
 // MISC
+variable "aws_profile" {
+  default     = "default"
+  type        = string
+  description = "AWS profile to use!"
+}
+
 variable "project_name" {
   description = "Specifies the project name"
   type        = string
 }
 
-variable "ami-from-aws-marketplace" {
+variable "ami_from_aws_marketplace" {
   type        = bool
   default     = true
   description = "Should we use the marketplace image ? If false, the shared image by WALLIX will be use."
@@ -16,7 +22,7 @@ variable "tags" {
   type        = map(string)
 }
 
-variable "aws-region" {
+variable "aws_region" {
   type        = string
   description = "Aws region to deploy resources"
 }
@@ -40,7 +46,7 @@ variable "nlb_internal" {
   type        = bool
 }
 
-variable "deploy-integration-debian" {
+variable "deploy_integration_debian" {
   description = "Should a debian instance for integration be deployed ?"
   default     = true
   type        = bool
@@ -65,13 +71,13 @@ variable "allowed_ips" {
 // Instance Sizing
 
 variable "aws_instance_size_am" {
-  default     = "t3.medium"
+  default     = "t2.medium"
   description = "Specifies the instance sizing."
   type        = string
 }
 
 variable "aws_instance_size_sm" {
-  default     = "t3.medium"
+  default     = "t2.medium"
   description = "Specifies the instance sizing."
   type        = string
 }
@@ -105,30 +111,34 @@ variable "sm_disk_type" {
   type        = string
 }
 
-variable "bastion-version" {
+variable "bastion_version" {
+  type        = string
   default     = ""
   description = "Bastion version to use. It can be partial or full value (5, 4.0 , 4.4.1, 4.4.1.8).\n Can be empty for latest pushed image."
 }
 
-variable "access-manager-version" {
+variable "access_manager_version" {
+  type        = string
   default     = ""
   description = "Bastion version to use. It can be partial or full value (12, 11.0 , 10.4.3, 10.0.7.28).\n Can be empty for latest pushed image."
 }
 
-variable "number-of-am" {
+variable "number_of_am" {
+  type        = number
   default     = 2
   description = "Number of AM to be deployed"
   validation {
-    condition     = (var.number-of-am <= 3)
+    condition     = (var.number_of_am <= 3)
     error_message = "Value should be between 0 and 3 !"
   }
 }
 
-variable "number-of-sm" {
+variable "number_of_sm" {
+  type        = number
   default     = 2
   description = "Number of SM to be deployed"
   validation {
-    condition     = (var.number-of-sm <= 3)
+    condition     = (var.number_of_sm <= 3)
     error_message = "Value should be between 0 and 3 !"
   }
 }
