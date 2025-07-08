@@ -86,7 +86,7 @@ data "cloudinit_config" "wallix_appliance" {
       filename     = "cloud-config-lb.yaml"
       content_type = "text/cloud-config"
       content = templatefile("${path.module}/cloud-init-conf-WALLIX_LB.tpl", {
-        http_host_trusted_hostnames = "${var.http_host_trusted_hostnames}",
+        http_host_trusted_hostnames = lower("${var.http_host_trusted_hostnames}"),
         }
       )
     }

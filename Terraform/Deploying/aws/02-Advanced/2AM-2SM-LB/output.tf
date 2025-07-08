@@ -150,3 +150,29 @@ output "efs" {
   sensitive   = false
   value       = aws_efs_file_system.efs-example.dns_name
 }
+output "all_ips" {
+  description = "All IPs"
+  sensitive   = false
+  value = {
+    am_instances      = module.instance_access_manager[*].instance_private_ip
+    sm_instances      = module.instance_bastion[*].instance_private_ip
+    debian_public_ip  = module.integration_debian[*].public_ip_debian_admin
+    debian_private_ip = module.integration_debian[*].private_ip_debian_admin
+  }
+
+}
+output "all_secrets" {
+  description = "All secret"
+  sensitive   = true
+  value = {
+    am_password_wabadmin   = module.cloud-init-am.wallix_password_wabadmin
+    am_password_wabsuper   = module.cloud-init-am.wallix_password_wabsuper
+    am_password_wabupgrade = module.cloud-init-am.wallix_password_wabupgrade
+    sm_password_crypto     = module.cloud-init-sm.wallix_crypto
+    sm_password_wabadmin   = module.cloud-init-sm.wallix_password_wabadmin
+    sm_password_wabupgrade = module.cloud-init-sm.wallix_password_wabupgrade
+    sm_password_wabsuper   = module.cloud-init-sm.wallix_password_wabsuper
+    sm_password_webui      = module.cloud-init-sm.wallix_password_webui
+    debianpassword_rdpuser = module.integration_debian[*].password_rdpuser
+  }
+}
