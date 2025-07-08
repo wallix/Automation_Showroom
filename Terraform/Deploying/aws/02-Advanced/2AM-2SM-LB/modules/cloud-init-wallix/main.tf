@@ -1,3 +1,21 @@
+terraform {
+  required_version = ">= 1.9.0"
+  required_providers {
+    random = {
+      source  = "hashicorp/random"
+      version = ">=3.6.3"
+    }
+    local = {
+      source  = "hashicorp/local"
+      version = ">=2.5.2"
+    }
+    cloudinit = {
+      source  = "hashicorp/cloudinit"
+      version = ">=2.3.5"
+    }
+  }
+}
+
 // Define Wallix Services Accounts
 locals {
   wallix_accounts = ["wabadmin", "wabsuper", "wabupgrade"]
@@ -68,7 +86,7 @@ data "cloudinit_config" "wallix_appliance" {
       filename     = "cloud-config-lb.yaml"
       content_type = "text/cloud-config"
       content = templatefile("${path.module}/cloud-init-conf-WALLIX_LB.tpl", {
-        http_host_trusted_hostnames = "${var.http_host_trusted_hostnames}",
+        http_host_trusted_hostnames = lower("${var.http_host_trusted_hostnames}"),
         }
       )
     }

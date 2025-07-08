@@ -91,7 +91,7 @@ resource "aws_security_group" "accessmanager_sg" {
 }
 
 resource "aws_network_interface_sg_attachment" "wallix-am" {
-  count                = var.number-of-am
+  count                = var.number_of_am
   security_group_id    = aws_security_group.accessmanager_sg.id
   network_interface_id = module.instance_access_manager[count.index].instance_network_interface_id
 }
@@ -157,7 +157,7 @@ resource "aws_security_group" "bastion_sg" {
 
 }
 resource "aws_network_interface_sg_attachment" "wallix-sm" {
-  count                = var.number-of-sm
+  count                = var.number_of_sm
   security_group_id    = aws_security_group.bastion_sg.id
   network_interface_id = module.instance_bastion[count.index].instance_network_interface_id
 }

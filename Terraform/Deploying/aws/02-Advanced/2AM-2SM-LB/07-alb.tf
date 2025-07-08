@@ -62,7 +62,7 @@ resource "aws_lb_target_group" "front_am" {
 }
 
 resource "aws_lb_target_group_attachment" "attach_am" {
-  count            = var.number-of-am
+  count            = var.number_of_am
   target_id        = module.instance_access_manager[count.index].instance-id
   target_group_arn = aws_lb_target_group.front_am.arn
   port             = 443
@@ -74,7 +74,7 @@ resource "aws_lb" "front_am" {
   internal           = var.alb_internal
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb.id]
-  subnets            = aws_subnet.subnet_az_AM.*.id
+  subnets            = aws_subnet.subnet_az_AM[*].id
 
   enable_deletion_protection = false
   drop_invalid_header_fields = true
