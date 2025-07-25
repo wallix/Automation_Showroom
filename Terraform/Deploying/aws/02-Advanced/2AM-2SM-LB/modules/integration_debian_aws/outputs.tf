@@ -19,7 +19,7 @@ output "password_rdpuser" {
 
 output "z_connect" {
   description = "How to connect to instance."
-  value       = "Connect to the debian instance: ssh -Xi ./private_key.pem admin@${aws_eip.public_ip_debian.public_ip}"
+  value       = "Connect to the debian instance: ssh -Xi ./generated_files/private_key.pem admin@${aws_eip.public_ip_debian.public_ip}"
 
 }
 

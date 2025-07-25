@@ -105,4 +105,13 @@ data "cloudinit_config" "wallix_appliance" {
     }
   }
 
+  dynamic "part" {
+    for_each = var.install_replication ? ["create"] : []
+    content {
+      filename     = "install_replication.sh"
+      content_type = "text/x-shellscript"
+      content      = file("${path.module}/install_replication.sh")
+    }
+  }
+
 }

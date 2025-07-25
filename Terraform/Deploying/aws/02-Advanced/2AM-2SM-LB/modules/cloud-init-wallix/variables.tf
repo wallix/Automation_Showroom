@@ -38,3 +38,9 @@ variable "set_webui_password_and_crypto" {
   description = " !!! Session Manager Only !!!\nShould we change password for WebUI Admin and set encryption key?"
   type        = bool
 }
+
+variable "install_replication" {
+  default     = false
+  description = "!!! Session Manager Only !!!\n Should we install replication ?"
+  type        = bool
+}

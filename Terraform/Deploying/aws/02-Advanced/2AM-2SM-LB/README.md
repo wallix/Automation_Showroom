@@ -19,7 +19,7 @@ This example is intended to present good practices but keeping the ease of use i
   - [What to check before starting ?](#what-to-check-before-starting-)
   - [Deploy](#deploy)
   - [Configure](#configure)
-  - [Repplication](#repplication)
+  - [Replication](#replication)
   - [Cost](#cost)
   - [Known issues](#known-issues)
     - [Debian Terms and Conditions not accepted](#debian-terms-and-conditions-not-accepted)
@@ -58,6 +58,17 @@ Some outputs are marked as sensible. Example: `sm_password_wabadmin = <sensitive
 
 Use `terraform output <name of the output>` to show them. Example :`terraform output sm_password_wabadmin`
 
+Key outputs include:
+
+- **am_url_alb**: URL to access the Access Manager cluster via Application Load Balancer.
+- **sm_fqdn_nlb**: FQDN to access the Session Manager cluster via Network Load Balancer.
+- **debian_connect**: SSH/RDP connection details for the integration Debian instance.
+- **am_password_wabadmin**, **sm_password_wabadmin**: Sensitive admin passwords for Access Manager and Session Manager.
+- **ssh_private_key**: Generated SSH private key for instance access.
+- **all_ips**, **all_secrets**: Lists of IPs and secrets generated during deployment.
+
+Refer to the [Outputs](#outputs) section below for a complete list and descriptions.
+
 ## Configure
 
 Connect to the integration host by ssh.
@@ -69,7 +80,7 @@ Use `rdpuser` to connect to the debian integration's instance with RDP. The priv
 You can also use x11 forwarding and run firefox on the Debian Host to access it.
 
 ```bash
-ssh -Xi private_key.pem admin@<ip_debian_host>
+ssh -Xi ./generated_files/private_key.pem admin@<ip_debian_host>
 admin# firefox
 ```
 
@@ -79,9 +90,9 @@ Connect and configure Access and Session Manager on port 2242 :
   - Database replication
   - WebUI Admin password and Encryption.
 
-## Repplication
+## Replication
 
-If there is 2 Session Manager, a file `info_replication.txt` will be generated. This can be used for extra automation on setting up the replication.
+If there is 2 Session Manager, a file `./generated_files/info_replication.txt` will be generated. This can be used for extra automation on setting up the replication.
 This is not yet shown as an example as bastion replication installation is dependant on the version you use.
 
 ## Cost
@@ -148,8 +159,9 @@ You must accept [terms and condition of Debian 12](https://aws.amazon.com/market
 
 ### Failing to import certificate on loadbalancer
 
-For some reason there is sometimes a 403 error while importing certificate on LB listener, it's linked to the rights to access certificate's vault as vault function use assume_role, please read : [Github issue](https://github.com/hashicorp/terraform-provider-aws/issues/2420)
-You may need to manually create the listener and import it before refreshing and re-apply configuration.
+For some reason, there is sometimes a 403 error while importing a certificate on the LB listener. This is generally due to MFA setup on the account used, and is linked to the rights to access the certificate's vault, as the vault function uses `assume_role`. Please read: [Github issue](https://github.com/hashicorp/terraform-provider-aws/issues/2420).
+
+You may need to manually create the listener and import it before refreshing and re-applying the configuration.
 
 ```bash
 terraform import aws_lb_listener.Frontend_AM arn:aws:elasticloadbalancing:eu-west-3:519101999238:listener/app/Access-Manager-Front/059ce0c7d3b69254/9c0b0d80abe0ef50
@@ -177,15 +189,17 @@ Have you set the allowed ip variable with your public IP ?
 | <a name="requirement_http"></a> [http](#requirement\_http) | >=3.4.5 |
 | <a name="requirement_local"></a> [local](#requirement\_local) | >=2.5.2 |
 | <a name="requirement_random"></a> [random](#requirement\_random) | >=3.6.3 |
+| <a name="requirement_ssh"></a> [ssh](#requirement\_ssh) | >=2.7.0 |
 | <a name="requirement_tls"></a> [tls](#requirement\_tls) | >=4.0.6 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.2.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.5.0 |
 | <a name="provider_http"></a> [http](#provider\_http) | 3.5.0 |
 | <a name="provider_local"></a> [local](#provider\_local) | 2.5.3 |
+| <a name="provider_ssh"></a> [ssh](#provider\_ssh) | 2.7.0 |
 | <a name="provider_tls"></a> [tls](#provider\_tls) | 4.1.0 |
 
 ## Modules
@@ -235,8 +249,14 @@ Have you set the allowed ip variable with your public IP ?
 | [aws_subnet.subnet_az_AM](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet) | resource |
 | [aws_subnet.subnet_az_SM](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet) | resource |
 | [aws_vpc.cluster](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc) | resource |
+| [local_file.all_ips_file](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
+| [local_file.all_secrets_file](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
+| [local_file.firefox_bookmark_am](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
+| [local_file.firefox_bookmark_sm](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [local_sensitive_file.private_key](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/sensitive_file) | resource |
 | [local_sensitive_file.replication_master](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/sensitive_file) | resource |
+| [ssh_resource.copy_bookmarks](https://registry.terraform.io/providers/loafoe/ssh/latest/docs/resources/resource) | resource |
+| [ssh_resource.info_replication](https://registry.terraform.io/providers/loafoe/ssh/latest/docs/resources/resource) | resource |
 | [tls_private_key.example](https://registry.terraform.io/providers/hashicorp/tls/latest/docs/resources/private_key) | resource |
 | [tls_self_signed_cert.example](https://registry.terraform.io/providers/hashicorp/tls/latest/docs/resources/self_signed_cert) | resource |
 | [aws_availability_zones.available](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/availability_zones) | data source |
@@ -259,6 +279,7 @@ Have you set the allowed ip variable with your public IP ?
 | <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | Aws region to deploy resources | `string` | n/a | yes |
 | <a name="input_bastion_version"></a> [bastion\_version](#input\_bastion\_version) | Bastion version to use. It can be partial or full value (5, 4.0 , 4.4.1, 4.4.1.8).<br/> Can be empty for latest pushed image. | `string` | `""` | no |
 | <a name="input_deploy_integration_debian"></a> [deploy\_integration\_debian](#input\_deploy\_integration\_debian) | Should a debian instance for integration be deployed ? | `bool` | `true` | no |
+| <a name="input_install_replication"></a> [install\_replication](#input\_install\_replication) | Should we install replication on Session Manager ?<br/> Only valid for bastion 12.0.0 and above. | `bool` | `false` | no |
 | <a name="input_key_pair_name"></a> [key\_pair\_name](#input\_key\_pair\_name) | Name of the key pair that will be use to connect to the instance. | `string` | n/a | yes |
 | <a name="input_nlb_internal"></a> [nlb\_internal](#input\_nlb\_internal) | Should Network Load Balancer be internal ?<br/> Setting it to false is risky. | `bool` | `true` | no |
 | <a name="input_number_of_am"></a> [number\_of\_am](#input\_number\_of\_am) | Number of AM to be deployed | `number` | `2` | no |

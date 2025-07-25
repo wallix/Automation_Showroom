@@ -26,6 +26,10 @@ terraform {
       source  = "hashicorp/tls"
       version = ">=4.0.6"
     }
+    ssh = {
+      source  = "loafoe/ssh"
+      version = ">=2.7.0"
+    }
   }
 }
 
@@ -45,6 +49,7 @@ module "cloud-init-sm" {
   use_of_lb                     = true
   http_host_trusted_hostnames   = aws_lb.front_sm.dns_name
   set_webui_password_and_crypto = true
+  install_replication           = var.install_replication
 
 }
 
@@ -63,14 +68,14 @@ module "ssh_aws" {
 
 resource "local_sensitive_file" "private_key" {
   content         = module.ssh_aws.ssh_private_key
-  filename        = "private_key.pem"
+  filename        = "${path.module}/generated_files/private_key.pem"
   file_permission = "400"
 
 }
 
 resource "local_sensitive_file" "replication_master" {
   count    = var.number_of_sm == 2 ? 1 : 0
-  filename = "info_replication.txt"
+  filename = "${path.module}/generated_files/info_replication.txt"
   content = templatefile("${path.module}/info_replication_master_master.tpl", {
     wabadmin_password  = module.cloud-init-sm.wallix_password_wabadmin,
     wabsuper_password  = module.cloud-init-sm.wallix_password_wabsuper,

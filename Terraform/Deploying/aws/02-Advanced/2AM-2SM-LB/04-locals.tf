@@ -12,5 +12,3 @@ locals {
   sm_ids = toset(module.instance_bastion[*].instance-id)
 
 }
-
-
