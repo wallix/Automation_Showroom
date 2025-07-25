@@ -142,3 +142,9 @@ variable "number_of_sm" {
     error_message = "Value should be between 0 and 3 !"
   }
 }
+
+variable "install_replication" {
+  type        = bool
+  default     = false
+  description = "Should we install replication on Session Manager ?\n Only valid for bastion 12.0.0 and above.  "
+}

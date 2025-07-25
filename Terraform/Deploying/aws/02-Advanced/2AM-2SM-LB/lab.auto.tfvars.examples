@@ -1,10 +1,34 @@
-aws_profile   = "default"
-allowed_ips   = ["127.0.0.1/32"]
-aws_region    = "eu-west-1"
-key_pair_name = "Bootcamp-IAC-bsi"
-project_name  = "Bootcamp-IAC-bsi"
+# AWS Configuration
+aws_profile   = "WITHMFA"                # AWS CLI profile to use
+aws_region    = "eu-west-3"              # AWS region for deployment
+key_pair_name = "ExceedPartner-wallix"   # EC2 key pair name
+project_name  = "ExceedPartner-wallix"   # Project identifier
+
+# Networking
+allowed_ips = ["203.0.113.0/32", "192.0.2.0/24"]    # Example public IP and local network (RFC 5737 test networks)
+vpc_cidr    = "10.18.0.0/16"                        # VPC CIDR block
+
+# Instance Sizes (uncomment to override defaults)
+# aws_instance_size_am     = "t3.large"   # Access Manager instance size
+# aws_instance_size_sm     = "t3.large"   # Session Manager instance size
+# aws_instance_size_debian = "t3.medium"  # Debian integration instance size
+
+# Instance Counts
+number_of_am = 2    # Number of Access Manager instances
+number_of_sm = 2    # Number of Session Manager instances
+
+# Load Balancer
+nlb_internal = true # Use internal Network Load Balancer
+
+# Versions & Features
+access_manager_version    = "5"     # Access Manager version
+bastion_version           = "12"    # Bastion version
+deploy_integration_debian = true    # Deploy integration Debian instance
+ami_from_aws_marketplace  = true    # Use AMI from AWS Marketplace
+install_replication       = true    # Install replication feature
+
+# Resource Tags
 tags = {
-  "Owner"          = "<your-email>"
-  "Resource_Group" = "Bootcamp_IAC",
+  Owner          = "SuperDevOps"      # Resource owner
+  Resource_Group = "ExceedPartner"    # Resource group name
 }
-vpc_cidr = "10.18.0.0/16"

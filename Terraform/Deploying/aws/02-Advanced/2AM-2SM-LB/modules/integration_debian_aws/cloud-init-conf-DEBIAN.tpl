@@ -12,15 +12,18 @@ users:
 package_update: true
 package_upgrade: true
 packages:
+- ansible
 - firefox-esr
-- xauth
+- geany
+- git
 - libegl1
 - libglx0
+- net-tools
+- ncat
+- terminator
+- xauth
 - xfce4
 - xrdp
-- ansible
-- geany
-- terminator
 
 write_files:
   - path: /home/admin/.ssh/id_ed25519
