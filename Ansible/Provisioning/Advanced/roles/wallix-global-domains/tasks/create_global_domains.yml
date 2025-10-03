@@ -1,0 +1,75 @@
+---
+# Global domains creation tasks
+
+- name: Get existing global domains
+  uri:
+    url: "{{ wallix_api.base_url }}/domains"
+    method: GET
+    headers:
+      Cookie: "{{ wallix_session_cookie }}"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl }}"
+    timeout: "{{ wallix_auth.connection.timeout }}"
+    status_code: [200]
+    return_content: yes
+  register: existing_global_domains
+  when: wallix_global_domains_mode != 'dry_run'
+
+- name: Debug existing global domains
+  debug:
+    msg:
+      - "Found {{ existing_global_domains.json | default([]) | length }} existing global domains"
+      - "Domains: {{ existing_global_domains.json | default([]) | map(attribute='domain_name') | list }}"
+  when: 
+    - existing_global_domains.json is defined
+    - wallix_global_domains_debug.enabled | default(false)
+
+- name: Create global domains
+  uri:
+    url: "{{ wallix_api.base_url }}/domains"
+    method: POST
+    headers:
+      Cookie: "{{ wallix_session_cookie }}"
+      Content-Type: "application/json"
+    body_format: json
+    body:
+      domain_name: "{{ item.name }}"
+      domain_real_name: "{{ item.domain_real_name | default(item.name) }}"
+      description: "{{ item.description | default('') }}"
+      enable_password_change: "{{ item.enable_password_change | default(false) }}"
+      password_change_policy: "{{ item.password_change_policy | default(omit) }}"
+      password_change_plugin: "{{ item.password_change_plugin | default(omit) }}"
+      password_change_plugin_parameters: "{{ item.password_change_plugin_parameters | default(omit) }}"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl }}"
+    timeout: "{{ wallix_auth.connection.timeout }}"
+    status_code: [200, 201, 204, 409]  # 409 = already exists
+    return_content: yes
+  loop: "{{ wallix_global_domains | default([]) }}"
+  when: 
+    - item.state | default('present') == 'present'
+    - wallix_global_domains_mode != 'dry_run'
+    - existing_global_domains.json is defined
+    - existing_global_domains.json | selectattr('domain_name', 'equalto', item.name) | list | length == 0
+  register: global_domain_creation_results
+  no_log: false
+
+- name: Debug global domain creation results
+  debug:
+    msg:
+      - "Domain: {{ item.item.name }}"
+      - "Status: {{ item.status }}"
+      - "Result: {{ 'Created' if item.status in [200, 201, 204] else 'Already exists' if item.status == 409 else 'Error' }}"
+  loop: "{{ global_domain_creation_results.results | default([]) | selectattr('status', 'defined') | list }}"
+  when: 
+    - global_domain_creation_results.results is defined
+    - wallix_global_domains_debug.enabled | default(false)
+
+- name: Count created domains
+  set_fact:
+    domain_creation_count: "{{ global_domain_creation_results.results | default([]) | selectattr('status', 'defined') | selectattr('status', 'in', [200, 201, 204]) | list | length }}"
+
+- name: Display global domains creation summary
+  debug:
+    msg:
+      - "✅ Global domains creation completed"
+      - "Domains created: {{ domain_creation_count }}"
+      - "Total domains now: {{ (existing_global_domains.json | default([]) | length) + (domain_creation_count | int) }}"

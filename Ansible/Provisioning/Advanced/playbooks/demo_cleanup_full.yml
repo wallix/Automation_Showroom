@@ -1,0 +1,224 @@
+---
+# Test WALLIX Cleanup Operations - FULL CLEANUP
+
+- name: "Test WALLIX Cleanup - FULL CLEANUP"
+  hosts: localhost
+  gather_facts: true
+  vars:
+    # Standard HTTP status codes for WALLIX API operations
+    wallix_api_success_codes: [200, 201, 204, 409]  # 200=OK, 201=Created, 204=No Content, 409=Already exists
+    wallix_api_creation_codes: [201, 204]  # Codes indicating successful creation
+    wallix_api_exists_code: 409  # Code indicating resource already exists
+    
+    # Test configuration - REAL CLEANUP MODE
+    wallix_cleanup_test_mode: "execute"
+    
+    # Target configuration (use group_vars settings)
+    # Variables defined in group_vars/all/main.yml will be used
+    
+    # Authentication with standardized configuration
+    wallix_auth:
+      initial_auth_method: "credentials"
+      credentials:
+        username: "{{ vault_wallix_username | default('admin') }}"
+        password: "{{ vault_wallix_password }}"
+      session:
+        use_cookie: true
+        cookie_file: "/tmp/.wallix_session_cleanup_cookie"
+        auto_renew: true
+        renewal_threshold: 300
+        max_session_duration: 3600
+        cleanup_on_exit: true
+      connection:
+        verify_ssl: false
+        timeout: 30
+        retry_count: 3
+        retry_delay: 5
+
+    # Cleanup configuration for REAL execution with standardized settings
+    wallix_cleanup:
+      operation_mode: "{{ wallix_cleanup_test_mode }}"
+      require_confirmation: false  # Disabled for automated cleanup
+      backup_before_delete: true
+      detailed_logging: true
+      log_api_requests: true
+      api_success_codes: "{{ wallix_api_success_codes }}"
+
+    # Test cleanup components
+    wallix_cleanup_components:
+      authorizations:
+        enabled: true
+      target_groups:
+        enabled: true
+      user_groups:
+        enabled: true
+      global_accounts:
+        enabled: true
+      global_domains:
+        enabled: true
+      devices:
+        enabled: true
+      users:
+        enabled: true
+      domains:
+        enabled: false  # Disabled for safety
+
+    # Cleanup filters - target all test resources with improved patterns
+    wallix_cleanup_filters:
+      include_patterns:
+        - "demo*"       # Include demo* items (our demo resources)
+        - "test*"       # Include test* items
+        - "Test*"       # Include Test* items  
+        - "test-*"      # Include test-* items
+        - "*test*"      # Include *test* items
+        - "Prod_*"      # Include Prod_* items (our test prod resources)
+        - "TestGroup*"  # Include TestGroup items
+        - "vscode*"     # Include vscode items
+        - "*ansible*"   # Include ansible test items
+      exclude_patterns:
+        - "admin*"      # Never touch admin accounts
+        - "root*"       # Never touch root accounts
+        - "system*"     # Never touch system accounts
+        - "wab*"        # Never touch WAB system accounts
+        - "bastion*"    # Never touch bastion system items
+
+    # Backup settings with timestamped paths
+    wallix_cleanup_backup:
+      enabled: true
+      destination: "/tmp/wallix_cleanup_full_backup_{{ ansible_date_time.epoch }}"
+      format: "json"
+      include_metadata: true
+      compress: true
+
+    # Safety settings with configurable limits
+    wallix_cleanup_safety:
+      require_explicit_confirmation: false  # Disabled for automated cleanup
+      max_deletions_per_run: 100  # Increased limit for full cleanup
+      verify_before_delete: true
+
+    # Error handling with better resilience
+    wallix_cleanup_error_handling:
+      continue_on_error: true
+      max_errors: 20  # Increased tolerance
+      log_errors: true
+
+    # Reporting with enhanced output
+    wallix_cleanup_reporting:
+      enabled: true
+      destination: "/tmp/wallix_cleanup_full_report_{{ ansible_date_time.epoch }}.json"
+      include_stats: true
+      include_errors: true
+
+    # Debug settings with comprehensive logging
+    wallix_cleanup_debug:
+      enabled: true
+      log_deletions: true
+      log_api_calls: true
+      dry_run_details: false
+      verbose_output: true
+
+  pre_tasks:
+    - name: "Load vault variables"
+      include_vars: "{{ item }}"
+      with_first_found:
+        - files:
+          - "group_vars/all/vault.yml"
+          - "../group_vars/all/vault.yml"
+          skip: true
+      tags: always
+
+    - name: "Load main variables"
+      include_vars: "{{ item }}"
+      with_first_found:
+        - files:
+          - "group_vars/all/main.yml"
+          - "../group_vars/all/main.yml"
+          skip: true
+      tags: always
+
+  tasks:
+    - name: "🚀 Display cleanup information"
+      debug:
+        msg:
+          - "🧹 WALLIX Cleanup - FULL CLEANUP MODE"
+          - "Target Bastion: {{ wallix_api.base_url }}"
+          - "Mode: {{ wallix_cleanup_test_mode }}"
+          - "Components to clean:"
+          - "  - Authorizations: {{ wallix_cleanup_components.authorizations.enabled }}"
+          - "  - Target Groups: {{ wallix_cleanup_components.target_groups.enabled }}"
+          - "  - Global Accounts: {{ wallix_cleanup_components.global_accounts.enabled }}"
+          - "  - Global Domains: {{ wallix_cleanup_components.global_domains.enabled }}"
+          - "  - Devices: {{ wallix_cleanup_components.devices.enabled }}"
+          - "  - Users: {{ wallix_cleanup_components.users.enabled }}"
+          - "  - Domains: {{ wallix_cleanup_components.domains.enabled }}"
+          - ""
+          - "Cleanup filters (include): {{ wallix_cleanup_filters.include_patterns | join(', ') }}"
+          - "Safety filters (exclude): {{ wallix_cleanup_filters.exclude_patterns | join(', ') }}"
+          - ""
+          - "⚠️  WARNING: This will perform REAL deletions!"
+          - "⚠️  All matching resources will be permanently removed!"
+          - "⚠️  SMTP configuration will be reset to defaults!"
+
+    - name: "⏰ Wait for confirmation"
+      pause:
+        prompt: "Are you sure you want to proceed with FULL CLEANUP? Type 'yes' to continue"
+      register: user_confirmation
+
+    - name: "❌ Abort if not confirmed"
+      fail:
+        msg: "Cleanup aborted by user"
+      when: user_confirmation.user_input != "yes"
+
+    - name: "🔐 Step 1: Authentication"
+      block:
+        - name: "Prepare wallix_api for different role requirements"
+          set_fact:
+            # Create a version without /api for wallix-auth role using group_vars values
+            wallix_api_auth: "{{ wallix_api | combine({'base_url': wallix_api.base_url | regex_replace('/api$', '')}) }}"
+
+        - name: "Execute wallix-auth role"
+          include_role:
+            name: wallix-auth
+          vars:
+            # Override wallix_api for this role only
+            wallix_api: "{{ wallix_api_auth }}"
+
+    - name: "🧹 Step 2: Execute cleanup operations"
+      include_role:
+        name: wallix-cleanup
+
+    # - name: "🧹 Step 3: Cleanup configurations (SMTP, etc.)"
+    #   include_role:
+    #     name: wallix-config
+    #     tasks_from: cleanup_smtp.yml
+      vars:
+        wallix_cleanup_options:
+          smtp: false
+          backup_configs: true
+          verify_cleanup: true
+
+    - name: "📊 Step 4: Display cleanup results"
+      debug:
+        msg:
+          - "🧹 CLEANUP COMPLETED"
+          - "================================="
+          - "Mode: {{ wallix_cleanup_test_mode }}"
+          - "Total processed: {{ wallix_cleanup_stats.total_processed | default(0) }}"
+          - "Total deleted: {{ wallix_cleanup_stats.total_deleted | default(0) }}"
+          - "Errors encountered: {{ wallix_cleanup_stats.total_errors | default(0) }}"
+          - ""
+          - "Component breakdown:"
+          - "  - Authorizations: {{ wallix_cleanup_stats.authorizations_deleted | default(0) }} deleted"
+          - "  - Target Groups: {{ wallix_cleanup_stats.target_groups_deleted | default(0) }} deleted"
+          - "  - Global Accounts: {{ wallix_cleanup_stats.global_accounts_deleted | default(0) }} deleted"
+          - "  - Global Domains: {{ wallix_cleanup_stats.global_domains_deleted | default(0) }} deleted"
+          - "  - Devices: {{ wallix_cleanup_stats.devices_deleted | default(0) }} deleted"
+          - "  - Users: {{ wallix_cleanup_stats.users_deleted | default(0) }} deleted"
+          - ""
+          - "📄 Cleanup report: {{ wallix_cleanup_reporting.destination }}"
+          - "💾 Backup location: {{ wallix_cleanup_backup.destination }}"
+          - "💾 Config backups: /tmp/wallix_*_backup_*.json"
+
+    - name: "✅ Cleanup completed successfully"
+      debug:
+        msg: "WALLIX Cleanup completed - {{ wallix_cleanup_stats.total_deleted | default(0) }} resources deleted"

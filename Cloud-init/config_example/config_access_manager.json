@@ -1,0 +1,7 @@
+{
+  "product_type": "access-manager",
+  "hostname": "wallix-am-demo",
+  "fqdn": "wallix-am-demo.company.local",
+  "set_service_user_password": true
+
+}

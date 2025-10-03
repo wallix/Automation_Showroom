@@ -1,0 +1,8 @@
+{
+  "product_type": "bastion",
+  "hostname": "wallix-bastion-lb",
+  "fqdn": "wallix-bastion-lb.company.local",
+  "set_service_user_password": true,
+  "use_of_lb": true,
+  "http_host_trusted_hostnames": "lb1.company.local,lb2.company.local"
+}

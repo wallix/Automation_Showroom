@@ -1,0 +1,57 @@
+---
+# Production environment configuration
+
+# Environment-specific settings
+deployment_environment: "production"
+
+# Authentication settings for production
+wallix_auth:
+  initial_auth_method: "credentials"
+  credentials:
+    username: "{{ vault_prod_username }}"
+    password: "{{ vault_prod_password }}"
+  connection:
+    verify_ssl: true
+    timeout: 60
+    retry_count: 5
+
+# Production-specific settings
+production_settings:
+  api_timeout: 60
+  retry_count: 5
+  validation_strict: true
+  auto_cleanup_test_resources: false
+  debug_mode: false
+
+# Security hardening for production
+security:
+  verify_ssl: true
+  force_basic_auth: false
+  session_timeout: 1800  # 30 minutes
+  auto_logout: true
+  require_confirmation: true
+
+# Performance optimization for production
+performance:
+  parallel_requests: true
+  batch_size: 5
+  request_throttle: 1.0  # More conservative in production
+
+# Logging for production
+logging:
+  level: "info"
+  log_api_requests: false
+  log_api_responses: false
+  save_responses: false
+
+# Backup and recovery
+backup:
+  enabled: true
+  retention_days: 30
+  compress: true
+
+# Monitoring and alerting
+monitoring:
+  enabled: true
+  health_checks: true
+  alert_on_failures: true

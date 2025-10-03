@@ -1,0 +1,147 @@
+---
+# WALLIX Config - X509 Configuration Tasks
+# Manages X509 certificate configuration via /api/config/x509
+
+- name: "Config | X509 | Get current X509 configuration"
+  uri:
+    url: "{{ wallix_api_base_url }}/api/config/x509"
+    method: GET
+    headers:
+      Cookie: "{{ wallix_api_session_cookie | default('') }}"
+      Authorization: "Bearer {{ wallix_api_token | default('') }}"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(true) }}"
+    timeout: "{{ wallix_auth.connection.timeout | default(30) }}"
+    status_code: [200, 404]
+  register: current_x509_config
+  changed_when: false
+  failed_when: false
+
+- name: "Config | X509 | Debug current configuration"
+  debug:
+    var: current_x509_config.json
+  when: 
+    - wallix_config_debug.enabled | default(false)
+    - current_x509_config.status == 200
+
+- name: "Config | X509 | Prepare X509 configuration payload"
+  set_fact:
+    x509_config_payload:
+      # Certificate validation settings
+      certificate_validation_enabled: "{{ wallix_x509_config.certificate_validation_enabled | default(true) }}"
+      check_certificate_revocation: "{{ wallix_x509_config.check_certificate_revocation | default(true) }}"
+      
+      # Certificate Authority settings
+      ca_certificate_path: "{{ wallix_x509_config.ca_certificate_path | default('/etc/ssl/certs/ca-certificates.crt') }}"
+      ca_bundle_enabled: "{{ wallix_x509_config.ca_bundle_enabled | default(true) }}"
+      
+      # SSL/TLS settings
+      ssl_minimum_version: "{{ wallix_x509_config.ssl_minimum_version | default('TLSv1.2') }}"
+      ssl_cipher_suites: "{{ wallix_x509_config.ssl_cipher_suites | default('ECDHE+AESGCM:ECDHE+CHACHA20:DHE+AESGCM:DHE+CHACHA20:!aNULL:!MD5:!DSS') }}"
+      
+      # Certificate chain settings
+      max_certificate_chain_length: "{{ wallix_x509_config.max_certificate_chain_length | default(10) }}"
+      verify_certificate_chain: "{{ wallix_x509_config.verify_certificate_chain | default(true) }}"
+      
+      # OCSP settings
+      ocsp_enabled: "{{ wallix_x509_config.ocsp_enabled | default(false) }}"
+      ocsp_responder_timeout: "{{ wallix_x509_config.ocsp_responder_timeout | default(30) }}"
+      
+      # CRL settings
+      crl_enabled: "{{ wallix_x509_config.crl_enabled | default(false) }}"
+      crl_cache_duration: "{{ wallix_x509_config.crl_cache_duration | default(3600) }}"
+  when: wallix_x509_config is defined
+
+- name: "Config | X509 | Compare configurations"
+  set_fact:
+    x509_config_changed: >-
+      {{
+        current_x509_config.status != 200 or
+        (current_x509_config.json | default({}) | difference(x509_config_payload) | length > 0) or
+        (x509_config_payload | difference(current_x509_config.json | default({})) | length > 0)
+      }}
+  when: x509_config_payload is defined
+
+- name: "Config | X509 | Update X509 configuration (dry run)"
+  debug:
+    msg: 
+      - "Would update X509 configuration:"
+      - "Current: {{ current_x509_config.json | default('Not configured') }}"
+      - "New: {{ x509_config_payload }}"
+  when: 
+    - x509_config_payload is defined
+    - x509_config_changed | default(false)
+    - wallix_config_mode | default('normal') == 'dry_run'
+
+- name: "Config | X509 | Update X509 configuration"
+  uri:
+    url: "{{ wallix_api_base_url }}/api/config/x509"
+    method: PUT
+    headers:
+      Cookie: "{{ wallix_api_session_cookie | default('') }}"
+      Authorization: "Bearer {{ wallix_api_token | default('') }}"
+      Content-Type: "application/json"
+    body: "{{ x509_config_payload }}"
+    body_format: json
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(true) }}"
+    timeout: "{{ wallix_auth.connection.timeout | default(30) }}"
+    status_code: [200, 201, 204]
+  register: x509_config_result
+  when: 
+    - x509_config_payload is defined
+    - x509_config_changed | default(false)
+    - wallix_config_mode | default('normal') == 'normal'
+
+- name: "Config | X509 | Validate X509 configuration"
+  uri:
+    url: "{{ wallix_api_base_url }}/api/config/x509"
+    method: GET
+    headers:
+      Cookie: "{{ wallix_api_session_cookie | default('') }}"
+      Authorization: "Bearer {{ wallix_api_token | default('') }}"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(true) }}"
+    timeout: "{{ wallix_auth.connection.timeout | default(30) }}"
+    status_code: [200]
+  register: x509_validation_result
+  changed_when: false
+  when: 
+    - x509_config_result is defined
+    - x509_config_result.changed
+    - wallix_x509_config.validate_after_change | default(true)
+
+- name: "Config | X509 | Test certificate validation"
+  uri:
+    url: "{{ wallix_api_base_url }}/api/config/x509/test"
+    method: POST
+    headers:
+      Cookie: "{{ wallix_api_session_cookie | default('') }}"
+      Authorization: "Bearer {{ wallix_api_token | default('') }}"
+      Content-Type: "application/json"
+    body:
+      test_url: "{{ wallix_x509_config.test_url | default('https://www.google.com') }}"
+    body_format: json
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(true) }}"
+    timeout: "{{ wallix_auth.connection.timeout | default(30) }}"
+    status_code: [200, 201]
+  register: x509_test_result
+  changed_when: false
+  when: 
+    - wallix_x509_config.run_validation_test | default(false)
+    - x509_config_result is defined
+    - x509_config_result.changed
+
+- name: "Config | X509 | Set configuration status"
+  set_fact:
+    wallix_x509_configured: "{{ x509_config_result.changed | default(false) }}"
+    wallix_x509_valid: "{{ x509_validation_result.status == 200 if x509_validation_result is defined else true }}"
+    wallix_x509_test_passed: "{{ x509_test_result.status == 200 if x509_test_result is defined else 'not_tested' }}"
+    wallix_x509_config_time: "{{ ansible_date_time.iso8601 }}"
+
+- name: "Config | X509 | Log configuration result"
+  debug:
+    msg:
+      - "X509 Configuration Summary:"
+      - "  - Configured: {{ wallix_x509_configured }}"
+      - "  - Valid: {{ wallix_x509_valid }}"
+      - "  - Test Result: {{ wallix_x509_test_passed }}"
+      - "  - Timestamp: {{ wallix_x509_config_time }}"
+  when: wallix_config_debug.enabled | default(false)

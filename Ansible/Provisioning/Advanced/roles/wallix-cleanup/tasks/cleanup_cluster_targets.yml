@@ -1,0 +1,96 @@
+---
+# WALLIX Cleanup - Cluster Targets Cleanup Tasks
+# Removes PAM cluster targets via /api/clusters
+
+- name: "Cleanup | Clusters | Get current cluster targets"
+  uri:
+    url: "{{ wallix_api.base_url }}/api/clusters"
+    method: GET
+    headers:
+      Cookie: "{{ wallix_session_cookie }}"
+    validate_certs: "{{ wallix_api.verify_ssl }}"
+    timeout: "{{ wallix_api.timeout }}"
+    status_code: [200, 404]
+  register: current_cluster_targets
+  changed_when: false
+  failed_when: false
+
+- name: "Cleanup | Clusters | Check if cluster targets exist"
+  set_fact:
+    cluster_targets_exist: "{{ current_cluster_targets.status == 200 and (current_cluster_targets.json | length > 0) }}"
+
+- name: "Cleanup | Clusters | Filter cluster targets for cleanup"
+  set_fact:
+    filtered_cluster_targets: >-
+      {{
+        current_cluster_targets.json | default([]) |
+        selectattr('cluster_name', 'match', wallix_cleanup_filters.include_patterns | join('|')) |
+        rejectattr('cluster_name', 'match', wallix_cleanup_filters.exclude_patterns | join('|')) |
+        list
+      }}
+  when:
+    - cluster_targets_exist
+    - wallix_cleanup_filters.include_patterns is defined or wallix_cleanup_filters.exclude_patterns is defined
+
+- name: "Cleanup | Clusters | Set targets to cleanup"
+  set_fact:
+    cluster_targets_to_cleanup: >-
+      {{
+        filtered_cluster_targets | default(current_cluster_targets.json | default([]))
+      }}
+
+- name: "Cleanup | Clusters | Debug cluster targets to cleanup"
+  debug:
+    msg: "Cluster targets to cleanup: {{ cluster_targets_to_cleanup | map(attribute='cluster_name') | list }}"
+  when: 
+    - cluster_targets_exist
+    - wallix_cleanup_debug.enabled | default(false)
+
+- name: "Cleanup | Clusters | Backup cluster targets"
+  copy:
+    content: |
+      # WALLIX Cluster Targets Backup
+      # Timestamp: {{ ansible_date_time.iso8601 }}
+      {{ cluster_targets_to_cleanup | to_nice_yaml }}
+    dest: "{{ wallix_cleanup_backup.directory | default('/tmp') }}/cluster_targets_backup_{{ ansible_date_time.epoch }}.yml"
+    mode: '0600'
+  delegate_to: localhost
+  when: 
+    - cluster_targets_exist
+    - cluster_targets_to_cleanup | length > 0
+    - wallix_cleanup_backup.enabled | default(true)
+
+- name: "Cleanup | Clusters | Delete cluster targets (dry run)"
+  debug:
+    msg: "Would delete cluster target: {{ cluster_item.cluster_name }}"
+  loop: "{{ cluster_targets_to_cleanup }}"
+  loop_control:
+    loop_var: cluster_item
+  when: 
+    - cluster_targets_exist
+    - wallix_cleanup.operation_mode | default('dry_run') == 'dry_run'
+
+- name: "Cleanup | Clusters | Delete cluster targets"
+  uri:
+    url: "{{ wallix_api.base_url }}/api/clusters/{{ cluster_item.cluster_name }}"
+    method: DELETE
+    headers:
+      Cookie: "{{ wallix_session_cookie }}"
+    validate_certs: "{{ wallix_api.verify_ssl }}"
+    timeout: "{{ wallix_api.timeout }}"
+    status_code: [200, 204, 404]
+  register: cluster_delete_result
+  loop: "{{ cluster_targets_to_cleanup }}"
+  loop_control:
+    loop_var: cluster_item
+  when: 
+    - cluster_targets_exist
+    - wallix_cleanup.operation_mode | default('dry_run') == 'normal'
+
+- name: "Cleanup | Clusters | Set cleanup status"
+  set_fact:
+    wallix_cleanup_stats:
+      cluster_targets:
+        found: "{{ current_cluster_targets.json | default([]) | length }}"
+        cleaned: "{{ cluster_delete_result.results | default([]) | selectattr('changed') | list | length }}"
+        backed_up: "{{ cluster_targets_exist and (cluster_targets_to_cleanup | length > 0) and (wallix_cleanup_backup.enabled | default(true)) }}"

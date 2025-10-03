@@ -1,0 +1,144 @@
+---
+# Manage device accounts on WALLIX
+# Note: L'endpoint correct serait /devices/{device_id}/localdomains/{domain_id}/accounts
+# mais il faut d'abord créer des domaines locaux. Pour simplifier, on utilise /deviceaccounts
+
+- name: Create local domains on devices
+  uri:
+    url: "{{ wallix_api.base_url }}/devices/{{ item.id }}/localdomains"
+    method: POST
+    headers:
+      Cookie: "{{ wallix_session_cookie }}"
+      Content-Type: "application/json"
+    body_format: json
+    body:
+      domain_name: "local"
+      description: "Local domain for device accounts"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl }}"
+    timeout: "{{ wallix_auth.connection.timeout }}"
+    status_code: [200, 201, 204, 409]
+    return_content: yes
+  loop: "{{ existing_devices.json }}"
+  when: 
+    - wallix_accounts is defined
+    - wallix_devices_mode != 'dry_run'
+    - existing_devices.json is defined
+  register: localdomain_creation_result
+  no_log: false
+
+- name: Get existing local domains
+  uri:
+    url: "{{ wallix_api.base_url }}/devices/{{ item.id }}/localdomains"
+    method: GET
+    headers:
+      Cookie: "{{ wallix_session_cookie }}"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl }}"
+    timeout: "{{ wallix_auth.connection.timeout }}"
+    status_code: [200]
+    return_content: yes
+  loop: "{{ existing_devices.json }}"
+  when: 
+    - wallix_accounts is defined
+    - wallix_devices_mode != 'dry_run'
+    - existing_devices.json is defined
+  register: existing_localdomains
+  no_log: false
+
+- name: Create device accounts in local domains
+  uri:
+    url: "{{ wallix_api.base_url }}/devices/{{ device_id }}/localdomains/{{ domain_id }}/accounts"
+    method: POST
+    headers:
+      Cookie: "{{ wallix_session_cookie }}"
+      Content-Type: "application/json"
+    body_format: json
+    body:
+      account_name: "{{ item.account_name }}"
+      account_login: "{{ item.account_login }}"
+      description: "{{ item.description | default('') }}"
+      checkout_policy: "{{ item.checkout_policy | default('default') }}"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl }}"
+    timeout: "{{ wallix_auth.connection.timeout }}"
+    status_code: [200, 201, 204, 409]
+    return_content: yes
+  loop: "{{ wallix_accounts | default([]) }}"
+  vars:
+    # Get device ID for the target device
+    target_device: "{{ existing_devices.json | selectattr('device_name', 'equalto', item.device_name) | list | first | default({}) }}"
+    device_id: "{{ target_device.id | default('') }}"
+    # Find the local domain for this device in the localdomains results
+    device_localdomains: "{{ existing_localdomains.results | selectattr('item.id', 'equalto', target_device.id) | list | first | default({}) }}"
+    local_domain: "{{ device_localdomains.json | default([]) | selectattr('domain_name', 'equalto', 'local') | list | first | default({}) }}"
+    domain_id: "{{ local_domain.id | default('') }}"
+  when: 
+    - wallix_accounts is defined
+    - wallix_devices_mode != 'dry_run'
+    - existing_devices.json is defined
+    - existing_localdomains.results is defined
+    - target_device != {}
+    - target_device.id is defined
+    - device_localdomains != {}
+    - device_localdomains.json is defined
+    - local_domain != {}
+    - local_domain.id is defined
+  register: account_creation_result
+  no_log: false
+
+- name: Debug account creation results
+  debug:
+    msg:
+      - "Account: {{ item.item.account_name }}"
+      - "Device: {{ item.item.device_name }}"
+      - "Login: {{ item.item.account_login }}"
+      - "Status: {{ item.status }}"
+  loop: "{{ account_creation_result.results | default([]) | selectattr('status', 'defined') | list }}"
+  when: 
+    - account_creation_result.results is defined
+    - wallix_devices_debug.enabled | default(false)
+
+- name: Set account creation status
+  set_fact:
+    wallix_accounts_status: "success"
+    wallix_accounts_created: "{{ account_creation_result.results | selectattr('status', 'equalto', 201) | list | length }}"
+    wallix_accounts_existing: "{{ account_creation_result.results | selectattr('status', 'equalto', 409) | list | length }}"
+  when: account_creation_result.results is defined
+
+- name: Update account passwords
+  uri:
+    url: "{{ wallix_api.base_url }}/devices/{{ device_id }}/localdomains/{{ domain_id }}/accounts/{{ item.item.account_name }}/credentials"
+    method: POST
+    headers:
+      Cookie: "{{ wallix_session_cookie }}"
+      Content-Type: "application/json"
+    body_format: json
+    body:
+      type: "password"
+      password: "{{ item.item.password }}"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl }}"
+    timeout: "{{ wallix_auth.connection.timeout }}"
+    status_code: [200, 201, 204]
+    return_content: yes
+  loop: "{{ account_creation_result.results }}"
+  vars:
+    device_id: "{{ existing_devices.json | selectattr('device_name', 'equalto', item.item.device_name) | map(attribute='id') | first }}"
+    domain_id: "{{ existing_localdomains.results | selectattr('item', 'equalto', item.item.device_name) | map(attribute='json') | first | selectattr('domain_name', 'equalto', 'local') | map(attribute='id') | first }}"
+  when: 
+    - account_creation_result.results is defined
+    - item.item.password is defined
+    - item.status in [200, 201, 204]
+    - wallix_devices_mode != 'dry_run'
+  no_log: true
+
+- name: Set account creation status
+  set_fact:
+    wallix_accounts_status: "success"
+    wallix_accounts_created: "{{ account_creation_result.results | selectattr('status', 'equalto', 201) | list | length }}"
+    wallix_accounts_existing: "{{ account_creation_result.results | selectattr('status', 'equalto', 409) | list | length }}"
+  when: account_creation_result.results is defined
+
+- name: Display accounts creation summary
+  debug:
+    msg:
+      - "✅ Device accounts management completed"
+      - "Accounts created: {{ wallix_accounts_created | default(0) }}"
+      - "Accounts already existing: {{ wallix_accounts_existing | default(0) }}"

@@ -1,0 +1,82 @@
+---
+# Validate authorizations on WALLIX
+
+- name: Get all authorizations
+  uri:
+    url: "{{ wallix_api.base_url }}/authorizations"
+    method: GET
+    headers:
+      Cookie: "{{ wallix_session_cookie }}"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl }}"
+    timeout: "{{ wallix_auth.connection.timeout }}"
+    status_code: [200]
+    return_content: yes
+  register: all_authorizations_result
+
+- name: Check that all defined authorizations exist
+  assert:
+    that:
+      - authorization.name in (all_authorizations_result.json | map(attribute='authorization_name') | list)
+    fail_msg: "Authorization '{{ authorization.name }}' not found on WALLIX"
+    success_msg: "Authorization '{{ authorization.name }}' found on WALLIX"
+  loop: "{{ wallix_authorizations }}"
+  loop_control:
+    loop_var: authorization
+  when: 
+    - authorization.state | default('present') == 'present'
+    - wallix_authorizations_mode != 'dry_run'
+
+- name: Validate authorization configurations
+  uri:
+    url: "{{ wallix_api.base_url }}/authorizations/{{ item.name }}"
+    method: GET
+    headers:
+      Cookie: "{{ wallix_session_cookie }}"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl }}"
+    timeout: "{{ wallix_auth.connection.timeout }}"
+    status_code: [200]
+    return_content: yes
+  register: authorization_details
+  loop: "{{ wallix_authorizations }}"
+  when: 
+    - item.state | default('present') == 'present'
+    - wallix_authorizations_mode != 'dry_run'
+
+- name: Debug authorization details
+  debug:
+    msg:
+      - "Authorization: {{ item.json.authorization_name }}"
+      - "User Group: {{ item.json.user_group }}"
+      - "Target Group: {{ item.json.target_group | default('Any') }}"
+      - "Subprotocol: {{ item.json.subprotocol | default('All') }}"
+      - "Critical: {{ item.json.is_critical }}"
+      - "Recorded: {{ item.json.is_recorded }}"
+      - "Approval Required: {{ item.json.approval_required }}"
+  loop: "{{ authorization_details.results }}"
+  when: 
+    - authorization_details.results is defined
+    - wallix_authorizations_debug.enabled | default(false)
+
+- name: Validate authorization security settings
+  assert:
+    that:
+      - item.json.is_recorded == true or wallix_authorizations_allow_unrecorded | default(false)
+    fail_msg: "Authorization '{{ item.json.authorization_name }}' has recording disabled without explicit permission"
+    success_msg: "Authorization '{{ item.json.authorization_name }}' has proper recording settings"
+  loop: "{{ authorization_details.results }}"
+  when: 
+    - authorization_details.results is defined
+    - wallix_authorizations_mode != 'dry_run'
+
+- name: Set authorization validation status
+  set_fact:
+    wallix_authorizations_validation_status: "success"
+    wallix_authorizations_validated: "{{ authorization_details.results | length }}"
+  when: authorization_details.results is defined
+
+- name: Display authorization validation summary
+  debug:
+    msg:
+      - "✅ Authorization validation completed"
+      - "Authorizations validated: {{ wallix_authorizations_validated | default(0) }}"
+      - "All authorizations are properly configured"

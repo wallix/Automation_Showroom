@@ -1,0 +1,114 @@
+---
+# SMTP Configuration Cleanup for WALLIX Bastion
+# Resets SMTP configuration to default/empty state
+
+- name: "SMTP Cleanup | Get current SMTP configuration"
+  uri:
+    url: "{{ wallix_api.base_url }}/config/smtp"
+    method: GET
+    headers:
+      Cookie: "{{ wallix_session_cookie }}"
+      Content-Type: "application/json"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(true) }}"
+    timeout: "{{ wallix_auth.connection.timeout | default(30) }}"
+    status_code: [200, 404]
+  register: wallix_smtp_current_cleanup
+  tags: 
+    - smtp
+    - cleanup
+
+- name: "SMTP Cleanup | Save current configuration as backup"
+  copy:
+    content: "{{ wallix_smtp_current_cleanup.json | to_nice_json }}"
+    dest: "/tmp/wallix_smtp_backup_{{ ansible_date_time.epoch }}.json"
+    mode: '0600'
+  when: wallix_smtp_current_cleanup.status == 200
+  tags: 
+    - smtp
+    - cleanup
+    - backup
+
+- name: "SMTP Cleanup | Reset SMTP configuration to defaults (set_fact approach)"
+  set_fact:
+    wallix_smtp_defaults:
+      server: ""
+      port: 25
+      protocol: "smtp"
+      authentication_method: "off"
+      sender_name: "WALLIX Bastion"
+      sender_email: "noreply@localhost"
+      postmaster_email: "admin@localhost"
+      certificate_hash: ""
+
+- name: "SMTP Cleanup | Apply SMTP reset configuration"
+  uri:
+    url: "{{ wallix_api.base_url }}/config/smtp"
+    method: PUT
+    headers:
+      Cookie: "{{ wallix_session_cookie }}"
+      Content-Type: "application/json"
+    body_format: json
+    body: "{{ wallix_smtp_defaults }}"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(true) }}"
+    timeout: "{{ wallix_auth.connection.timeout | default(30) }}"
+    status_code: [200, 201, 204]
+  register: wallix_smtp_cleanup_result
+  tags: 
+    - smtp
+    - cleanup
+
+- name: "SMTP Cleanup | Verify cleanup was successful"
+  uri:
+    url: "{{ wallix_api.base_url }}/config/smtp"
+    method: GET
+    headers:
+      Cookie: "{{ wallix_session_cookie }}"
+      Content-Type: "application/json"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(true) }}"
+    timeout: "{{ wallix_auth.connection.timeout | default(30) }}"
+    status_code: [200]
+  register: wallix_smtp_verify_cleanup
+  tags: 
+    - smtp
+    - cleanup
+    - verify
+
+- name: "SMTP Cleanup | Display cleanup results"
+  debug:
+    msg: |
+      🧹 Nettoyage SMTP Configuration WALLIX
+      
+      📊 Résultats du nettoyage :
+      - Status code : {{ wallix_smtp_cleanup_result.status | default('Non exécuté') }}
+      - URL utilisée : {{ wallix_smtp_cleanup_result.url | default('N/A') }}
+      - Méthode : PUT /api/config/smtp (Reset)
+      
+      📝 Configuration après nettoyage :
+      - Server: {{ wallix_smtp_verify_cleanup.json.server | default('Vide') }}
+      - Port: {{ wallix_smtp_verify_cleanup.json.port | default('25') }}
+      - Protocol: {{ wallix_smtp_verify_cleanup.json.protocol | default('Vide') }}
+      - Authentication: {{ 'Désactivée' if wallix_smtp_verify_cleanup.json.authentication_method == '' else 'Activée' }}
+      - Expéditeur: {{ wallix_smtp_verify_cleanup.json.sender_email | default('Vide') }}
+      - Nom expéditeur: {{ wallix_smtp_verify_cleanup.json.sender_name | default('WALLIX Bastion') }}
+      
+      🎯 Status du nettoyage :
+      {% if wallix_smtp_cleanup_result.status | default(0) in [200, 201, 204] %}
+      ✅ Configuration SMTP réinitialisée avec succès !
+      {% else %}
+      ❌ Erreur lors du nettoyage - Code: {{ wallix_smtp_cleanup_result.status | default('N/A') }}
+      {% endif %}
+      
+      💾 Sauvegarde de la configuration précédente :
+      {% if wallix_smtp_current_cleanup.status == 200 %}
+      ✅ Backup créé : /tmp/wallix_smtp_backup_{{ ansible_date_time.epoch }}.json
+      {% else %}
+      ⚠️  Aucune configuration précédente trouvée
+      {% endif %}
+      
+      💡 La configuration SMTP par défaut est maintenant active.
+  when: 
+    - wallix_smtp_cleanup_result is defined
+  tags: 
+    - smtp
+    - cleanup
+    - verification

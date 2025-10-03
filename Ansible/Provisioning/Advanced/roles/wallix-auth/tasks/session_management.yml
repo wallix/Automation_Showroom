@@ -1,0 +1,61 @@
+---
+# Session management tasks for WALLIX Bastion API
+
+- name: Save session cookie to file for persistence
+  copy:
+    content: "{{ wallix_session_cookie }}"
+    dest: "{{ wallix_auth.session.cookie_file | default('/tmp/.wallix_session_cookie') }}"
+    mode: '0600'
+  when: 
+    - wallix_session_cookie is defined
+    - wallix_auth.session.use_cookie | default(true)
+    - wallix_session_cookie != ""
+    - wallix_debug.save_cookies | default(true)
+
+- name: Check if session needs renewal
+  set_fact:
+    session_needs_renewal: "{{ (ansible_date_time.epoch | int) - (wallix_auth_timestamp | int) > (wallix_auth.session.max_session_duration - wallix_auth.session.renewal_threshold) }}"
+  when: 
+    - wallix_auth.session.auto_renew | default(true)
+    - wallix_auth_timestamp is defined
+
+- name: Renew session if needed
+  block:
+    - name: Request session renewal
+      uri:
+        url: "{{ wallix_api.base_url }}/auth/renew"
+        method: POST
+        headers:
+          Cookie: "{{ wallix_session_cookie }}"
+          Content-Type: "application/json"
+        validate_certs: "{{ wallix_auth.connection.verify_ssl }}"
+        timeout: "{{ wallix_auth.connection.timeout }}"
+        status_code: [200, 201]
+        return_content: yes
+      register: wallix_renew_response
+      retries: 2
+      delay: 3
+
+    - name: Update session cookie after renewal
+      set_fact:
+        wallix_session_cookie: "{{ wallix_renew_response.cookies_string | default(wallix_session_cookie) }}"
+      when: wallix_renew_response.cookies_string is defined
+
+    - name: Update authentication timestamp
+      set_fact:
+        wallix_auth_timestamp: "{{ ansible_date_time.epoch }}"
+
+    - name: Debug session renewal
+      debug:
+        msg: "Session renewed successfully"
+      when: wallix_debug.enabled | default(false)
+
+  when: 
+    - session_needs_renewal | default(false)
+    - wallix_session_cookie is defined
+
+- name: Set up cleanup handler
+  set_fact:
+    wallix_cleanup_session: true
+  when: wallix_auth.session.cleanup_on_exit | default(true)
+  notify: cleanup wallix session

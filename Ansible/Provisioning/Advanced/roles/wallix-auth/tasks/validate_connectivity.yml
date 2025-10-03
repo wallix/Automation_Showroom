@@ -1,0 +1,26 @@
+---
+# Validate API connectivity and permissions
+
+- name: Test API connectivity with session cookie
+  uri:
+    url: "{{ wallix_api.base_url }}/version"
+    method: GET
+    headers:
+      Cookie: "{{ wallix_session_cookie }}"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl }}"
+    timeout: "{{ wallix_auth.connection.timeout }}"
+    status_code: [200]
+    return_content: yes
+  register: wallix_session_test
+
+- name: Validate API connectivity
+  debug:
+    msg:
+      - "✅ API connectivity validated successfully"
+      - "Session cookie is working correctly"
+      - "API Version: {{ wallix_session_test.json.version | default('unknown') }}"
+
+- name: Set connectivity status
+  set_fact:
+    wallix_connectivity_status: "success"
+    wallix_session_validated: true

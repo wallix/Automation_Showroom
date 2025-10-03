@@ -1,0 +1,48 @@
+---
+# Create user groups on WALLIX
+
+- name: Create user groups
+  uri:
+    url: "{{ wallix_api.base_url }}/usergroups"
+    method: POST
+    headers:
+      Cookie: "{{ wallix_session_cookie }}"
+      Content-Type: "application/json"
+    body_format: json
+    body:
+      group_name: "{{ item.name }}"
+      description: "{{ item.description | default('') }}"
+      timeframes: "{{ item.timeframes | default(['allthetime']) }}"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl }}"
+    timeout: "{{ wallix_auth.connection.timeout }}"
+    status_code: [200, 201, 204, 409]
+    return_content: yes
+  register: group_creation_result
+  loop: "{{ wallix_user_groups }}"
+  when: 
+    - (wallix_users_mode | default('normal')) != 'dry_run'
+
+- name: Debug group creation results
+  debug:
+    msg:
+      - "Group: {{ item.item.name }}"
+      - "Status: {{ item.status }}"
+      - "Result: {{ 'Created' if item.status == 201 else ('Already exists' if item.status == 409 else 'Updated') }}"
+  loop: "{{ group_creation_result.results }}"
+  when: 
+    - group_creation_result.results is defined
+    - wallix_users_debug.enabled | default(false)
+
+- name: Set group creation status
+  set_fact:
+    wallix_groups_status: "success"
+    wallix_groups_created: "{{ group_creation_result.results | selectattr('status', 'equalto', 201) | list | length }}"
+    wallix_groups_existing: "{{ group_creation_result.results | selectattr('status', 'equalto', 409) | list | length }}"
+  when: group_creation_result.results is defined
+
+- name: Display groups creation summary
+  debug:
+    msg:
+      - "✅ User groups management completed"
+      - "Groups created: {{ wallix_groups_created | default(0) }}"
+      - "Groups already existing: {{ wallix_groups_existing | default(0) }}"

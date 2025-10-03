@@ -1,0 +1,102 @@
+---
+# WALLIX Config - Time Configuration Tasks
+
+- name: "Config | Time | Get current time configuration"
+  uri:
+    url: "{{ wallix_api_base_url }}/api/system/time"
+    method: GET
+    headers:
+      Cookie: "{{ wallix_api_session_cookie | default('') }}"
+      Authorization: "Bearer {{ wallix_api_token | default('') }}"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(true) }}"
+    timeout: "{{ wallix_auth.connection.timeout | default(30) }}"
+    status_code: [200]
+  register: current_time_config
+  changed_when: false
+
+- name: "Config | Time | Prepare time configuration payload"
+  set_fact:
+    time_config_payload:
+      timezone: "{{ wallix_system_config.timezone | default('UTC') }}"
+      ntp_enabled: "{{ wallix_time.ntp_enabled | default(true) }}"
+      ntp_servers: "{{ wallix_time.ntp_servers | default(['pool.ntp.org']) }}"
+      sync_frequency: "{{ wallix_time.sync_frequency | default(3600) }}"
+      auto_detect_timezone: "{{ wallix_time.timezone_auto_detect | default(false) }}"
+
+- name: "Config | Time | Compare time configurations"
+  set_fact:
+    time_config_changed: "{{ (current_time_config.json | default({})) != time_config_payload }}"
+
+- name: "Config | Time | Display time configuration changes"
+  debug:
+    msg:
+      - "Current time configuration differs from desired state"
+      - "Current: {{ current_time_config.json | default({}) }}"
+      - "Desired: {{ time_config_payload }}"
+  when: 
+    - time_config_changed
+    - wallix_config.detailed_logging | default(true)
+
+- name: "Config | Time | Apply time configuration (dry run)"
+  debug:
+    msg: "Would update time configuration with: {{ time_config_payload }}"
+  when: 
+    - time_config_changed
+    - wallix_config.operation_mode | default('apply') == 'dry_run'
+
+- name: "Config | Time | Apply time configuration"
+  uri:
+    url: "{{ wallix_api_base_url }}/api/system/time"
+    method: PUT
+    headers:
+      Cookie: "{{ wallix_api_session_cookie | default('') }}"
+      Authorization: "Bearer {{ wallix_api_token | default('') }}"
+      Content-Type: "application/json"
+    body: "{{ time_config_payload }}"
+    body_format: json
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(true) }}"
+    timeout: "{{ wallix_auth.connection.timeout | default(30) }}"
+    status_code: [200, 201, 204]
+  register: time_config_result
+  when: 
+    - time_config_changed
+    - wallix_config.operation_mode | default('apply') == 'apply'
+
+- name: "Config | Time | Trigger NTP synchronization"
+  uri:
+    url: "{{ wallix_api_base_url }}/api/system/time/sync"
+    method: POST
+    headers:
+      Cookie: "{{ wallix_api_session_cookie | default('') }}"
+      Authorization: "Bearer {{ wallix_api_token | default('') }}"
+      Content-Type: "application/json"
+    body: '{}'
+    body_format: json
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(true) }}"
+    timeout: "{{ wallix_auth.connection.timeout | default(30) }}"
+    status_code: [200, 204]
+  register: ntp_sync_result
+  when: 
+    - wallix_time.ntp_enabled | default(true)
+    - time_config_result is defined
+    - time_config_result.changed
+
+- name: "Config | Time | Verify time synchronization"
+  uri:
+    url: "{{ wallix_api_base_url }}/api/system/time/status"
+    method: GET
+    headers:
+      Cookie: "{{ wallix_api_session_cookie | default('') }}"
+      Authorization: "Bearer {{ wallix_api_token | default('') }}"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(true) }}"
+    timeout: "{{ wallix_auth.connection.timeout | default(30) }}"
+    status_code: [200]
+  register: time_status_check
+  changed_when: false
+  when: ntp_sync_result is defined
+
+- name: "Config | Time | Set time configuration status"
+  set_fact:
+    wallix_time_config_applied: "{{ time_config_result.changed | default(false) }}"
+    wallix_time_synchronized: "{{ ntp_sync_result.status == 200 if ntp_sync_result is defined else false }}"
+    wallix_time_config_time: "{{ ansible_date_time.iso8601 }}"

@@ -1,0 +1,18 @@
+{
+  "product_type": "bastion",
+  "hostname": "wallix-bastion-network",
+  "fqdn": "wallix-bastion-network.company.local",
+  "set_service_user_password": true,
+  "generate_network_config": true,
+  "network_renderer": "networkd",
+  "network_interfaces": [
+    "eth0:dhcp4",
+    "eth1:static"
+  ],
+  "static_ip_config": [
+    "eth1:10.0.2.100/24:10.0.2.1:10.0.2.1,8.8.8.8"
+  ],
+  "additional_bootcmd": [
+    "echo 'Network config applied' > /var/log/wallix-cloudinit-network.log"
+  ]
+}

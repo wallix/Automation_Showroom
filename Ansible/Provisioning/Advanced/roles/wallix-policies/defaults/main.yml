@@ -1,0 +1,167 @@
+---
+# WALLIX Policy Management
+# Default variables for the wallix-policies role
+
+# Policy Management Settings
+wallix_policies:
+  # Management configuration
+  manage_access_policies: true
+  manage_approval_policies: true
+  manage_session_policies: true
+  manage_password_policies: true
+  manage_connection_policies: true
+  
+  # Operation settings
+  operation_mode: "apply"  # apply, dry_run, validate_only
+  validate_before_apply: true
+  continue_on_error: false
+  
+  # Policy settings
+  auto_assign: true
+  validate_policies: true
+  backup_before_change: true
+  
+  # Retry settings
+  retry_attempts: 3
+  retry_delay: 5
+  
+  # Logging settings
+  detailed_logging: true
+  log_api_requests: false
+
+# Access Policies Configuration
+wallix_access_policies:
+  # Policy definitions
+  policies: []
+  # Example:
+  # - name: "admin_full_access"
+  #   description: "Full administrative access"
+  #   type: "access"
+  #   priority: 100
+  #   enabled: true
+  #   conditions:
+  #     users: ["admin", "@administrators"]
+  #     devices: ["@all_servers"]
+  #     services: ["ssh", "rdp"]
+  #     time_restrictions:
+  #       - start: "00:00"
+  #         end: "23:59"
+  #         days: ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+  #     ip_restrictions: []
+  #   actions:
+  #     allow: true
+  #     require_approval: false
+  #     require_reason: false
+  #     max_session_duration: 14400
+
+# Approval Policies Configuration
+wallix_approval_policies:
+  # Approval workflow definitions
+  policies: []
+  # Example:
+  # - name: "production_approval"
+  #   description: "Production server access approval"
+  #   type: "approval"
+  #   enabled: true
+  #   conditions:
+  #     devices: ["@production_servers"]
+  #     users: ["@users"]
+  #   workflow:
+  #     steps:
+  #       - approvers: ["@administrators"]
+  #         required_approvals: 1
+  #         timeout: 3600
+  #       - approvers: ["security_team"]
+  #         required_approvals: 1
+  #         timeout: 7200
+  #   settings:
+  #     auto_approve_timeout: false
+  #     notify_requestor: true
+
+# Session Policies Configuration
+wallix_session_policies:
+  # Session behavior policies
+  policies: []
+  # Example:
+  # - name: "secure_session"
+  #   description: "High security session policy"
+  #   type: "session"
+  #   enabled: true
+  #   settings:
+  #     recording_enabled: true
+  #     recording_quality: "high"
+  #     file_transfer_enabled: false
+  #     clipboard_enabled: false
+  #     print_enabled: false
+  #     screenshot_interval: 60
+  #   restrictions:
+  #     max_session_duration: 7200
+  #     idle_timeout: 1800
+  #     concurrent_session_limit: 3
+
+# Password Policies Configuration
+wallix_password_policies:
+  # Password management policies
+  policies: []
+  # Example:
+  # - name: "strong_password"
+  #   description: "Strong password policy"
+  #   type: "password"
+  #   enabled: true
+  #   rules:
+  #     min_length: 12
+  #     max_length: 128
+  #     require_uppercase: true
+  #     require_lowercase: true
+  #     require_numbers: true
+  #     require_special_chars: true
+  #     forbidden_chars: []
+  #     max_age_days: 90
+  #     history_size: 12
+  #     complexity_score: 75
+
+# Connection Policies Configuration
+wallix_connection_policies:
+  # Network connection policies
+  policies: []
+  # Example:
+  # - name: "ssh_standard"
+  #   description: "Standard SSH connection policy"
+  #   type: "connection"
+  #   protocol: "ssh"
+  #   enabled: true
+  #   settings:
+  #     connection_timeout: 30
+  #     keepalive_interval: 60
+  #     max_auth_attempts: 3
+  #     enable_agent_forwarding: false
+  #     enable_x11_forwarding: false
+  #     enable_port_forwarding: false
+  #   security:
+  #     allowed_ciphers: ["aes256-ctr", "aes192-ctr", "aes128-ctr"]
+  #     allowed_macs: ["hmac-sha2-256", "hmac-sha2-512"]
+  #     allowed_kex: ["ecdh-sha2-nistp256", "ecdh-sha2-nistp384"]
+
+# Policy Templates
+wallix_policy_templates:
+  access_policy: "access_policy.json.j2"
+  approval_policy: "approval_policy.json.j2"
+  session_policy: "session_policy.json.j2"
+  password_policy: "password_policy.json.j2"
+  connection_policy: "connection_policy.json.j2"
+
+# Error Handling
+wallix_policies_error_handling:
+  ignore_errors: false
+  rollback_on_failure: true
+  notify_on_changes: true
+  validation_strict: true
+  skip_existing_policies: false
+
+# Debug and Development
+wallix_policies_debug:
+  enabled: false
+  log_requests: false
+  log_responses: false
+  save_configs: false
+  validate_policy_syntax: true

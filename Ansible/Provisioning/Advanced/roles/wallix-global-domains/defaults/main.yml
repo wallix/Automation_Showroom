@@ -1,0 +1,32 @@
+---
+# Default variables for wallix-global-domains role
+
+# Default global domains configuration
+wallix_global_domains: []
+
+# Debug configuration
+wallix_global_domains_debug:
+  enabled: false
+  show_details: false
+
+# Mode configuration
+# Options: "normal", "dry_run"
+wallix_global_domains_mode: "normal"
+
+# Default API endpoints
+wallix_global_domains_api:
+  base_path: "/api"
+  domains_endpoint: "/domains"
+  auth_endpoint: "/auth/login"
+
+# Default timeout values
+wallix_global_domains_timeouts:
+  api_call: 30
+  retry_delay: 2
+  max_retries: 3
+
+# Default error handling
+wallix_global_domains_error_handling:
+  ignore_existing: true
+  fail_on_error: true
+  continue_on_error: false

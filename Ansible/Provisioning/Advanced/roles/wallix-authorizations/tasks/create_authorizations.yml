@@ -1,0 +1,60 @@
+---
+# Create authorizations on WALLIX
+
+- name: Create authorizations
+  uri:
+    url: "{{ wallix_api.base_url }}/authorizations"
+    method: POST
+    headers:
+      Cookie: "{{ wallix_session_cookie }}"
+      Content-Type: "application/json"
+    body_format: json
+    body:
+      authorization_name: "{{ item.name }}"
+      description: "{{ item.description | default('') }}"
+      user_group: "{{ item.user_group }}"
+      target_group: "{{ item.target_group | default('') }}"
+      subprotocols: "{{ item.subprotocols | default([item.subprotocol] if item.subprotocol is defined else []) }}"
+      is_critical: "{{ item.is_critical | default(false) | bool }}"
+      is_recorded: "{{ item.is_recorded | default(true) | bool }}"
+      approval_required: "{{ item.approval_required | default(false) | bool }}"
+      authorize_sessions: "{{ item.authorize_sessions | default(true) | bool }}"
+      authorize_password_retrieval: "{{ item.authorize_password_retrieval | default(true) | bool }}"
+      authorize_session_sharing: "{{ item.authorize_session_sharing | default(false) | bool }}"
+    validate_certs: false
+    timeout: 30
+    status_code: [200, 201, 204, 409]
+    return_content: yes
+  register: authorization_creation_result
+  loop: "{{ wallix_authorizations }}"
+  when: 
+    - item.state | default('present') == 'present'
+    - wallix_authorizations_mode != 'dry_run'
+
+- name: Debug authorization creation results
+  debug:
+    msg:
+      - "Authorization: {{ item.item.name }}"
+      - "User Group: {{ item.item.user_group }}"
+      - "Target Group: {{ item.item.target_group | default('Any') }}"
+      - "Critical: {{ item.item.is_critical | default(false) }}"
+      - "Recorded: {{ item.item.is_recorded | default(true) }}"
+      - "Status: {{ 'CREATED' if item.status in [201, 204] else 'ALREADY EXISTS' if item.status == 409 else 'UPDATED' if item.status == 200 else 'ERROR' }}"
+  loop: "{{ authorization_creation_result.results }}"
+  when: 
+    - authorization_creation_result.results is defined
+    - wallix_authorizations_debug.enabled | default(false)
+
+- name: Set authorization creation status
+  set_fact:
+    wallix_authorizations_status: "success"
+    wallix_authorizations_created: "{{ authorization_creation_result.results | selectattr('status', 'in', [201, 204]) | list | length }}"
+    wallix_authorizations_existing: "{{ authorization_creation_result.results | selectattr('status', 'equalto', 409) | list | length }}"
+  when: authorization_creation_result.results is defined
+
+- name: Display authorizations creation summary
+  debug:
+    msg:
+      - "✅ Authorizations management completed"
+      - "Authorizations created: {{ wallix_authorizations_created | default(0) }}"
+      - "Authorizations already existing: {{ wallix_authorizations_existing | default(0) }}"

@@ -1,0 +1,95 @@
+---
+# WALLIX Config - Configuration Validation Tasks
+
+- name: "Config | Validate | Check required variables"
+  assert:
+    that:
+      - wallix_api_host is defined or wallix_bastion_host is defined
+      - wallix_session_cookie is defined or wallix_api_token is defined
+    fail_msg: "Authentication variables are required for configuration management"
+    success_msg: "Required authentication variables are present"
+
+- name: "Config | Validate | Check system configuration parameters"
+  assert:
+    that:
+      - wallix_system_config.system_name is defined
+      - wallix_system_config.system_name | length > 0
+      - wallix_system_config.session_timeout is number
+      - wallix_system_config.session_timeout > 0
+    fail_msg: "Invalid system configuration parameters"
+    success_msg: "System configuration parameters are valid"
+  when: wallix_config.manage_system_config | default(true)
+
+- name: "Config | Validate | Check license configuration"
+  assert:
+    that:
+      - wallix_license.license_file is defined or wallix_license.license_content is defined or not wallix_license.auto_install
+    fail_msg: "License file or content must be provided when auto_install is enabled"
+    success_msg: "License configuration is valid"
+  when: 
+    - wallix_config.manage_license | default(true)
+    - wallix_license.auto_install | default(false)
+
+- name: "Config | Validate | Check certificate configuration"
+  assert:
+    that:
+      - item.cert_file is defined and item.cert_file | length > 0
+      - item.key_file is defined and item.key_file | length > 0
+    fail_msg: "Certificate and key files must be specified when install is enabled"
+    success_msg: "Certificate configuration is valid"
+  loop:
+    - "{{ wallix_certificates.web_cert }}"
+    - "{{ wallix_certificates.api_cert }}"
+  when: 
+    - wallix_config.manage_certificates | default(true)
+    - item.install | default(false)
+
+- name: "Config | Validate | Check time configuration"
+  assert:
+    that:
+      - wallix_time.ntp_servers is defined
+      - wallix_time.ntp_servers | length > 0
+    fail_msg: "NTP servers must be configured when NTP is enabled"
+    success_msg: "Time configuration is valid"
+  when: 
+    - wallix_config.manage_time_settings | default(true)
+    - wallix_time.ntp_enabled | default(true)
+
+- name: "Config | Validate | Check network configuration"
+  assert:
+    that:
+      - item.ip is defined and item.ip | ipaddr
+      - item.netmask is defined and item.netmask | ipaddr
+    fail_msg: "Invalid IP address or netmask for interface {{ item.name }}"
+    success_msg: "Network interface {{ item.name }} configuration is valid"
+  loop: "{{ wallix_network.interfaces }}"
+  when: 
+    - wallix_config.manage_network_settings | default(false)
+    - wallix_network.interfaces is defined
+    - wallix_network.interfaces | length > 0
+
+- name: "Config | Validate | Test API connectivity"
+  uri:
+    url: "{{ wallix_bastion_protocol | default('https') }}://{{ wallix_bastion_host }}:{{ wallix_bastion_port | default(443) }}/api/system/status"
+    method: GET
+    headers:
+      Cookie: "{{ wallix_session_cookie | default('') }}"
+      Authorization: "Bearer {{ wallix_api_token | default('') }}"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(true) }}"
+    timeout: "{{ wallix_auth.connection.timeout | default(30) }}"
+    status_code: [200, 401]
+  register: config_api_test
+  failed_when: false
+  changed_when: false
+
+- name: "Config | Validate | Check API accessibility"
+  assert:
+    that:
+      - config_api_test.status in [200, 401]
+    fail_msg: "Cannot reach WALLIX API at {{ wallix_bastion_protocol | default('https') }}://{{ wallix_bastion_host }}:{{ wallix_bastion_port | default(443) }}"
+    success_msg: "WALLIX API is accessible"
+
+- name: "Config | Validate | Set validation status"
+  set_fact:
+    wallix_config_validated: true
+    wallix_config_validation_time: "{{ ansible_date_time.epoch | default(10000) | int }}"

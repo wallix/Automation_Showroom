@@ -1,0 +1,56 @@
+---
+# Ansible Vault Example for WALLIX Credentials
+# 
+# To create an encrypted vault file:
+# ansible-vault create group_vars/all/vault.yml
+#
+# To edit an existing vault:
+# ansible-vault edit group_vars/all/vault.yml
+#
+# To view vault contents:
+# ansible-vault view group_vars/all/vault.yml
+#
+# IMPORTANT: Never commit unencrypted vault files to git!
+
+# Production Credentials
+vault_wallix_prod_username: "admin"
+vault_wallix_prod_password: "CHANGE_ME_STRONG_PASSWORD"
+vault_wallix_prod_api_key: "CHANGE_ME_API_KEY"
+
+# Development Credentials
+vault_wallix_dev_username: "admin"
+vault_wallix_dev_password: "CHANGE_ME_DEV_PASSWORD"
+vault_wallix_dev_api_key: "CHANGE_ME_DEV_API_KEY"
+
+# Staging Credentials
+vault_wallix_staging_username: "admin"
+vault_wallix_staging_password: "CHANGE_ME_STAGING_PASSWORD"
+vault_wallix_staging_api_key: "CHANGE_ME_STAGING_API_KEY"
+
+# Global Account Passwords (for global_accounts_example.yml)
+vault_prod_admin_password: "CHANGE_ME_PROD_ADMIN_PASSWORD"
+vault_app_service_password: "CHANGE_ME_APP_SERVICE_PASSWORD"
+vault_db_admin_password: "CHANGE_ME_DB_ADMIN_PASSWORD"
+
+# SSH Keys for Automation
+vault_automation_ssh_private_key: |
+  -----BEGIN OPENSSH PRIVATE KEY-----
+  YOUR_PRIVATE_KEY_HERE
+  -----END OPENSSH PRIVATE KEY-----
+
+vault_automation_ssh_public_key: "ssh-rsa YOUR_PUBLIC_KEY_HERE ansible-automation"
+
+# LDAP/AD Credentials
+vault_ldap_bind_password: "CHANGE_ME_LDAP_PASSWORD"
+vault_ad_admin_password: "CHANGE_ME_AD_PASSWORD"
+
+# RADIUS Shared Secrets
+vault_radius_shared_secret: "CHANGE_ME_RADIUS_SECRET"
+
+# Database Credentials
+vault_postgres_password: "CHANGE_ME_POSTGRES_PASSWORD"
+vault_mysql_password: "CHANGE_ME_MYSQL_PASSWORD"
+
+# Certificate Passphrases
+vault_cert_passphrase: "CHANGE_ME_CERT_PASSPHRASE"
+vault_ca_passphrase: "CHANGE_ME_CA_PASSPHRASE"

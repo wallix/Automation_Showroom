@@ -1,0 +1,114 @@
+---
+# WALLIX Config - Network Configuration Tasks
+
+- name: "Config | Network | Get current network configuration"
+  uri:
+    url: "{{ wallix_api_base_url }}/api/system/network"
+    method: GET
+    headers:
+      Cookie: "{{ wallix_api_session_cookie | default('') }}"
+      Authorization: "Bearer {{ wallix_api_token | default('') }}"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(true) }}"
+    timeout: "{{ wallix_auth.connection.timeout | default(30) }}"
+    status_code: [200]
+  register: current_network_config
+  changed_when: false
+
+- name: "Config | Network | Prepare network interface configurations"
+  set_fact:
+    network_interfaces_payload: "{{ wallix_network.interfaces | default([]) }}"
+
+- name: "Config | Network | Prepare firewall configuration"
+  set_fact:
+    firewall_config_payload:
+      enabled: "{{ wallix_network.firewall.enabled | default(true) }}"
+      default_policy: "{{ wallix_network.firewall.default_policy | default('drop') }}"
+      rules: "{{ wallix_network.firewall.allowed_ports | default([]) }}"
+
+- name: "Config | Network | Compare network configurations"
+  set_fact:
+    network_config_changed: "{{ (current_network_config.json.interfaces | default([])) != network_interfaces_payload or (current_network_config.json.firewall | default({})) != firewall_config_payload }}"
+
+- name: "Config | Network | Display network configuration changes"
+  debug:
+    msg:
+      - "Current network configuration differs from desired state"
+      - "Current interfaces: {{ current_network_config.json.interfaces | default([]) }}"
+      - "Desired interfaces: {{ network_interfaces_payload }}"
+      - "Current firewall: {{ current_network_config.json.firewall | default({}) }}"
+      - "Desired firewall: {{ firewall_config_payload }}"
+  when: 
+    - network_config_changed
+    - wallix_config.detailed_logging | default(true)
+
+- name: "Config | Network | Apply network configuration (dry run)"
+  debug:
+    msg: "Would update network configuration with interfaces: {{ network_interfaces_payload }} and firewall: {{ firewall_config_payload }}"
+  when: 
+    - network_config_changed
+    - wallix_config.operation_mode | default('apply') == 'dry_run'
+
+- name: "Config | Network | Apply interface configurations"
+  uri:
+    url: "{{ wallix_api_base_url }}/api/system/network/interfaces"
+    method: PUT
+    headers:
+      Cookie: "{{ wallix_api_session_cookie | default('') }}"
+      Authorization: "Bearer {{ wallix_api_token | default('') }}"
+      Content-Type: "application/json"
+    body:
+      interfaces: "{{ network_interfaces_payload }}"
+    body_format: json
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(true) }}"
+    timeout: "{{ wallix_auth.connection.timeout | default(30) }}"
+    status_code: [200, 201, 204]
+  register: network_interfaces_result
+  when: 
+    - network_config_changed
+    - wallix_config.operation_mode | default('apply') == 'apply'
+    - network_interfaces_payload | length > 0
+
+- name: "Config | Network | Apply firewall configuration"
+  uri:
+    url: "{{ wallix_api_base_url }}/api/system/network/firewall"
+    method: PUT
+    headers:
+      Cookie: "{{ wallix_api_session_cookie | default('') }}"
+      Authorization: "Bearer {{ wallix_api_token | default('') }}"
+      Content-Type: "application/json"
+    body: "{{ firewall_config_payload }}"
+    body_format: json
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(true) }}"
+    timeout: "{{ wallix_auth.connection.timeout | default(30) }}"
+    status_code: [200, 201, 204]
+  register: firewall_config_result
+  when: 
+    - network_config_changed
+    - wallix_config.operation_mode | default('apply') == 'apply'
+
+- name: "Config | Network | Test network connectivity"
+  uri:
+    url: "{{ wallix_api_base_url }}/api/system/network/test"
+    method: POST
+    headers:
+      Cookie: "{{ wallix_api_session_cookie | default('') }}"
+      Authorization: "Bearer {{ wallix_api_token | default('') }}"
+      Content-Type: "application/json"
+    body:
+      test_external: true
+      test_dns: true
+    body_format: json
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(true) }}"
+    timeout: "{{ wallix_auth.connection.timeout | default(30) }}"
+    status_code: [200]
+  register: network_test_result
+  when: 
+    - network_interfaces_result is defined and network_interfaces_result.changed
+    - wallix_config.detailed_logging | default(true)
+
+- name: "Config | Network | Set network configuration status"
+  set_fact:
+    wallix_network_interfaces_applied: "{{ network_interfaces_result.changed | default(false) }}"
+    wallix_firewall_config_applied: "{{ firewall_config_result.changed | default(false) }}"
+    wallix_network_test_passed: "{{ network_test_result.json.success | default(true) if network_test_result is defined else true }}"
+    wallix_network_config_time: "{{ ansible_date_time.iso8601 }}"

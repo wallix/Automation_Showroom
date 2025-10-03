@@ -1,0 +1,250 @@
+---
+# WALLIX Config - Enhanced License Configuration Tasks
+# Extended license management via /api/license with full CRUD operations
+
+- name: "Config | License | Get current license information"
+  uri:
+    url: "{{ wallix_api_base_url }}/api/license"
+    method: GET
+    headers:
+      Cookie: "{{ wallix_api_session_cookie | default('') }}"
+      Authorization: "Bearer {{ wallix_api_token | default('') }}"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(true) }}"
+    timeout: "{{ wallix_auth.connection.timeout | default(30) }}"
+    status_code: [200, 404]
+  register: current_license_info
+  changed_when: false
+  failed_when: false
+
+- name: "Config | License | Get license usage statistics"
+  uri:
+    url: "{{ wallix_api_base_url }}/api/license/usage"
+    method: GET
+    headers:
+      Cookie: "{{ wallix_api_session_cookie | default('') }}"
+      Authorization: "Bearer {{ wallix_api_token | default('') }}"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(true) }}"
+    timeout: "{{ wallix_auth.connection.timeout | default(30) }}"
+    status_code: [200, 404]
+  register: license_usage_info
+  changed_when: false
+  failed_when: false
+
+- name: "Config | License | Debug current license information"
+  debug:
+    msg:
+      - "License Info: {{ current_license_info.json | default('Not configured') }}"
+      - "License Usage: {{ license_usage_info.json | default('Usage unavailable') }}"
+  when: wallix_config_debug.enabled | default(false)
+
+# === LICENSE FILE HANDLING ===
+- name: "Config | License | Check license file existence"
+  stat:
+    path: "{{ wallix_license_config.license_file }}"
+  register: license_file_stat
+  when: 
+    - wallix_license_config.auto_install | default(false)
+    - wallix_license_config.license_file is defined
+    - wallix_license_config.license_file | length > 0
+  delegate_to: localhost
+
+- name: "Config | License | Read license file content"
+  slurp:
+    src: "{{ wallix_license_config.license_file }}"
+  register: license_file_content
+  when: 
+    - wallix_license_config.auto_install | default(false)
+    - license_file_stat.stat.exists | default(false)
+  delegate_to: localhost
+
+- name: "Config | License | Prepare license content"
+  set_fact:
+    license_payload: "{{ license_file_content.content | b64decode if license_file_content is defined else wallix_license_config.license_content }}"
+  when: wallix_license_config.auto_install | default(false)
+
+# === LICENSE INSTALLATION ===
+- name: "Config | License | Install license (dry run)"
+  debug:
+    msg: "Would install license with content: {{ license_payload[:100] }}..."
+  when: 
+    - wallix_license_config.auto_install | default(false)
+    - wallix_config_mode | default('normal') == 'dry_run'
+    - license_payload is defined
+
+- name: "Config | License | Install license"
+  uri:
+    url: "{{ wallix_api_base_url }}/api/license"
+    method: POST
+    headers:
+      Cookie: "{{ wallix_api_session_cookie | default('') }}"
+      Authorization: "Bearer {{ wallix_api_token | default('') }}"
+      Content-Type: "application/json"
+    body:
+      license_content: "{{ license_payload }}"
+      license_name: "{{ wallix_license_config.license_name | default('Ansible-Managed-License') }}"
+      license_description: "{{ wallix_license_config.license_description | default('License installed by Ansible automation') }}"
+      auto_activate: "{{ wallix_license_config.auto_activate | default(true) }}"
+    body_format: json
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(true) }}"
+    timeout: "{{ wallix_auth.connection.timeout | default(30) }}"
+    status_code: [200, 201]
+  register: license_install_result
+  when: 
+    - wallix_license_config.auto_install | default(false)
+    - wallix_config_mode | default('normal') == 'normal'
+    - license_payload is defined
+
+# === LICENSE ACTIVATION ===
+- name: "Config | License | Activate license"
+  uri:
+    url: "{{ wallix_api_base_url }}/api/license/activate"
+    method: POST
+    headers:
+      Cookie: "{{ wallix_api_session_cookie | default('') }}"
+      Authorization: "Bearer {{ wallix_api_token | default('') }}"
+      Content-Type: "application/json"
+    body:
+      license_key: "{{ wallix_license_config.license_key | default('') }}"
+      force_activation: "{{ wallix_license_config.force_activation | default(false) }}"
+    body_format: json
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(true) }}"
+    timeout: "{{ wallix_auth.connection.timeout | default(30) }}"
+    status_code: [200, 201]
+  register: license_activation_result
+  when: 
+    - wallix_license_config.activate_license | default(false)
+    - wallix_license_config.license_key is defined
+    - wallix_config_mode | default('normal') == 'normal'
+
+# === LICENSE VALIDATION ===
+- name: "Config | License | Validate installed license"
+  uri:
+    url: "{{ wallix_api_base_url }}/api/license/validate"
+    method: POST
+    headers:
+      Cookie: "{{ wallix_api_session_cookie | default('') }}"
+      Authorization: "Bearer {{ wallix_api_token | default('') }}"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(true) }}"
+    timeout: "{{ wallix_auth.connection.timeout | default(30) }}"
+    status_code: [200]
+  register: license_validation_result
+  when: 
+    - wallix_license_config.validate_license | default(true)
+    - (license_install_result is defined and license_install_result.changed) or
+      (license_activation_result is defined and license_activation_result.changed)
+
+# === LICENSE EXPIRATION MONITORING ===
+- name: "Config | License | Check license expiration"
+  uri:
+    url: "{{ wallix_api_base_url }}/api/license"
+    method: GET
+    headers:
+      Cookie: "{{ wallix_api_session_cookie | default('') }}"
+      Authorization: "Bearer {{ wallix_api_token | default('') }}"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(true) }}"
+    timeout: "{{ wallix_auth.connection.timeout | default(30) }}"
+    status_code: [200]
+  register: license_expiration_check
+  changed_when: false
+  when: wallix_license_config.check_expiration | default(true)
+
+- name: "Config | License | Calculate days until expiration"
+  set_fact:
+    license_days_remaining: >-
+      {{
+        ((license_expiration_check.json.expiration_date | to_datetime) - (ansible_date_time.iso8601 | to_datetime)).days
+        if license_expiration_check.json.expiration_date is defined
+        else 'unknown'
+      }}
+  when: 
+    - license_expiration_check is defined
+    - license_expiration_check.status == 200
+
+# === LICENSE USAGE MONITORING ===
+- name: "Config | License | Analyze license usage"
+  set_fact:
+    license_usage_analysis:
+      current_users: "{{ license_usage_info.json.current_users | default(0) }}"
+      max_users: "{{ license_usage_info.json.max_users | default(0) }}"
+      usage_percentage: "{{ ((license_usage_info.json.current_users | default(0) | int) * 100 / (license_usage_info.json.max_users | default(1) | int)) | round(2) }}"
+      current_devices: "{{ license_usage_info.json.current_devices | default(0) }}"
+      max_devices: "{{ license_usage_info.json.max_devices | default(0) }}"
+      device_usage_percentage: "{{ ((license_usage_info.json.current_devices | default(0) | int) * 100 / (license_usage_info.json.max_devices | default(1) | int)) | round(2) }}"
+  when: 
+    - license_usage_info is defined
+    - license_usage_info.status == 200
+
+# === LICENSE ALERTS ===
+- name: "Config | License | Warning for license expiration"
+  debug:
+    msg: "WARNING: License expires in {{ license_days_remaining }} days on {{ license_expiration_check.json.expiration_date }}"
+  when: 
+    - license_days_remaining is defined
+    - license_days_remaining != 'unknown'
+    - license_days_remaining | int <= (wallix_license_config.alert_before_expiry_days | default(30))
+    - license_days_remaining | int > 0
+
+- name: "Config | License | Alert for expired license"
+  fail:
+    msg: "CRITICAL: License has expired on {{ license_expiration_check.json.expiration_date }}"
+  when: 
+    - license_days_remaining is defined
+    - license_days_remaining != 'unknown'
+    - license_days_remaining | int <= 0
+    - not (wallix_config.continue_on_error | default(false))
+
+- name: "Config | License | Warning for high usage"
+  debug:
+    msg: 
+      - "WARNING: High license usage detected:"
+      - "  - Users: {{ license_usage_analysis.current_users }}/{{ license_usage_analysis.max_users }} ({{ license_usage_analysis.usage_percentage }}%)"
+      - "  - Devices: {{ license_usage_analysis.current_devices }}/{{ license_usage_analysis.max_devices }} ({{ license_usage_analysis.device_usage_percentage }}%)"
+  when: 
+    - license_usage_analysis is defined
+    - (license_usage_analysis.usage_percentage | float >= (wallix_license_config.usage_warning_threshold | default(80))) or
+      (license_usage_analysis.device_usage_percentage | float >= (wallix_license_config.usage_warning_threshold | default(80)))
+
+# === LICENSE BACKUP ===
+- name: "Config | License | Backup license information"
+  copy:
+    content: |
+      # WALLIX License Backup - {{ ansible_date_time.iso8601 }}
+      # Generated by Ansible automation
+      
+      License Information:
+      {{ current_license_info.json | default('No license information available') | to_nice_yaml }}
+      
+      License Usage:
+      {{ license_usage_analysis | default('No usage information available') | to_nice_yaml }}
+      
+      Expiration Details:
+      Days Remaining: {{ license_days_remaining | default('unknown') }}
+      {% if license_expiration_check.json.expiration_date is defined %}
+      Expiration Date: {{ license_expiration_check.json.expiration_date }}
+      {% endif %}
+    dest: "/tmp/wallix_license_backup_{{ inventory_hostname }}_{{ ansible_date_time.epoch }}.yml"
+    mode: '0600'
+  delegate_to: localhost
+  when: wallix_license_config.backup_license_info | default(true)
+
+# === STATUS REPORTING ===
+- name: "Config | License | Set license status"
+  set_fact:
+    wallix_license_installed: "{{ license_install_result.changed | default(false) }}"
+    wallix_license_activated: "{{ license_activation_result.changed | default(false) }}"
+    wallix_license_valid: "{{ license_validation_result.status == 200 if license_validation_result is defined else true }}"
+    wallix_license_days_remaining: "{{ license_days_remaining | default('unknown') }}"
+    wallix_license_usage_percentage: "{{ license_usage_analysis.usage_percentage | default('unknown') if license_usage_analysis is defined else 'unknown' }}"
+    wallix_license_check_time: "{{ ansible_date_time.iso8601 }}"
+
+- name: "Config | License | Log license configuration result"
+  debug:
+    msg:
+      - "License Configuration Summary:"
+      - "  - Installed: {{ wallix_license_installed }}"
+      - "  - Activated: {{ wallix_license_activated }}"
+      - "  - Valid: {{ wallix_license_valid }}"
+      - "  - Days Remaining: {{ wallix_license_days_remaining }}"
+      - "  - Usage: {{ wallix_license_usage_percentage }}%"
+      - "  - Timestamp: {{ wallix_license_check_time }}"
+  when: wallix_config_debug.enabled | default(false)

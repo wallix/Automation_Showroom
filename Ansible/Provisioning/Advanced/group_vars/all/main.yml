@@ -1,0 +1,30 @@
+---
+# Main variables for WALLIX Bastion
+# Non-sensitive configuration (vault.yml contains encrypted credentials)
+
+# Bastion connection settings (hardcoded for reliability)
+wallix_bastion_host: "192.168.1.75"
+wallix_bastion_port: 443
+wallix_bastion_protocol: "https"
+
+# API endpoint construction
+wallix_api:
+  base_url: "{{ wallix_bastion_protocol }}://{{ wallix_bastion_host }}:{{ wallix_bastion_port }}/api"
+  headers:
+    Content-Type: "application/json"
+    Accept: "application/json"
+
+# Debug settings (disable in production)
+wallix_api_debug: false
+wallix_api_logging: true
+
+# # Fallback variables for test-connection.yml
+# wallix_bastion:
+#   url: "{{ wallix_bastion_protocol }}://{{ wallix_bastion_host }}:{{ wallix_bastion_port }}"
+#   username: "admin"
+#   password: "demo123"  # Fallback password - use vault in production
+
+# # API configuration settings
+# api_config:
+#   verify_ssl: false
+#   timeout: 30

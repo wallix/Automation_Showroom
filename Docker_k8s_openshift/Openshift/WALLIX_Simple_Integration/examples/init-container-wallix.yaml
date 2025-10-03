@@ -1,0 +1,200 @@
+---
+# Init Container Pattern for WALLIX Bastion
+# Simple and Recommended Solution
+
+# 1. Secret with WALLIX API credentials
+apiVersion: v1
+kind: Secret
+metadata:
+  name: wallix-api-credentials
+  namespace: default
+type: Opaque
+stringData:
+  api-user: "admin"  # WALLIX API username
+  api-key: "YOUR_WALLIX_API_KEY_HERE"  # WALLIX API key
+
+---
+# 2. Deployment with Init Container
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-with-wallix-secrets
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: myapp
+  template:
+    metadata:
+      labels:
+        app: myapp
+    spec:
+      # Init container that retrieves the secret from WALLIX
+      initContainers:
+      - name: fetch-wallix-password
+        image: curlimages/curl:latest
+        command:
+          - sh
+          - -c
+          - |
+            set -e
+            echo "Fetching password from WALLIX Bastion..."
+            
+            PASSWORD=$(curl -k -s -f \
+              -H "X-Auth-User: $WALLIX_API_USER" \
+              -H "X-Auth-Key: $WALLIX_API_KEY" \
+              -H "Content-Type: application/json" \
+              "https://your-bastion.example.com/api/targetpasswords/checkout/$TARGET_KEY" \
+              | jq -r '.password')
+            
+            if [ -z "$PASSWORD" ]; then
+              echo "ERROR: Failed to fetch password"
+              exit 1
+            fi
+            
+            echo "$PASSWORD" > /secrets/database-password
+            echo "Password successfully fetched and stored"
+        env:
+        - name: WALLIX_API_USER
+          valueFrom:
+            secretKeyRef:
+              name: wallix-api-credentials
+              key: api-user
+        - name: WALLIX_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: wallix-api-credentials
+              key: api-key
+        - name: TARGET_KEY
+          value: "admin@db-postgres@prod.local"  # Format: account@target@domain
+        volumeMounts:
+        - name: secrets
+          mountPath: /secrets
+
+      # Main application
+      containers:
+      - name: app
+        image: myapp:latest
+        command:
+          - sh
+          - -c
+          - |
+            export DB_PASSWORD=$(cat /secrets/database-password)
+            echo "Starting application with database credentials..."
+            exec /app/start.sh
+        volumeMounts:
+        - name: secrets
+          mountPath: /secrets
+          readOnly: true
+        # Example of secret usage
+        env:
+        - name: DB_HOST
+          value: "postgres.prod.local"
+        - name: DB_USER
+          value: "admin"
+        # The password is read from /secrets/database-password
+
+      volumes:
+      - name: secrets
+        emptyDir:
+          medium: Memory  # RAM storage for security
+
+---
+# 3. Example with multiple WALLIX secrets
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-multiple-wallix-secrets
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: multi-secret-app
+  template:
+    metadata:
+      labels:
+        app: multi-secret-app
+    spec:
+      initContainers:
+      # Init container 1: Database password
+      - name: fetch-db-password
+        image: curlimages/curl:latest
+        command:
+          - sh
+          - -c
+          - |
+            curl -s -H "X-Auth-Key: $WALLIX_API_KEY" \
+              "https://bastion.example.com/api/targetpasswords/checkout/dbadmin@postgres@prod.local" \
+              | jq -r '.password' > /secrets/db-password
+        env:
+        - name: WALLIX_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: wallix-api-credentials
+              key: api-key
+        volumeMounts:
+        - name: secrets
+          mountPath: /secrets
+
+      # Init container 2: API key
+      - name: fetch-api-key
+        image: curlimages/curl:latest
+        command:
+          - sh
+          - -c
+          - |
+            curl -s -H "X-Auth-Key: $WALLIX_API_KEY" \
+              "https://bastion.example.com/api/targetpasswords/checkout/apiuser@external-api@prod.local" \
+              | jq -r '.password' > /secrets/api-key
+        env:
+        - name: WALLIX_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: wallix-api-credentials
+              key: api-key
+        volumeMounts:
+        - name: secrets
+          mountPath: /secrets
+
+      # Init container 3: SSH key
+      - name: fetch-ssh-key
+        image: curlimages/curl:latest
+        command:
+          - sh
+          - -c
+          - |
+            curl -s -H "X-Auth-Key: $WALLIX_API_KEY" \
+              "https://bastion.example.com/api/targetpasswords/checkout/deploy@gitserver@prod.local" \
+              | jq -r '.ssh_key' > /secrets/ssh-key
+        env:
+        - name: WALLIX_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: wallix-api-credentials
+              key: api-key
+        volumeMounts:
+        - name: secrets
+          mountPath: /secrets
+
+      containers:
+      - name: app
+        image: myapp:latest
+        command:
+          - sh
+          - -c
+          - |
+            export DB_PASSWORD=$(cat /secrets/db-password)
+            export API_KEY=$(cat /secrets/api-key)
+            export SSH_KEY=$(cat /secrets/ssh-key)
+            exec /app/start.sh
+        volumeMounts:
+        - name: secrets
+          mountPath: /secrets
+          readOnly: true
+
+      volumes:
+      - name: secrets
+        emptyDir:
+          medium: Memory

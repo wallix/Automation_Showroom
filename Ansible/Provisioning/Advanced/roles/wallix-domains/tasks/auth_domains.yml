@@ -1,0 +1,63 @@
+---
+# WALLIX Domains - Authentication Domains Management
+
+- name: "Domains | Auth | Get current authentication domains"
+  uri:
+    url: "{{ wallix_api_base_url }}/api/authdomains"
+    method: GET
+    headers:
+      Cookie: "{{ wallix_api_session_cookie | default('') }}"
+      Authorization: "Bearer {{ wallix_api_token | default('') }}"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(true) }}"
+    timeout: "{{ wallix_auth.connection.timeout | default(30) }}"
+    status_code: [200]
+  register: current_auth_domains
+  changed_when: false
+
+- name: "Domains | Auth | Process external authentication domains"
+  include_tasks: create_auth_domain.yml
+  loop: "{{ wallix_auth_domains.external_domains }}"
+  loop_control:
+    loop_var: domain_config
+  when: wallix_auth_domains.external_domains is defined
+
+- name: "Domains | Auth | Set default authentication domain"
+  uri:
+    url: "{{ wallix_api_base_url }}/api/authdomains/{{ default_domain.name }}/default"
+    method: PUT
+    headers:
+      Cookie: "{{ wallix_api_session_cookie | default('') }}"
+      Authorization: "Bearer {{ wallix_api_token | default('') }}"
+      Content-Type: "application/json"
+    body: '{"is_default": true}'
+    body_format: json
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(true) }}"
+    timeout: "{{ wallix_auth.connection.timeout | default(30) }}"
+    status_code: [200, 204]
+  register: default_domain_result
+  loop: "{{ [wallix_auth_domains.local] + (wallix_auth_domains.external_domains | default([])) }}"
+  loop_control:
+    loop_var: default_domain
+  when: 
+    - default_domain.default_domain | default(false)
+    - wallix_config.operation_mode | default('apply') == 'apply'
+
+- name: "Domains | Auth | Verify authentication domains"
+  uri:
+    url: "{{ wallix_api_base_url }}/api/authdomains"
+    method: GET
+    headers:
+      Cookie: "{{ wallix_api_session_cookie | default('') }}"
+      Authorization: "Bearer {{ wallix_api_token | default('') }}"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(true) }}"
+    timeout: "{{ wallix_auth.connection.timeout | default(30) }}"
+    status_code: [200]
+  register: updated_auth_domains
+  changed_when: false
+
+- name: "Domains | Auth | Set authentication domains status"
+  set_fact:
+    wallix_auth_domains_configured: true
+    wallix_auth_domains_count: "{{ updated_auth_domains.json | length }}"
+    wallix_auth_domains_list: "{{ updated_auth_domains.json | map(attribute='name') | list }}"
+    wallix_auth_domains_time: "{{ ansible_date_time.iso8601 }}"

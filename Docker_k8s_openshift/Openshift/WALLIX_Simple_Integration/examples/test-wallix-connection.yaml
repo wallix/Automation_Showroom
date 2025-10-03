@@ -1,0 +1,104 @@
+---
+# Test Pod for WALLIX Bastion API
+# Usage: kubectl apply -f test-pod-wallix.yaml
+
+# 1. Secret with API credentials (UPDATE with your real values)
+apiVersion: v1
+kind: Secret
+metadata:
+  name: wallix-api-test
+  namespace: default
+type: Opaque
+stringData:
+  api-user: "admin"                          # WALLIX API username
+  api-key: "YOUR_API_KEY_HERE"               # Your WALLIX API key
+
+---
+# 2. Simple test Pod
+apiVersion: v1
+kind: Pod
+metadata:
+  name: wallix-api-test
+  namespace: default
+spec:
+  restartPolicy: Never
+  containers:
+  - name: test
+    image: curlimages/curl:latest
+    command:
+      - sh
+      - -c
+      - |
+        set -e
+        echo "=== WALLIX Bastion API Test ==="
+        echo ""
+        echo "Configuration:"
+        echo "  Bastion URL: $BASTION_URL"
+        echo "  API User:    $WALLIX_API_USER"
+        echo "  Target Key:  $TARGET_KEY"
+        echo ""
+        
+        echo "[1/2] Testing connectivity to WALLIX Bastion..."
+        HTTP_CODE=$(curl -k -s -o /dev/null -w "%{http_code}" "$BASTION_URL")
+        echo "HTTP Response: $HTTP_CODE"
+        
+        if echo "$HTTP_CODE" | grep -q "200\|302\|401\|403"; then
+          echo "✓ Bastion is reachable"
+        else
+          echo "✗ Cannot reach Bastion (HTTP $HTTP_CODE)"
+          exit 1
+        fi
+        
+        echo ""
+        echo "[2/2] Fetching password from WALLIX..."
+        
+        RESPONSE=$(curl -k -s -w "\n%{http_code}" \
+          -H "X-Auth-User: $WALLIX_API_USER" \
+          -H "X-Auth-Key: $WALLIX_API_KEY" \
+          -H "Content-Type: application/json" \
+          "$BASTION_URL/api/targetpasswords/checkout/$TARGET_KEY")
+        
+        HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+        BODY=$(echo "$RESPONSE" | sed '$d')
+        
+        echo "HTTP Response: $HTTP_CODE"
+        
+        if [ "$HTTP_CODE" = "200" ]; then
+          echo "✓ Authentication successful"
+          
+          PASSWORD=$(echo "$BODY" | jq -r '.password' 2>/dev/null || echo "")
+          
+          if [ -n "$PASSWORD" ] && [ "$PASSWORD" != "null" ]; then
+            echo "✓ Password retrieved successfully"
+            echo ""
+            echo "Password length: $(echo -n "$PASSWORD" | wc -c) characters"
+            echo "Password preview: $(echo $PASSWORD | cut -c1-5)***"
+            echo ""
+            echo "=== TEST SUCCESSFUL ==="
+            exit 0
+          else
+            echo "✗ Password is empty or null"
+            echo "Response body: $BODY"
+            exit 1
+          fi
+        else
+          echo "✗ Authentication failed (HTTP $HTTP_CODE)"
+          echo "Response: $BODY"
+          exit 1
+        fi
+    env:
+    - name: WALLIX_API_USER
+      valueFrom:
+        secretKeyRef:
+          name: wallix-api-test
+          key: api-user
+    - name: WALLIX_API_KEY
+      valueFrom:
+        secretKeyRef:
+          name: wallix-api-test
+          key: api-key
+    - name: BASTION_URL
+      value: "https://192.168.1.75"                    # EDIT: Your Bastion URL
+    - name: TARGET_KEY
+      value: "admin@server@domain.local"              # EDIT: Format account@target@domain
+

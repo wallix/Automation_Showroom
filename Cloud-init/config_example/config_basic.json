@@ -1,0 +1,7 @@
+{
+  "product_type": "bastion",
+  "hostname": "wallix-bastion-demo",
+  "fqdn": "wallix-bastion-demo.company.local",
+  "set_service_user_password": true,
+  "set_keyboard_fr": true
+}

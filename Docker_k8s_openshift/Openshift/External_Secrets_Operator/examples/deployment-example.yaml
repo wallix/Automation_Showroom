@@ -1,0 +1,295 @@
+---
+# Example Deployment using WALLIX Bastion secrets
+# This shows how to use secrets from External Secrets Operator in applications
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webapp-deployment
+  namespace: production
+  labels:
+    app.kubernetes.io/name: webapp
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/component: web
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: webapp
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: webapp
+        app.kubernetes.io/component: web
+      annotations:
+        external-secrets.io/secret-refresh: "5m"
+    spec:
+      containers:
+      - name: webapp
+        image: nginx:1.21
+        ports:
+        - containerPort: 8080
+          name: http
+        - containerPort: 8443
+          name: https
+        
+        # Environment variables from WALLIX secrets
+        env:
+        # Database connection
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: postgres-db-credentials
+              key: DATABASE_URL
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: postgres-db-credentials
+              key: POSTGRES_USER
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-db-credentials
+              key: POSTGRES_PASSWORD
+        
+        # Application credentials
+        - name: APP_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: webapp-credentials
+              key: APP_USERNAME
+        - name: APP_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: webapp-credentials
+              key: APP_PASSWORD
+        - name: API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: webapp-credentials
+              key: API_KEY
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: webapp-credentials
+              key: JWT_SECRET
+        
+        # Load all secrets as environment variables
+        envFrom:
+        - secretRef:
+            name: microservices-auth
+            optional: true
+        
+        # Volume mounts for certificates
+        volumeMounts:
+        - name: tls-certs
+          mountPath: "/etc/ssl/certs/app"
+          readOnly: true
+        - name: client-certs
+          mountPath: "/etc/ssl/certs/client"
+          readOnly: true
+        - name: app-config
+          mountPath: "/etc/app/config"
+          readOnly: true
+        
+        # Health checks
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        
+        # Resource limits
+        resources:
+          limits:
+            cpu: 500m
+            memory: 512Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+        
+        # Security context
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 1000
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+      
+      # Volumes
+      volumes:
+      # TLS certificates from WALLIX
+      - name: tls-certs
+        secret:
+          secretName: webapp-tls
+          defaultMode: 0400
+      
+      # Client certificates for mTLS
+      - name: client-certs
+        secret:
+          secretName: client-mtls-certs
+          defaultMode: 0400
+      
+      # Application configuration
+      - name: app-config
+        configMap:
+          name: webapp-config
+      
+      # Security settings
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 2000
+        seccompProfile:
+          type: RuntimeDefault
+      
+      # Service account
+      serviceAccountName: webapp-service-account
+      
+      # Node selection
+      nodeSelector:
+        kubernetes.io/os: linux
+      
+      # Pod disruption budget considerations
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app.kubernetes.io/name
+                  operator: In
+                  values:
+                  - webapp
+              topologyKey: kubernetes.io/hostname
+---
+# StatefulSet example for database
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres-cluster
+  namespace: production
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/component: database
+spec:
+  serviceName: postgres-headless
+  replicas: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: postgres
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: postgres
+        app.kubernetes.io/component: database
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:13
+        ports:
+        - containerPort: 5432
+          name: postgres
+        
+        # Environment from WALLIX secrets
+        env:
+        - name: POSTGRES_DB
+          valueFrom:
+            secretKeyRef:
+              name: postgres-db-credentials
+              key: POSTGRES_DB
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: postgres-db-credentials
+              key: POSTGRES_USER
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-db-credentials
+              key: POSTGRES_PASSWORD
+        - name: PGDATA
+          value: "/var/lib/postgresql/data/pgdata"
+        
+        # Volume mounts
+        volumeMounts:
+        - name: postgres-storage
+          mountPath: /var/lib/postgresql/data
+        - name: postgres-config
+          mountPath: /etc/postgresql
+        
+        # Resources
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 2Gi
+          requests:
+            cpu: 500m
+            memory: 1Gi
+      
+      volumes:
+      - name: postgres-config
+        configMap:
+          name: postgres-config
+  
+  # Volume claim templates
+  volumeClaimTemplates:
+  - metadata:
+      name: postgres-storage
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 10Gi
+---
+# Job example for database migration
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: db-migration-job
+  namespace: production
+  labels:
+    app.kubernetes.io/name: db-migration
+    app.kubernetes.io/component: migration
+spec:
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: db-migration
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: migration
+        image: migrate/migrate:latest
+        command: ["/bin/sh"]
+        args:
+        - -c
+        - |
+          migrate -path /migrations -database "$DATABASE_URL" up
+        
+        # Environment from secrets
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: postgres-db-credentials
+              key: DATABASE_URL
+        
+        # Volume for migration files
+        volumeMounts:
+        - name: migration-scripts
+          mountPath: /migrations
+      
+      volumes:
+      - name: migration-scripts
+        configMap:
+          name: db-migration-scripts

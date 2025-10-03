@@ -45,3 +45,15 @@ info_replication.txt
 input_data.json
 
 Terraform/Deploying/azure/02-Advanced
+# WALLIX credentials
+**/wallix-config.env
+
+# Backups
+Backups/
+
+# Ansible
+*.retry                                         
+.vault_pass
+vault.yml
+!vault.example.yml
+.ansible

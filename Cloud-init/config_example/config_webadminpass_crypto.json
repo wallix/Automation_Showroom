@@ -1,0 +1,7 @@
+{
+  "product_type": "bastion",
+  "hostname": "wallix-bastion-webadmin",
+  "fqdn": "wallix-bastion-webadmin.company.local",
+  "set_service_user_password": true,
+  "set_webui_password_and_crypto": true
+}
