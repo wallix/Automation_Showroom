@@ -1,0 +1,26 @@
+{
+  "hostname": "wallix-host",
+  "fqdn": "wallix-host.domain.local",
+  "product_type": "bastion",
+  "set_service_user_password": true,
+  "ssh_public_key_path": "/home/linuxuser/.ssh/id_rsa.pub",
+  "use_of_lb": true,
+  "http_host_trusted_hostnames": "lb.example.com",
+  "set_webui_password_and_crypto": true,
+  "install_replication": true,
+  "additional_bootcmd": [
+    "touch /root/wallix_automation.txt",
+    "echo \"This file was created by cloud-init\" > /root/wallix_automation.txt"
+  ],
+  "to_gzip": false,
+  "to_base64_encode": false,
+  "set_keyboard_fr": true,
+  "generate_network_config": true,
+  "network_interfaces": [
+    "eth0:dhcp4"
+  ],
+  "network_renderer": null,
+  "static_ip_config": [],
+  "network_bonds": [],
+  "network_vlans": []
+}

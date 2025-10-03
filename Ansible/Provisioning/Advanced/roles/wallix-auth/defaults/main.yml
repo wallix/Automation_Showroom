@@ -1,0 +1,54 @@
+---
+# Default variables for wallix-auth role
+
+# WALLIX Bastion connection settings
+wallix_bastion_host: "{{ inventory_hostname }}"
+wallix_bastion_port: 443
+wallix_bastion_protocol: "https"
+wallix_bastion_api_version: "api"
+
+# Authentication method
+wallix_auth:
+  # Initial authentication method: credentials or api_key
+  initial_auth_method: "credentials"  # credentials|api_key
+  
+  # Credentials authentication (default method)
+  credentials:
+    username: "{{ vault_wallix_username | default('admin') }}"
+    password: "{{ vault_wallix_password }}"
+  
+  # API key authentication (alternative method)
+  api_key:
+    key: "{{ vault_api_key | default('') }}"
+    secret: "{{ vault_api_secret | default('') }}"
+  
+  # Session management
+  session:
+    use_cookie: true              # Always use cookie after initial auth
+    cookie_file: "/tmp/.wallix_session_localhost_cookie"
+    auto_renew: true
+    renewal_threshold: 300        # Renew 5 minutes before expiration
+    max_session_duration: 3600    # 1 hour
+    cleanup_on_exit: true
+  
+  # Connection settings
+  connection:
+    verify_ssl: true
+    timeout: 30
+    retry_count: 3
+    retry_delay: 5
+    force_basic_auth: false
+
+# API settings
+wallix_api:
+  base_url: "{{ wallix_bastion_protocol }}://{{ wallix_bastion_host }}:{{ wallix_bastion_port }}/{{ wallix_bastion_api_version }}"
+  headers:
+    Content-Type: "application/json"
+    Accept: "application/json"
+
+# Debug settings
+wallix_debug:
+  enabled: false
+  log_requests: false
+  log_responses: false
+  save_cookies: true

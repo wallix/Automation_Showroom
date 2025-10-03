@@ -1,0 +1,14 @@
+---
+# Calculated variables for wallix-auth role
+
+# Base API URL construction
+wallix_api:
+  base_url: "{{ wallix_bastion_protocol }}://{{ wallix_bastion_host }}:{{ wallix_bastion_port }}/{{ wallix_bastion_api_version }}"
+  headers:
+    Content-Type: "application/json"
+    Accept: "application/json"
+
+# Derived connection settings
+wallix_connection:
+  verify_ssl: "{{ wallix_auth.connection.verify_ssl | default(true) }}"
+  timeout: "{{ wallix_auth.connection.timeout | default(30) }}"

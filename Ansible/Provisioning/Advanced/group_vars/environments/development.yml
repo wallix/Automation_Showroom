@@ -1,0 +1,55 @@
+---
+# Development environment configuration
+
+# Environment-specific settings
+deployment_environment: "development"
+
+# Authentication settings for development
+wallix_auth:
+  initial_auth_method: "credentials"
+  credentials:
+    username: "{{ vault_dev_username | default('admin') }}"
+    password: "{{ vault_dev_password }}"
+  connection:
+    verify_ssl: false  # Often disabled in dev environments
+    timeout: 30
+    retry_count: 3
+
+# Development-specific components
+dev_components:
+  create_test_data: true
+  cleanup_on_failure: true
+  verbose_logging: true
+
+# Test data configuration
+test_data:
+  users:
+    - username: "test.user"
+      email: "test.user@example.com"
+      profile: "operator"
+  
+  devices:
+    - name: "dev-server-01"
+      host: "10.0.1.100"
+      description: "Development test server"
+      tags: ["development", "test"]
+  
+  user_groups:
+    - name: "Developers"
+      description: "Development team"
+      profile: "operator"
+
+# Development-specific settings
+development_settings:
+  api_timeout: 30
+  retry_count: 3
+  validation_strict: false
+  auto_cleanup_test_resources: true
+  debug_mode: true
+
+# Logging for development
+logging:
+  level: "debug"
+  log_api_requests: true
+  log_api_responses: true
+  save_responses: true

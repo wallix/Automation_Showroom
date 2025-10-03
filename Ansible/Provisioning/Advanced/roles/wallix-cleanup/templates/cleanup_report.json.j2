@@ -1,0 +1,67 @@
+{
+  "cleanup_info": {
+    "hostname": "{{ inventory_hostname }}",
+    "timestamp": "{{ ansible_date_time.iso8601 }}",
+    "ansible_version": "{{ ansible_version.full }}",
+    "operation": "cleanup",
+    "operation_mode": "{{ wallix_cleanup.operation_mode | default('apply') }}"
+  },
+  "safety_checks": {
+    "confirmation_received": {{ wallix_cleanup_confirmed | default(false) | to_json }},
+    "confirmation_time": "{{ wallix_cleanup_confirmation_time | default('N/A') }}",
+    "safety_checks_passed": {{ wallix_cleanup_safety_checks_passed | default(false) | to_json }},
+    "max_deletions_allowed": {{ wallix_cleanup_max_deletions | default(0) | int }}
+  },
+  "cleanup_results": {
+    "authorizations": {
+      "deleted": {{ wallix_cleanup_authorizations_deleted | default(0) | int }},
+      "backed_up": {{ wallix_cleanup_authorizations_backed_up | default(0) | int }}
+    },
+    "policies": {
+      "deleted": {{ wallix_cleanup_policies_deleted | default(0) | int }},
+      "backed_up": {{ wallix_cleanup_policies_backed_up | default(0) | int }}
+    },
+    "applications": {
+      "deleted": {{ wallix_cleanup_applications_deleted | default(0) | int }},
+      "backed_up": {{ wallix_cleanup_applications_backed_up | default(0) | int }}
+    },
+    "devices": {
+      "deleted": {{ wallix_cleanup_devices_deleted | default(0) | int }},
+      "backed_up": {{ wallix_cleanup_devices_backed_up | default(0) | int }}
+    },
+    "users": {
+      "deleted": {{ wallix_cleanup_users_deleted | default(0) | int }},
+      "backed_up": {{ wallix_cleanup_users_backed_up | default(0) | int }}
+    },
+    "domains": {
+      "deleted": {{ wallix_cleanup_domains_deleted | default(0) | int }},
+      "backed_up": {{ wallix_cleanup_domains_backed_up | default(0) | int }}
+    }
+  },
+  "backup_info": {
+    "backup_created": {{ wallix_cleanup_backup_created | default(false) | to_json }},
+    "backup_location": "{{ wallix_cleanup_backup_location | default('N/A') }}",
+    "backup_size": "{{ wallix_cleanup_backup_size | default('0') }}",
+    "backup_time": "{{ wallix_cleanup_backup_time | default('N/A') }}"
+  },
+  "summary": {
+    "total_deleted": {{ (
+      (wallix_cleanup_authorizations_deleted | default(0)) +
+      (wallix_cleanup_policies_deleted | default(0)) +
+      (wallix_cleanup_applications_deleted | default(0)) +
+      (wallix_cleanup_devices_deleted | default(0)) +
+      (wallix_cleanup_users_deleted | default(0)) +
+      (wallix_cleanup_domains_deleted | default(0))
+    ) | int }},
+    "total_backed_up": {{ (
+      (wallix_cleanup_authorizations_backed_up | default(0)) +
+      (wallix_cleanup_policies_backed_up | default(0)) +
+      (wallix_cleanup_applications_backed_up | default(0)) +
+      (wallix_cleanup_devices_backed_up | default(0)) +
+      (wallix_cleanup_users_backed_up | default(0)) +
+      (wallix_cleanup_domains_backed_up | default(0))
+    ) | int }},
+    "status": "{{ 'completed' if wallix_cleanup_completed | default(false) else 'partial' }}",
+    "completion_time": "{{ wallix_cleanup_completion_time | default('N/A') }}"
+  }
+}

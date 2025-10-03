@@ -1,0 +1,239 @@
+---
+# CronJob to synchronize WALLIX secrets in Kubernetes
+# Automatic periodic synchronization
+
+# 1. ServiceAccount with permissions
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: wallix-secret-sync
+  namespace: default
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: wallix-secret-manager
+  namespace: default
+rules:
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["get", "list", "create", "update", "patch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: wallix-secret-sync-binding
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: wallix-secret-manager
+subjects:
+- kind: ServiceAccount
+  name: wallix-secret-sync
+  namespace: default
+
+---
+# 2. Secret with WALLIX API credentials
+apiVersion: v1
+kind: Secret
+metadata:
+  name: wallix-api-credentials
+  namespace: default
+type: Opaque
+stringData:
+  api-user: "admin"  # WALLIX API username
+  api-key: "YOUR_WALLIX_API_KEY"  # WALLIX API key
+
+---
+# 3. ConfigMap with synchronization script
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: wallix-sync-script
+  namespace: default
+data:
+  sync.sh: |
+    #!/bin/sh
+    set -e
+    
+    echo "WALLIX Secret Synchronization - $(date)"
+    
+    # Configuration
+    BASTION_URL="${BASTION_URL:-https://bastion.example.com}"
+    NAMESPACE="${NAMESPACE:-default}"
+    
+    # Function to retrieve a secret from WALLIX
+    fetch_wallix_secret() {
+      local key="$1"
+      local secret_name="$2"
+      local secret_key="$3"
+      
+      echo "Fetching $key from WALLIX..."
+      
+      PASSWORD=$(curl -k -s -f \
+        -H "X-Auth-User: $WALLIX_API_USER" \
+        -H "X-Auth-Key: $WALLIX_API_KEY" \
+        -H "Content-Type: application/json" \
+        "$BASTION_URL/api/targetpasswords/checkout/$key" \
+        | jq -r '.password')
+      
+      if [ -z "$PASSWORD" ] || [ "$PASSWORD" = "null" ]; then
+        echo "ERROR: Failed to fetch $key"
+        return 1
+      fi
+      
+      # Create or update Kubernetes secret
+      kubectl create secret generic "$secret_name" \
+        --from-literal="$secret_key=$PASSWORD" \
+        --namespace="$NAMESPACE" \
+        --dry-run=client -o yaml | kubectl apply -f -
+      
+      echo "✓ Secret $secret_name synchronized"
+    }
+    
+    # Synchronize secrets
+    fetch_wallix_secret "admin@db-postgres@prod.local" "database-credentials" "password"
+    fetch_wallix_secret "admin@db-mysql@prod.local" "mysql-credentials" "password"
+    fetch_wallix_secret "apiuser@external-api@prod.local" "api-credentials" "api-key"
+    fetch_wallix_secret "deploy@gitserver@prod.local" "git-ssh-key" "ssh-key"
+    
+    echo "Synchronization completed successfully - $(date)"
+
+---
+# 4. Synchronization CronJob
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: wallix-secret-sync
+  namespace: default
+spec:
+  # Synchronize every 15 minutes
+  schedule: "*/15 * * * *"
+  
+  # Keep history of 3 successful jobs and 1 failed
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: wallix-secret-sync
+        spec:
+          serviceAccountName: wallix-secret-sync
+          restartPolicy: OnFailure
+          
+          containers:
+          - name: sync
+            image: bitnami/kubectl:latest
+            command:
+              - /bin/sh
+              - /scripts/sync.sh
+            env:
+            - name: WALLIX_API_USER
+              valueFrom:
+                secretKeyRef:
+                  name: wallix-api-credentials
+                  key: api-user
+            - name: WALLIX_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: wallix-api-credentials
+                  key: api-key
+            - name: BASTION_URL
+              value: "https://your-bastion.example.com"
+            - name: NAMESPACE
+              value: "default"
+            volumeMounts:
+            - name: sync-script
+              mountPath: /scripts
+          
+          volumes:
+          - name: sync-script
+            configMap:
+              name: wallix-sync-script
+              defaultMode: 0755
+
+---
+# 5. Manual Job (to test synchronization)
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: wallix-sync-manual
+  namespace: default
+spec:
+  template:
+    metadata:
+      labels:
+        app: wallix-secret-sync
+    spec:
+      serviceAccountName: wallix-secret-sync
+      restartPolicy: Never
+      
+      containers:
+      - name: sync
+        image: bitnami/kubectl:latest
+        command:
+          - /bin/sh
+          - /scripts/sync.sh
+        env:
+        - name: WALLIX_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: wallix-api-credentials
+              key: api-key
+        - name: BASTION_URL
+          value: "https://your-bastion.example.com"
+        - name: NAMESPACE
+          value: "default"
+        volumeMounts:
+        - name: sync-script
+          mountPath: /scripts
+      
+      volumes:
+      - name: sync-script
+        configMap:
+          name: wallix-sync-script
+          defaultMode: 0755
+
+---
+# 6. Example application using synchronized secrets
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-using-synced-secrets
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: myapp
+  template:
+    metadata:
+      labels:
+        app: myapp
+    spec:
+      containers:
+      - name: app
+        image: myapp:latest
+        env:
+        # Secrets are automatically synchronized by the CronJob
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: database-credentials
+              key: password
+        - name: API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: api-credentials
+              key: api-key
+        - name: SSH_KEY
+          valueFrom:
+            secretKeyRef:
+              name: git-ssh-key
+              key: ssh-key

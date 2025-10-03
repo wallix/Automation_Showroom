@@ -1,0 +1,181 @@
+---
+# WALLIX Config - Certificate Configuration Tasks
+
+- name: "Config | Certificates | Get current certificate information"
+  uri:
+    url: "{{ wallix_api_base_url }}/api/system/certificates"
+    method: GET
+    headers:
+      Cookie: "{{ wallix_api_session_cookie | default('') }}"
+      Authorization: "Bearer {{ wallix_api_token | default('') }}"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(true) }}"
+    timeout: "{{ wallix_auth.connection.timeout | default(30) }}"
+    status_code: [200, 404]
+  register: current_certificates
+  changed_when: false
+  failed_when: false
+
+- name: "Config | Certificates | Check web certificate files"
+  stat:
+    path: "{{ item }}"
+  register: web_cert_files
+  loop:
+    - "{{ wallix_certificates.web_cert.cert_file }}"
+    - "{{ wallix_certificates.web_cert.key_file }}"
+    - "{{ wallix_certificates.web_cert.ca_file | default('') }}"
+  when: 
+    - wallix_certificates.web_cert.install | default(false)
+    - item | length > 0
+  delegate_to: localhost
+
+- name: "Config | Certificates | Check API certificate files"
+  stat:
+    path: "{{ item }}"
+  register: api_cert_files
+  loop:
+    - "{{ wallix_certificates.api_cert.cert_file }}"
+    - "{{ wallix_certificates.api_cert.key_file }}"
+    - "{{ wallix_certificates.api_cert.ca_file | default('') }}"
+  when: 
+    - wallix_certificates.api_cert.install | default(false)
+    - item | length > 0
+  delegate_to: localhost
+
+- name: "Config | Certificates | Read web certificate content"
+  slurp:
+    src: "{{ wallix_certificates.web_cert.cert_file }}"
+  register: web_cert_content
+  when: 
+    - wallix_certificates.web_cert.install | default(false)
+    - web_cert_files.results[0].stat.exists | default(false)
+  delegate_to: localhost
+
+- name: "Config | Certificates | Read web private key content"
+  slurp:
+    src: "{{ wallix_certificates.web_cert.key_file }}"
+  register: web_key_content
+  when: 
+    - wallix_certificates.web_cert.install | default(false)
+    - web_cert_files.results[1].stat.exists | default(false)
+  delegate_to: localhost
+
+- name: "Config | Certificates | Read web CA certificate content"
+  slurp:
+    src: "{{ wallix_certificates.web_cert.ca_file }}"
+  register: web_ca_content
+  when: 
+    - wallix_certificates.web_cert.install | default(false)
+    - wallix_certificates.web_cert.ca_file is defined
+    - wallix_certificates.web_cert.ca_file | length > 0
+    - web_cert_files.results[2].stat.exists | default(false)
+  delegate_to: localhost
+
+- name: "Config | Certificates | Generate self-signed web certificate"
+  block:
+    - name: "Config | Certificates | Generate private key"
+      openssl_privatekey:
+        path: "/tmp/wallix_web.key"
+        size: 2048
+        type: RSA
+      delegate_to: localhost
+
+    - name: "Config | Certificates | Generate certificate signing request"
+      openssl_csr:
+        path: "/tmp/wallix_web.csr"
+        privatekey_path: "/tmp/wallix_web.key"
+        common_name: "{{ wallix_system_config.system_name }}"
+        subject_alt_name:
+          - "DNS:{{ wallix_system_config.system_name }}"
+          - "DNS:{{ inventory_hostname }}"
+          - "IP:{{ ansible_default_ipv4.address | default('127.0.0.1') }}"
+      delegate_to: localhost
+
+    - name: "Config | Certificates | Generate self-signed certificate"
+      openssl_certificate:
+        path: "/tmp/wallix_web.crt"
+        privatekey_path: "/tmp/wallix_web.key"
+        csr_path: "/tmp/wallix_web.csr"
+        provider: selfsigned
+        valid_for: 365
+      delegate_to: localhost
+
+    - name: "Config | Certificates | Read generated certificate"
+      slurp:
+        src: "/tmp/wallix_web.crt"
+      register: web_cert_content
+      delegate_to: localhost
+
+    - name: "Config | Certificates | Read generated private key"
+      slurp:
+        src: "/tmp/wallix_web.key"
+      register: web_key_content
+      delegate_to: localhost
+
+  when: 
+    - wallix_certificates.web_cert.install | default(false)
+    - wallix_certificates.web_cert.auto_generate | default(false)
+    - web_cert_content is not defined
+
+- name: "Config | Certificates | Install web certificate (dry run)"
+  debug:
+    msg: "Would install web certificate for {{ wallix_system_config.system_name }}"
+  when: 
+    - wallix_certificates.web_cert.install | default(false)
+    - wallix_config.operation_mode | default('apply') == 'dry_run'
+    - web_cert_content is defined
+
+- name: "Config | Certificates | Install web certificate"
+  uri:
+    url: "{{ wallix_api_base_url }}/api/system/certificates/web"
+    method: POST
+    headers:
+      Cookie: "{{ wallix_api_session_cookie | default('') }}"
+      Authorization: "Bearer {{ wallix_api_token | default('') }}"
+      Content-Type: "application/json"
+    body:
+      certificate: "{{ web_cert_content.content | b64decode }}"
+      private_key: "{{ web_key_content.content | b64decode }}"
+      ca_certificate: "{{ web_ca_content.content | b64decode if web_ca_content is defined else '' }}"
+    body_format: json
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(true) }}"
+    timeout: "{{ wallix_auth.connection.timeout | default(30) }}"
+    status_code: [200, 201]
+  register: web_cert_install_result
+  when: 
+    - wallix_certificates.web_cert.install | default(false)
+    - wallix_config.operation_mode | default('apply') == 'apply'
+    - web_cert_content is defined
+    - web_key_content is defined
+
+- name: "Config | Certificates | Validate installed certificates"
+  uri:
+    url: "{{ wallix_api_base_url }}/api/system/certificates/validate"
+    method: POST
+    headers:
+      Cookie: "{{ wallix_api_session_cookie | default('') }}"
+      Authorization: "Bearer {{ wallix_api_token | default('') }}"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(true) }}"
+    timeout: "{{ wallix_auth.connection.timeout | default(30) }}"
+    status_code: [200]
+  register: cert_validation_result
+  when: 
+    - wallix_certificates.validate_certificates | default(true)
+    - web_cert_install_result is defined
+    - web_cert_install_result.changed
+
+- name: "Config | Certificates | Clean up temporary files"
+  file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - "/tmp/wallix_web.key"
+    - "/tmp/wallix_web.crt"
+    - "/tmp/wallix_web.csr"
+  delegate_to: localhost
+  when: wallix_certificates.web_cert.auto_generate | default(false)
+
+- name: "Config | Certificates | Set certificate status"
+  set_fact:
+    wallix_web_cert_installed: "{{ web_cert_install_result.changed | default(false) }}"
+    wallix_certificates_valid: "{{ cert_validation_result.status == 200 if cert_validation_result is defined else true }}"
+    wallix_certificates_config_time: "{{ ansible_date_time.iso8601 }}"

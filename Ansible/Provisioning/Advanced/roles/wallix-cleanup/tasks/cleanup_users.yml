@@ -1,0 +1,90 @@
+---
+# WALLIX Cleanup - Users Cleanup Tasks
+
+- name: "🔍 Cleanup | Get all users"
+  uri:
+    url: "{{ wallix_api.base_url }}/users"
+    method: GET
+    headers:
+      Cookie: "{{ wallix_session_cookie }}"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(false) }}"
+    timeout: 30
+    status_code: [200]
+    return_content: yes
+  register: all_users_result
+
+- name: "🗑️ Cleanup | Filter users for deletion"
+  set_fact:
+    users_to_delete: []
+
+- name: "🗑️ Cleanup | Check each user against include patterns"
+  set_fact:
+    users_to_delete: "{{ users_to_delete + [item] }}"
+  loop: "{{ all_users_result.json | default([]) }}"
+  when: 
+    - all_users_result.json is defined
+    - wallix_cleanup_filters.include_patterns | length > 0
+    - item.user_name is match(include_regex)
+    - not (item.user_name is match(exclude_regex))
+  vars:
+    include_regex: "{{ wallix_cleanup_filters.include_patterns | map('replace', '*', '.*') | map('replace', '?', '.') | join('|') }}"
+    exclude_regex: "{{ wallix_cleanup_filters.exclude_patterns | map('replace', '*', '.*') | map('replace', '?', '.') | join('|') }}"
+
+- name: "📊 Cleanup | Display users to delete"
+  debug:
+    msg:
+      - "Found {{ users_to_delete | length }} users to delete"
+      - "Users: {{ users_to_delete | map(attribute='user_name') | list }}"
+  when: 
+    - users_to_delete is defined
+    - wallix_cleanup_debug.enabled
+
+- name: "🗑️ Cleanup | Delete user"
+  uri:
+    url: "{{ wallix_api.base_url }}/users/{{ item.user_name }}"
+    method: DELETE
+    headers:
+      Cookie: "{{ wallix_session_cookie }}"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(false) }}"
+    timeout: 30
+    status_code: [200, 204, 404]  # 404 = already deleted
+    return_content: yes
+  register: delete_user_result
+  loop: "{{ users_to_delete | default([]) }}"
+  when: 
+    - wallix_cleanup.operation_mode != 'dry_run'
+    - wallix_cleanup_components.users.enabled | default(true)
+    - item.user_name not in ['admin', 'root', 'wabuser', 'system']  # Extra safety
+  ignore_errors: "{{ wallix_cleanup_error_handling.continue_on_error }}"
+
+- name: "📈 Cleanup | Update user deletion stats (dry run)"
+  set_fact:
+    wallix_cleanup_stats: >-
+      {{
+        wallix_cleanup_stats | default({}) | combine({
+          'users_processed': (users_to_delete | default([]) | length),
+          'users_deleted': 0,
+          'users_errors': 0
+        })
+      }}
+  when: wallix_cleanup.operation_mode == 'dry_run'
+
+- name: "📈 Cleanup | Update user deletion stats (real run)"
+  set_fact:
+    wallix_cleanup_stats: >-
+      {{
+        wallix_cleanup_stats | default({}) | combine({
+          'users_processed': (users_to_delete | default([]) | length),
+          'users_deleted': (delete_user_result.results | default([]) | selectattr('status', 'in', [200, 204]) | list | length),
+          'users_errors': (delete_user_result.results | default([]) | selectattr('status', 'ge', 400) | list | length)
+        })
+      }}
+  when: wallix_cleanup.operation_mode != 'dry_run'
+
+- name: "✅ Cleanup | User cleanup summary"
+  debug:
+    msg:
+      - "User cleanup completed"
+      - "Processed: {{ wallix_cleanup_stats.users_processed | default(0) }}"
+      - "Deleted: {{ wallix_cleanup_stats.users_deleted | default(0) }}"
+      - "Errors: {{ wallix_cleanup_stats.users_errors | default(0) }}"

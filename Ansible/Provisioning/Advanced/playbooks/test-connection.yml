@@ -1,0 +1,141 @@
+---
+# WALLIX Bastion API Connection Test Playbook
+# This playbook tests basic connectivity to the WALLIX Bastion API
+# It validates credentials and API accessibility
+
+- name: "WALLIX Bastion API Connection Test"
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    # Load vault variables automatically
+    wallix_api:
+      base_url: "{{ vault_wallix_bastion_url | default(wallix_bastion.url) }}"
+      username: "{{ vault_wallix_username | default(wallix_bastion.username) }}"
+      password: "{{ vault_wallix_password | default(wallix_bastion.password) }}"
+      verify_ssl: "{{ api_config.verify_ssl | default(false) }}"
+      timeout: "{{ api_config.timeout | default(30) }}"
+    
+    # Standard HTTP status codes for API responses
+    wallix_api_success_codes: [200, 201, 204, 409]
+    wallix_api_session_codes: [204, 302]  # Session creation can return 204 or 302
+    
+  pre_tasks:
+    - name: "Load vault variables"
+      include_vars: "{{ item }}"
+      with_first_found:
+        - files:
+          - "group_vars/all/vault.yml"
+          - "../group_vars/all/vault.yml"
+          skip: true
+      tags: always
+
+  tasks:
+    - name: "🔍 Display connection information"
+      debug:
+        msg:
+          - "Testing connection to WALLIX Bastion:"
+          - "URL: {{ wallix_api.base_url }}"
+          - "Username: {{ wallix_api.username }}"
+          - "SSL Verification: {{ wallix_api.verify_ssl }}"
+          - "Timeout: {{ wallix_api.timeout }}s"
+
+    - name: "📊 Test API version info (basic connectivity)"
+      uri:
+        url: "{{ wallix_api.base_url }}/api/version"
+        method: GET
+        user: "{{ wallix_api.username }}"
+        password: "{{ wallix_api.password }}"
+        force_basic_auth: true
+        validate_certs: "{{ wallix_api.verify_ssl }}"
+        timeout: "{{ wallix_api.timeout }}"
+        status_code: "{{ wallix_api_success_codes }}"
+      register: version_result
+      failed_when: false
+      tags: version
+
+    - name: "✅ API version test result"
+      debug:
+        msg:
+          - "Version Test Status: {{ 'SUCCESS' if version_result.status in wallix_api_success_codes else 'FAILED' }}"
+          - "HTTP Code: {{ version_result.status | default('N/A') }}"
+          - "API Version: {{ version_result.json.version | default('Unknown') if version_result.json is defined else 'No response' }}"
+          - "WAB Version: {{ version_result.json.wab_complete_version | default('Unknown') if version_result.json is defined else 'No response' }}"
+          - "Response Time: {{ version_result.elapsed | default('N/A') }}s"
+      tags: version
+
+    - name: "🔐 Test session creation (create session)"
+      uri:
+        url: "{{ wallix_api.base_url }}/api"
+        method: POST
+        user: "{{ wallix_api.username }}"
+        password: "{{ wallix_api.password }}"
+        force_basic_auth: true
+        validate_certs: "{{ wallix_api.verify_ssl }}"
+        timeout: "{{ wallix_api.timeout }}"
+        status_code: "{{ wallix_api_session_codes }}"
+      register: session_result
+      failed_when: false
+      tags: session
+
+    - name: "✅ Session creation test result"
+      debug:
+        msg:
+          - "Session Status: {{ 'SUCCESS' if session_result.status in wallix_api_session_codes else 'FAILED' }}"
+          - "HTTP Code: {{ session_result.status | default('N/A') }} {{ '(Success - Session Created)' if session_result.status == 204 else '(Success - Redirect)' if session_result.status == 302 else '' }}"
+          - "Session Cookie: {{ 'Present' if session_result.cookies is defined and session_result.cookies else 'Not available' }}"
+          - "Cookie String: {{ session_result.cookies_string | default('N/A') }}"
+          - "Response Time: {{ session_result.elapsed | default('N/A') }}s"
+      tags: session
+
+    - name: "🏁 Connection test summary"
+      debug:
+        msg:
+          - "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          - "🎯 WALLIX Bastion API Connection Test Summary"
+          - "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          - "📊 Version Test: {{ 'PASS ✅' if version_result.status in wallix_api_success_codes else 'FAIL ❌' }}"
+          - "🔐 Session Test: {{ 'PASS ✅' if session_result.status in wallix_api_session_codes else 'FAIL ❌' }}"
+          - ""
+          - "Overall Status: {{ 'ALL TESTS PASSED ✅' if (version_result.status in wallix_api_success_codes and session_result.status in wallix_api_session_codes) else 'SOME TESTS FAILED ⚠️' }}"
+          - "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+    - name: "🔓 Logout from API session"
+      uri:
+        url: "{{ wallix_api.base_url }}/api/logout"
+        method: GET
+        validate_certs: "{{ wallix_api.verify_ssl }}"
+        timeout: "{{ wallix_api.timeout }}"
+        headers:
+          Cookie: "{{ session_result.cookies_string | default('') }}"
+        status_code: [200, 204, 401]  # 401 is OK if session already expired
+      when: session_result.status in wallix_api_session_codes and session_result.cookies is defined
+      failed_when: false
+      tags: cleanup
+
+    - name: "📋 Troubleshooting information"
+      debug:
+        msg:
+          - "If tests failed, check the following:"
+          - ""
+          - "🔧 Network connectivity:"
+          - "   - Can you reach {{ wallix_api.base_url }}?"
+          - "   - Are there firewall rules blocking the connection?"
+          - "   - Is the WALLIX Bastion service running?"
+          - ""
+          - "🔐 Authentication:"
+          - "   - Is the username '{{ wallix_api.username }}' correct?"
+          - "   - Is the password correct in your vault?"
+          - "   - Is the user account enabled and not locked?"
+          - ""
+          - "🛡️ SSL/TLS:"
+          - "   - SSL verification is {{ 'enabled' if wallix_api.verify_ssl else 'disabled' }}"
+          - "   - If using self-signed certificates, set verify_ssl: false"
+          - "   - Check certificate validity if SSL verification is enabled"
+          - ""
+          - "⚙️ Configuration:"
+          - "   - Check your vault file: group_vars/all/vault.yml"
+          - "   - Edit vault: ansible-vault edit group_vars/all/vault.yml"
+          - "   - Test specific endpoints with tags: --tags version,session"
+      when: not (version_result.status in wallix_api_success_codes and session_result.status in wallix_api_session_codes)
+      tags: troubleshooting

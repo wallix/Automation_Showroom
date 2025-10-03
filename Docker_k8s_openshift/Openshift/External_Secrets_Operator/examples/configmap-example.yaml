@@ -1,0 +1,268 @@
+---
+# Example ConfigMap for application configuration
+# This shows non-sensitive configuration that complements WALLIX secrets
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: webapp-config
+  namespace: production
+  labels:
+    app.kubernetes.io/name: webapp
+    app.kubernetes.io/component: config
+  annotations:
+    external-secrets.io/companion: "webapp-credentials"
+data:
+  # Application configuration
+  app.yaml: |
+    server:
+      port: 8080
+      host: 0.0.0.0
+      tls:
+        enabled: true
+        cert_file: "/etc/ssl/certs/app/tls.crt"
+        key_file: "/etc/ssl/certs/app/tls.key"
+        ca_file: "/etc/ssl/certs/app/ca.crt"
+    
+    database:
+      # Connection details from secrets
+      host: "postgres-service"
+      port: 5432
+      database: "appdb"
+      # Credentials loaded from environment (WALLIX secrets)
+      ssl_mode: "require"
+      max_connections: 20
+      connection_timeout: 30s
+    
+    auth:
+      # JWT configuration
+      jwt_expiration: "24h"
+      jwt_algorithm: "HS256"
+      # JWT secret loaded from environment
+      
+      session:
+        timeout: "2h"
+        secure: true
+        same_site: "strict"
+        # Session secret loaded from environment
+    
+    api:
+      rate_limit:
+        requests_per_minute: 100
+        burst: 10
+      cors:
+        allowed_origins:
+        - "https://webapp.example.com"
+        - "https://api.example.com"
+        allowed_methods:
+        - "GET"
+        - "POST"
+        - "PUT"
+        - "DELETE"
+    
+    logging:
+      level: "info"
+      format: "json"
+      output: "stdout"
+    
+    monitoring:
+      metrics_enabled: true
+      metrics_port: 9090
+      health_check_port: 8080
+  
+  # Database configuration
+  postgres.conf: |
+    # PostgreSQL configuration
+    listen_addresses = '*'
+    port = 5432
+    max_connections = 100
+    shared_buffers = 256MB
+    effective_cache_size = 1GB
+    maintenance_work_mem = 64MB
+    checkpoint_completion_target = 0.9
+    wal_buffers = 16MB
+    default_statistics_target = 100
+    random_page_cost = 1.1
+    effective_io_concurrency = 200
+    work_mem = 4MB
+    min_wal_size = 1GB
+    max_wal_size = 4GB
+    
+    # Security settings
+    ssl = on
+    ssl_cert_file = '/etc/ssl/certs/server.crt'
+    ssl_key_file = '/etc/ssl/private/server.key'
+    ssl_ca_file = '/etc/ssl/certs/ca.crt'
+  
+  # Nginx configuration
+  nginx.conf: |
+    worker_processes auto;
+    error_log /var/log/nginx/error.log warn;
+    pid /tmp/nginx.pid;
+    
+    events {
+        worker_connections 1024;
+    }
+    
+    http {
+        proxy_temp_path /tmp/proxy_temp;
+        client_body_temp_path /tmp/client_temp;
+        fastcgi_temp_path /tmp/fastcgi_temp;
+        uwsgi_temp_path /tmp/uwsgi_temp;
+        scgi_temp_path /tmp/scgi_temp;
+        
+        include /etc/nginx/mime.types;
+        default_type application/octet-stream;
+        
+        # Security headers
+        add_header X-Frame-Options DENY;
+        add_header X-Content-Type-Options nosniff;
+        add_header X-XSS-Protection "1; mode=block";
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains";
+        
+        # SSL configuration
+        ssl_protocols TLSv1.2 TLSv1.3;
+        ssl_ciphers ECDHE+AESGCM:ECDHE+CHACHA20:DHE+AESGCM:DHE+CHACHA20:!aNULL:!MD5:!DSS;
+        ssl_prefer_server_ciphers off;
+        
+        server {
+            listen 8080;
+            server_name _;
+            
+            location /health {
+                access_log off;
+                return 200 "healthy\n";
+                add_header Content-Type text/plain;
+            }
+            
+            location / {
+                proxy_pass http://localhost:3000;
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+            }
+        }
+        
+        server {
+            listen 8443 ssl;
+            server_name webapp.example.com;
+            
+            ssl_certificate /etc/ssl/certs/app/tls.crt;
+            ssl_certificate_key /etc/ssl/certs/app/tls.key;
+            ssl_trusted_certificate /etc/ssl/certs/app/ca.crt;
+            
+            location / {
+                proxy_pass http://localhost:3000;
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto https;
+            }
+        }
+    }
+---
+# Network Policy example
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: webapp-network-policy
+  namespace: production
+  labels:
+    app.kubernetes.io/name: webapp
+    app.kubernetes.io/component: security
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: webapp
+  policyTypes:
+  - Ingress
+  - Egress
+  
+  ingress:
+  # Allow ingress from ingress controller
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    ports:
+    - protocol: TCP
+      port: 8080
+    - protocol: TCP
+      port: 8443
+  
+  # Allow ingress from monitoring
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring
+    ports:
+    - protocol: TCP
+      port: 9090
+  
+  egress:
+  # Allow egress to database
+  - to:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: postgres
+    ports:
+    - protocol: TCP
+      port: 5432
+  
+  # Allow egress to WALLIX Bastion for secret refresh
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 443
+  
+  # Allow DNS
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system
+    ports:
+    - protocol: UDP
+      port: 53
+---
+# Service Account with RBAC
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: webapp-service-account
+  namespace: production
+  labels:
+    app.kubernetes.io/name: webapp
+    app.kubernetes.io/component: rbac
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: webapp-role
+  namespace: production
+rules:
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["get", "list"]
+  resourceNames:
+  - "postgres-db-credentials"
+  - "webapp-credentials"
+  - "webapp-tls"
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get", "list"]
+  resourceNames:
+  - "webapp-config"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: webapp-role-binding
+  namespace: production
+subjects:
+- kind: ServiceAccount
+  name: webapp-service-account
+  namespace: production
+roleRef:
+  kind: Role
+  name: webapp-role
+  apiGroup: rbac.authorization.k8s.io

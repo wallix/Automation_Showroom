@@ -1,0 +1,51 @@
+---
+# Example configuration for WALLIX Global Domains
+# This file demonstrates various domain configurations
+
+# Global domains configuration
+wallix_global_domains:
+  # Active Directory domain
+  - name: "PROD_AD"
+    domain_real_name: "prod.company.com"
+    description: "Production Active Directory Domain"
+    enable_password_change: true
+    password_change_policy: "corporate_policy"
+    password_change_plugin: "Windows"
+    password_change_plugin_parameters:
+      domain_controller_address: "192.168.1.10"
+      domain_controller_port: 389
+    state: present
+
+  # Unix/Linux domain
+  - name: "UNIX_SERVERS"
+    domain_real_name: "unix.company.com"
+    description: "Unix and Linux servers domain"
+    enable_password_change: true
+    password_change_policy: "unix_policy"
+    password_change_plugin: "Unix"
+    password_change_plugin_parameters:
+      host: "192.168.1.20"
+      port: 22
+      root_password: "{{ vault_unix_root_password }}"
+    state: present
+
+  # Generic domain for services
+  - name: "SHARED_SERVICES"
+    domain_real_name: "services.company.com"
+    description: "Shared services and applications domain"
+    enable_password_change: false
+    state: present
+
+  # Test domain
+  - name: "TEST_DOMAIN"
+    description: "Test and development domain"
+    enable_password_change: false
+    state: present
+
+# Debug configuration
+wallix_global_domains_debug:
+  enabled: true
+  show_details: true
+
+# Mode configuration
+wallix_global_domains_mode: "normal"  # or "dry_run" for testing

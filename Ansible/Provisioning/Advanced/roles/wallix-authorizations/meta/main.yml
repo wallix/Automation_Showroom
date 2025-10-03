@@ -1,0 +1,44 @@
+---
+galaxy_info:
+  author: WALLIX Automation Team
+  description: Access control and authorization management for WALLIX Bastion
+  company: WALLIX Group
+  license: license (GPL-2.0-or-later, MIT, etc)
+  min_ansible_version: "2.9"
+  platforms:
+    - name: EL
+      versions:
+        - "7"
+        - "8"
+        - "9"
+    - name: Ubuntu
+      versions:
+        - "bionic"
+        - "focal"
+        - "jammy"
+    - name: Debian
+      versions:
+        - "stretch"
+        - "buster"
+        - "bullseye"
+  galaxy_tags: []
+
+dependencies:
+  - role: wallix-auth
+    when: wallix_api_host is defined
+  - role: wallix-config
+    when: wallix_api_host is defined
+  - role: wallix-domains
+    when: wallix_api_host is defined
+  - role: wallix-users
+    when: wallix_api_host is defined
+  - role: wallix-devices
+    when: wallix_api_host is defined
+  - role: wallix-applications
+    when: wallix_api_host is defined
+  - role: wallix-policies
+    when: wallix_api_host is defined
+
+collections:
+  - ansible.posix
+  - community.general

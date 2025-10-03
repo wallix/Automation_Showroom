@@ -1,0 +1,106 @@
+---
+# WALLIX Cleanup - Resource Discovery Tasks
+
+- name: "🔍 Discovery | Initialize discovery stats"
+  set_fact:
+    wallix_discovery_stats: {}
+
+- name: "🔍 Discovery | Discover authorizations"
+  uri:
+    url: "{{ wallix_api.base_url }}/authorizations"
+    method: GET
+    headers:
+      Cookie: "{{ wallix_session_cookie }}"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(false) }}"
+    timeout: 30
+    status_code: [200]
+    return_content: yes
+  register: discovered_authorizations
+  when: wallix_cleanup_components.authorizations.enabled | default(false)
+
+- name: "🔍 Discovery | Discover target groups"
+  uri:
+    url: "{{ wallix_api.base_url }}/targetgroups"
+    method: GET
+    headers:
+      Cookie: "{{ wallix_session_cookie }}"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(false) }}"
+    timeout: 30
+    status_code: [200]
+    return_content: yes
+  register: discovered_target_groups
+  when: wallix_cleanup_components.target_groups.enabled | default(false)
+
+- name: "🔍 Discovery | Discover user groups"
+  uri:
+    url: "{{ wallix_api.base_url }}/usergroups"
+    method: GET
+    headers:
+      Cookie: "{{ wallix_session_cookie }}"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(false) }}"
+    timeout: 30
+    status_code: [200]
+    return_content: yes
+  register: discovered_user_groups
+  when: wallix_cleanup_components.user_groups.enabled | default(false)
+
+- name: "🔍 Discovery | Discover devices"
+  uri:
+    url: "{{ wallix_api.base_url }}/devices"
+    method: GET
+    headers:
+      Cookie: "{{ wallix_session_cookie }}"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(false) }}"
+    timeout: 30
+    status_code: [200]
+    return_content: yes
+  register: discovered_devices
+  when: wallix_cleanup_components.devices.enabled | default(false)
+
+- name: "🔍 Discovery | Discover users"
+  uri:
+    url: "{{ wallix_api.base_url }}/users"
+    method: GET
+    headers:
+      Cookie: "{{ wallix_session_cookie }}"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(false) }}"
+    timeout: 30
+    status_code: [200]
+    return_content: yes
+  register: discovered_users
+  when: wallix_cleanup_components.users.enabled | default(false)
+
+- name: "🔍 Discovery | Discover domains"
+  uri:
+    url: "{{ wallix_api.base_url }}/authdomains"
+    method: GET
+    headers:
+      Cookie: "{{ wallix_session_cookie }}"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(false) }}"
+    timeout: 30
+    status_code: [200]
+    return_content: yes
+  register: discovered_domains
+  when: wallix_cleanup_components.domains.enabled | default(false)
+
+- name: "📊 Discovery | Compile discovery statistics"
+  set_fact:
+    wallix_discovery_stats:
+      total_authorizations: "{{ discovered_authorizations.json | default([]) | length }}"
+      total_target_groups: "{{ discovered_target_groups.json | default([]) | length }}"
+      total_user_groups: "{{ discovered_user_groups.json | default([]) | length }}"
+      total_devices: "{{ discovered_devices.json | default([]) | length }}"
+      total_users: "{{ discovered_users.json | default([]) | length }}"
+      total_domains: "{{ discovered_domains.json | default([]) | length }}"
+
+- name: "📈 Discovery | Display discovery summary"
+  debug:
+    msg:
+      - "Resource discovery completed"
+      - "Found resources:"
+      - "  - Authorizations: {{ wallix_discovery_stats.total_authorizations }}"
+      - "  - Target Groups: {{ wallix_discovery_stats.total_target_groups }}"
+      - "  - User Groups: {{ wallix_discovery_stats.total_user_groups }}"
+      - "  - Devices: {{ wallix_discovery_stats.total_devices }}"
+      - "  - Users: {{ wallix_discovery_stats.total_users }}"
+      - "  - Domains: {{ wallix_discovery_stats.total_domains }}"

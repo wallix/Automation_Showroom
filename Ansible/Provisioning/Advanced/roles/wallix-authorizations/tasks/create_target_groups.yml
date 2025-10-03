@@ -1,0 +1,53 @@
+---
+# Create Target Groups for WALLIX Authorizations
+
+- name: "Authorizations | Target Groups | Display creation start"
+  debug:
+    msg:
+      - "🎯 Creating WALLIX target groups"
+      - "Target groups to create: {{ wallix_target_groups | length }}"
+  when: 
+    - wallix_target_groups is defined
+    - wallix_target_groups | length > 0
+
+- name: "Authorizations | Target Groups | Create target group"
+  uri:
+    url: "{{ wallix_api.base_url }}/targetgroups"
+    method: POST
+    headers:
+      Content-Type: "application/json"
+      Cookie: "{{ wallix_session_cookie }}"
+    body_format: json
+    body:
+      group_name: "{{ item.group_name }}"
+      description: "{{ item.description | default('') }}"
+      session: "{{ item.session | default({}) }}"
+      password_retrieval: "{{ item.password_retrieval | default({}) }}"
+      restrictions: "{{ item.restrictions | default([]) }}"
+    validate_certs: false
+    status_code: [200, 201, 204, 409]  # 204 = Success No Content, 409 = déjà existant, acceptable
+    timeout: 30
+  loop: "{{ wallix_target_groups }}"
+  register: target_group_creation_results
+  when: 
+    - wallix_target_groups is defined
+    - wallix_target_groups | length > 0
+    - wallix_session_cookie is defined
+    - item.state | default('present') == 'present'
+
+- name: "Authorizations | Target Groups | Display creation results"
+  debug:
+    msg:
+      - "Target Group: {{ item.item.group_name }}"
+      - "Status: {{ 'CREATED' if item.status == 201 else 'ALREADY EXISTS' if item.status == 409 else 'UPDATED' if item.status == 200 else 'ERROR' }}"
+      - "Description: {{ item.item.description | default('No description') }}"
+  loop: "{{ target_group_creation_results.results | default([]) }}"
+  when: 
+    - target_group_creation_results is defined
+    - not item.skipped | default(false)
+
+- name: "Authorizations | Target Groups | Set creation status"
+  set_fact:
+    wallix_target_groups_created: "{{ (target_group_creation_results.results | default([]) | selectattr('status', 'equalto', 201) | list | length) }}"
+    wallix_target_groups_updated: "{{ (target_group_creation_results.results | default([]) | selectattr('status', 'equalto', 200) | list | length) }}"
+  when: target_group_creation_results is defined

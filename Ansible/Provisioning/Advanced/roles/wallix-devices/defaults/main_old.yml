@@ -1,0 +1,200 @@
+---
+# WALLIX Device Management
+# Default variables for the wallix-devices role
+
+# Device Management Settings
+wallix_devices:
+  # Management configuration
+  manage_devices: true
+  manage_services: true
+  manage_device_groups: true
+  manage_scan_jobs: true
+  
+  # Operation settings
+  operation_mode: "apply"  # apply, dry_run, validate_only
+  validate_before_apply: true
+  continue_on_error: false
+  
+  # Device creation settings
+  auto_generate_passwords: true
+  test_connections: true
+  enable_monitoring: true
+  
+  # Retry settings
+  retry_attempts: 3
+  retry_delay: 5
+  
+  # Logging settings
+  detailed_logging: true
+  log_api_requests: false
+
+# Device Configuration
+wallix_device_list:
+  # Device inventory
+  devices: []
+  # Example:
+  # - name: "web-server-01"
+  #   host: "192.168.1.100"
+  #   description: "Production web server"
+  #   device_type: "server"
+  #   operating_system: "linux"
+  #   groups: ["web_servers", "production"]
+  #   domain: "internal"
+  #   credentials:
+  #     username: "admin"
+  #     password: "{{ vault_device_web01_password }}"
+  #     private_key: "{{ vault_device_web01_key | default('') }}"
+  #   services:
+  #     - name: "ssh"
+  #       port: 22
+  #       protocol: "ssh"
+  #       enabled: true
+  #     - name: "https"
+  #       port: 443
+  #       protocol: "https"
+  #       enabled: true
+  #   settings:
+  #     connection_timeout: 30
+  #     enable_recording: true
+  #     enable_file_transfer: true
+
+# Service Configuration
+wallix_service_list:
+  # Service definitions
+  services: []
+  # Example:
+  # - name: "ssh_service"
+  #   protocol: "ssh"
+  #   port: 22
+  #   global_domain: "internal"
+  #   connection_policy: "standard_ssh"
+  #   subprotocols:
+  #     - "ssh"
+  #     - "sftp"
+  #   settings:
+  #     enable_recording: true
+  #     enable_file_transfer: true
+  #     connection_timeout: 30
+
+# Device Groups Configuration
+wallix_device_groups:
+  # Group definitions
+  groups: []
+  # Example:
+  # - name: "web_servers"
+  #   description: "Web server group"
+  #   criteria:
+  #     device_type: "server"
+  #     tags: ["web"]
+  #   settings:
+  #     auto_assign: true
+  #     monitoring_enabled: true
+  # - name: "production"
+  #   description: "Production environment"
+  #   criteria:
+  #     environment: "production"
+  #   settings:
+  #     backup_enabled: true
+  #     compliance_scanning: true
+
+# Scan Jobs Configuration
+wallix_scan_jobs:
+  # Network scanning
+  auto_discovery: false
+  scan_schedules: []
+  # Example:
+  # - name: "daily_network_scan"
+  #   description: "Daily network discovery"
+  #   schedule: "0 2 * * *"  # Cron format
+  #   target_networks:
+  #     - "192.168.1.0/24"
+  #     - "10.0.0.0/8"
+  #   protocols: ["ssh", "rdp", "telnet"]
+  #   enabled: true
+
+# Default Device Settings
+wallix_device_defaults:
+  # Connection settings
+  connection:
+    timeout: 30
+    retry_attempts: 3
+    enable_keepalive: true
+  
+  # Security settings
+  security:
+    enable_recording: true
+    enable_file_transfer: false
+    enable_clipboard: false
+    require_approval: false
+  
+  # Monitoring settings
+  monitoring:
+    enabled: true
+    check_interval: 300
+    alert_on_failure: true
+
+# Protocol Definitions
+wallix_protocols:
+  ssh:
+    default_port: 22
+    connection_types: ["ssh", "sftp", "scp"]
+    auth_methods: ["password", "publickey", "keyboard-interactive"]
+  rdp:
+    default_port: 3389
+    connection_types: ["rdp"]
+    auth_methods: ["password", "certificate"]
+  vnc:
+    default_port: 5900
+    connection_types: ["vnc"]
+    auth_methods: ["password"]
+  telnet:
+    default_port: 23
+    connection_types: ["telnet"]
+    auth_methods: ["password"]
+  http:
+    default_port: 80
+    connection_types: ["http"]
+    auth_methods: ["password", "certificate"]
+  https:
+    default_port: 443
+    connection_types: ["https"]
+    auth_methods: ["password", "certificate"]
+
+# Device Templates
+wallix_device_templates:
+  device_config: "device_config.json.j2"
+  service_config: "service_config.json.j2"
+  group_config: "group_config.json.j2"
+  scan_job_config: "scan_job_config.json.j2"
+  bulk_import: "bulk_import_devices.csv.j2"
+
+# Password Generation Settings
+wallix_device_password_generation:
+  # Password generation for device accounts
+  enabled: true
+  length: 16
+  include_symbols: true
+  exclude_ambiguous: true
+  
+  # Storage settings
+  store_generated: true
+  storage_location: "/tmp/wallix_device_passwords.json"
+  encrypt_storage: true
+
+# Error Handling
+wallix_devices_error_handling:
+  ignore_errors: false
+  rollback_on_failure: true
+  notify_on_changes: true
+  validation_strict: true
+  skip_existing_devices: false
+  skip_failed_connections: true
+
+# Debug and Development
+wallix_devices_debug:
+  enabled: false
+  log_requests: false
+  log_responses: false
+  save_configs: false
+  test_device_connections: true
+  skip_connection_tests: false

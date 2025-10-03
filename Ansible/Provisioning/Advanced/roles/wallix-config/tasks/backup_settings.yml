@@ -1,0 +1,95 @@
+---
+# WALLIX Config - Backup Settings Configuration Tasks
+
+- name: "Config | Backup | Get current backup configuration"
+  uri:
+    url: "{{ wallix_api_base_url }}/api/system/backup/settings"
+    method: GET
+    headers:
+      Cookie: "{{ wallix_api_session_cookie | default('') }}"
+      Authorization: "Bearer {{ wallix_api_token | default('') }}"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(true) }}"
+    timeout: "{{ wallix_auth.connection.timeout | default(30) }}"
+    status_code: [200, 404]
+  register: current_backup_config
+  changed_when: false
+  failed_when: false
+
+- name: "Config | Backup | Prepare backup configuration payload"
+  set_fact:
+    backup_config_payload:
+      auto_backup: "{{ wallix_backup.auto_backup | default(true) }}"
+      schedule: "{{ wallix_backup.backup_schedule | default('daily') }}"
+      retention_days: "{{ wallix_backup.backup_retention | default(30) }}"
+      backup_location: "{{ wallix_backup.backup_location | default('/var/backups/wallix') }}"
+      include_config: "{{ wallix_backup.include_config | default(true) }}"
+      include_logs: "{{ wallix_backup.include_logs | default(false) }}"
+      include_sessions: "{{ wallix_backup.include_sessions | default(false) }}"
+      compress_backups: "{{ wallix_backup.compress_backups | default(true) }}"
+      encryption_enabled: "{{ wallix_backup.encryption_enabled | default(false) }}"
+
+- name: "Config | Backup | Compare backup configurations"
+  set_fact:
+    backup_config_changed: "{{ (current_backup_config.json | default({})) != backup_config_payload }}"
+
+- name: "Config | Backup | Display backup configuration changes"
+  debug:
+    msg:
+      - "Current backup configuration differs from desired state"
+      - "Current: {{ current_backup_config.json | default({}) }}"
+      - "Desired: {{ backup_config_payload }}"
+  when: 
+    - backup_config_changed
+    - wallix_config.detailed_logging | default(true)
+
+- name: "Config | Backup | Apply backup configuration (dry run)"
+  debug:
+    msg: "Would update backup configuration with: {{ backup_config_payload }}"
+  when: 
+    - backup_config_changed
+    - wallix_config.operation_mode | default('apply') == 'dry_run'
+
+- name: "Config | Backup | Apply backup configuration"
+  uri:
+    url: "{{ wallix_api_base_url }}/api/system/backup/settings"
+    method: PUT
+    headers:
+      Cookie: "{{ wallix_api_session_cookie | default('') }}"
+      Authorization: "Bearer {{ wallix_api_token | default('') }}"
+      Content-Type: "application/json"
+    body: "{{ backup_config_payload }}"
+    body_format: json
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(true) }}"
+    timeout: "{{ wallix_auth.connection.timeout | default(30) }}"
+    status_code: [200, 201, 204]
+  register: backup_config_result
+  when: 
+    - backup_config_changed
+    - wallix_config.operation_mode | default('apply') == 'apply'
+
+- name: "Config | Backup | Test backup functionality"
+  uri:
+    url: "{{ wallix_api_base_url }}/api/system/backup/test"
+    method: POST
+    headers:
+      Cookie: "{{ wallix_api_session_cookie | default('') }}"
+      Authorization: "Bearer {{ wallix_api_token | default('') }}"
+      Content-Type: "application/json"
+    body:
+      test_backup: true
+      cleanup_test: true
+    body_format: json
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(true) }}"
+    timeout: 60
+    status_code: [200]
+  register: backup_test_result
+  when: 
+    - backup_config_result is defined
+    - backup_config_result.changed
+    - wallix_backup.auto_backup | default(true)
+
+- name: "Config | Backup | Set backup configuration status"
+  set_fact:
+    wallix_backup_config_applied: "{{ backup_config_result.changed | default(false) }}"
+    wallix_backup_test_passed: "{{ backup_test_result.json.success | default(true) if backup_test_result is defined else true }}"
+    wallix_backup_config_time: "{{ ansible_date_time.iso8601 }}"

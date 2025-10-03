@@ -1,0 +1,46 @@
+{
+  "backup_manifest": {
+    "timestamp": "{{ ansible_date_time.iso8601 }}",
+    "bastion_url": "{{ wallix_api.base_url }}",
+    "backup_location": "{{ wallix_cleanup_backup.destination }}",
+    "ansible_user": "{{ ansible_user | default('unknown') }}",
+    "ansible_host": "{{ ansible_host | default('localhost') }}",
+    "components_backed_up": {
+      "authorizations": {
+        "enabled": {{ wallix_cleanup_components.authorizations.enabled | default(false) | to_json }},
+        "count": {{ discovered_authorizations.json | default([]) | length }},
+        "file": "authorizations_backup.json"
+      },
+      "target_groups": {
+        "enabled": {{ wallix_cleanup_components.target_groups.enabled | default(false) | to_json }},
+        "count": {{ discovered_target_groups.json | default([]) | length }},
+        "file": "target_groups_backup.json"
+      },
+      "devices": {
+        "enabled": {{ wallix_cleanup_components.devices.enabled | default(false) | to_json }},
+        "count": {{ discovered_devices.json | default([]) | length }},
+        "file": "devices_backup.json"
+      },
+      "users": {
+        "enabled": {{ wallix_cleanup_components.users.enabled | default(false) | to_json }},
+        "count": {{ discovered_users.json | default([]) | length }},
+        "file": "users_backup.json"
+      },
+      "domains": {
+        "enabled": {{ wallix_cleanup_components.domains.enabled | default(false) | to_json }},
+        "count": {{ discovered_domains.json | default([]) | length }},
+        "file": "domains_backup.json"
+      }
+    },
+    "filters_applied": {
+      "include_patterns": {{ wallix_cleanup_filters.include_patterns | default([]) | to_json }},
+      "exclude_patterns": {{ wallix_cleanup_filters.exclude_patterns | default([]) | to_json }},
+      "minimum_age_hours": {{ wallix_cleanup_filters.minimum_age_hours | default(0) }}
+    },
+    "backup_settings": {
+      "format": "{{ wallix_cleanup_backup.format | default('json') }}",
+      "include_metadata": {{ wallix_cleanup_backup.include_metadata | default(true) | to_json }},
+      "compression": {{ wallix_cleanup_backup.compress_backups | default(false) | to_json }}
+    }
+  }
+}

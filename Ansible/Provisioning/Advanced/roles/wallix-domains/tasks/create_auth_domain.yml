@@ -1,0 +1,102 @@
+---
+# WALLIX Domains - Create Authentication Domain Task
+
+- name: "Domains | Auth | Check if domain {{ domain_config.name }} exists"
+  uri:
+    url: "{{ wallix_api_base_url }}/api/authdomains/{{ domain_config.name }}"
+    method: GET
+    headers:
+      Cookie: "{{ wallix_api_session_cookie | default('') }}"
+      Authorization: "Bearer {{ wallix_api_token | default('') }}"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(true) }}"
+    timeout: "{{ wallix_auth.connection.timeout | default(30) }}"
+    status_code: [200, 404]
+  register: domain_exists_check
+  changed_when: false
+  failed_when: false
+
+- name: "Domains | Auth | Prepare domain {{ domain_config.name }} payload"
+  set_fact:
+    domain_payload:
+      name: "{{ domain_config.name }}"
+      description: "{{ domain_config.description | default('') }}"
+      type: "{{ domain_config.type }}"
+      enabled: "{{ domain_config.enabled | default(true) }}"
+      connection: "{{ domain_config.connection | default({}) }}"
+      attributes: "{{ domain_config.attributes | default({}) }}"
+      settings: "{{ domain_config.settings | default({}) }}"
+
+- name: "Domains | Auth | Create domain {{ domain_config.name }} (dry run)"
+  debug:
+    msg: "Would create authentication domain: {{ domain_payload }}"
+  when: 
+    - domain_exists_check.status == 404
+    - wallix_config.operation_mode | default('apply') == 'dry_run'
+
+- name: "Domains | Auth | Update domain {{ domain_config.name }} (dry run)"
+  debug:
+    msg: "Would update authentication domain: {{ domain_payload }}"
+  when: 
+    - domain_exists_check.status == 200
+    - wallix_config.operation_mode | default('apply') == 'dry_run'
+
+- name: "Domains | Auth | Create authentication domain {{ domain_config.name }}"
+  uri:
+    url: "{{ wallix_api_base_url }}/api/authdomains"
+    method: POST
+    headers:
+      Cookie: "{{ wallix_api_session_cookie | default('') }}"
+      Authorization: "Bearer {{ wallix_api_token | default('') }}"
+      Content-Type: "application/json"
+    body: "{{ domain_payload }}"
+    body_format: json
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(true) }}"
+    timeout: "{{ wallix_auth.connection.timeout | default(30) }}"
+    status_code: [200, 201]
+  register: domain_create_result
+  when: 
+    - domain_exists_check.status == 404
+    - wallix_config.operation_mode | default('apply') == 'apply'
+
+- name: "Domains | Auth | Update authentication domain {{ domain_config.name }}"
+  uri:
+    url: "{{ wallix_api_base_url }}/api/authdomains/{{ domain_config.name }}"
+    method: PUT
+    headers:
+      Cookie: "{{ wallix_api_session_cookie | default('') }}"
+      Authorization: "Bearer {{ wallix_api_token | default('') }}"
+      Content-Type: "application/json"
+    body: "{{ domain_payload }}"
+    body_format: json
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(true) }}"
+    timeout: "{{ wallix_auth.connection.timeout | default(30) }}"
+    status_code: [200, 204]
+  register: domain_update_result
+  when: 
+    - domain_exists_check.status == 200
+    - wallix_config.operation_mode | default('apply') == 'apply'
+
+- name: "Domains | Auth | Test domain {{ domain_config.name }} connectivity"
+  uri:
+    url: "{{ wallix_api_base_url }}/api/authdomains/{{ domain_config.name }}/test"
+    method: POST
+    headers:
+      Cookie: "{{ wallix_api_session_cookie | default('') }}"
+      Authorization: "Bearer {{ wallix_api_token | default('') }}"
+      Content-Type: "application/json"
+    body: '{"test_connection": true}'
+    body_format: json
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(true) }}"
+    timeout: "{{ wallix_auth.connection.timeout | default(30) }}"
+    status_code: [200]
+  register: domain_test_result
+  when: 
+    - domain_config.type != "local"
+    - (domain_create_result is defined and domain_create_result.changed) or (domain_update_result is defined and domain_update_result.changed)
+    - wallix_domains_debug.test_connections | default(true)
+
+- name: "Domains | Auth | Set domain {{ domain_config.name }} status"
+  set_fact:
+    "wallix_domain_{{ domain_config.name | replace('-', '_') }}_created": "{{ domain_create_result.changed | default(false) }}"
+    "wallix_domain_{{ domain_config.name | replace('-', '_') }}_updated": "{{ domain_update_result.changed | default(false) }}"
+    "wallix_domain_{{ domain_config.name | replace('-', '_') }}_test_passed": "{{ domain_test_result.json.success | default(true) if domain_test_result is defined else true }}"

@@ -1,0 +1,49 @@
+---
+# Example Production Group Variables
+# Copy and customize for your production environment
+# IMPORTANT: Use Ansible Vault for all sensitive data!
+
+# API Configuration
+wallix_api_host: "{{ hostvars[inventory_hostname].wallix_bastion_host | default('bastion-prod.example.com') }}"
+wallix_api_port: 443
+wallix_api_protocol: "https"
+wallix_api_verify_ssl: true  # Always true in production!
+wallix_api_version: "v3.12"
+
+# Authentication Method
+wallix_auth_method: "credentials"
+wallix_username: "{{ vault_wallix_prod_username }}"
+wallix_password: "{{ vault_wallix_prod_password }}"
+
+# Operation Configuration
+operation_mode: "normal"
+wallix_api_timeout: 60
+wallix_session_timeout: 3600
+
+# Components to Manage
+components_to_manage:
+  auth: true
+  config: true
+  domains: true
+  users: true
+  devices: true
+  applications: true
+  policies: true
+  authorizations: true
+
+# Logging Configuration
+logging:
+  level: "info"  # debug, info, warning, error
+  file: "/var/log/ansible/wallix_production.log"
+
+# Validation Settings
+test_connectivity: true
+validate_configuration: true
+
+# Backup Settings
+enable_backup_before_changes: true
+backup_directory: "/var/backups/wallix/ansible"
+
+# Safety Settings
+confirm_destructive_operations: true
+max_parallel_operations: 5

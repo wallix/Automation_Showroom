@@ -1,0 +1,80 @@
+api_creds.yml
+hosts
+old/
+
+# Ansible
+*.retry
+.vault_pass
+vault.yml
+!vault.example.yml
+group_vars/*/vault.yml
+!group_vars/*/vault.example.yml
+host_vars/*/vault.yml
+!host_vars/*/vault.example.yml
+
+# Session files
+.wallix_session*
+/tmp/.wallix*
+*.cookie
+
+# Logs
+*.log
+logs/
+/tmp/wallix*
+
+# Sensitive configs
+inventory/production
+inventory/staging
+inventory/test_bastion
+!inventory/*.example
+**/credentials.yml
+**/*credentials*.yml
+!**/*credentials*.example.yml
+
+# Test files with real data
+host_vars/test-bastion.yml
+host_vars/bastion-lab.local.yml
+group_vars/test_bastion.yml
+group_vars/bastions/demo_test.yml
+playbooks/test_deploiement_reel.yml
+playbooks/test_cleanup_full.yml
+playbooks/test_endpoints_direct.yml
+playbooks/test_new_endpoints.yml
+
+# WIP and Tests (not for release)
+WIP/
+Tests/
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+venv/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.sublime-*
+
+# Backup and reports
+backups/
+reports/
+*.backup
+
+# Certificate and key files
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+!**/example*.pem
+!**/example*.key

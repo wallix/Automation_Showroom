@@ -1,0 +1,45 @@
+---
+# Example Development Group Variables
+# For development and testing environments
+# Use Ansible Vault for credentials even in development!
+
+# API Configuration
+wallix_api_host: "{{ hostvars[inventory_hostname].wallix_bastion_host | default('bastion-dev.example.com') }}"
+wallix_api_port: 443
+wallix_api_protocol: "https"
+wallix_api_verify_ssl: false  # Can be false for dev with self-signed certs
+wallix_api_version: "v3.12"
+
+# Authentication Method
+wallix_auth_method: "credentials"
+wallix_username: "{{ vault_wallix_dev_username }}"
+wallix_password: "{{ vault_wallix_dev_password }}"
+
+# Operation Configuration
+operation_mode: "normal"  # Use "dry_run" to test without making changes
+wallix_api_timeout: 30
+wallix_session_timeout: 1800
+
+# Components to Manage
+components_to_manage:
+  auth: true
+  config: true
+  domains: true
+  users: true
+  devices: true
+  applications: false  # Disable in dev if not needed
+  policies: false      # Disable in dev if not needed
+  authorizations: true
+
+# Logging Configuration
+logging:
+  level: "debug"  # More verbose in development
+  file: "/tmp/wallix_development.log"
+
+# Validation Settings
+test_connectivity: true
+validate_configuration: true
+
+# Development-specific Settings
+enable_detailed_logging: true
+show_api_requests: true

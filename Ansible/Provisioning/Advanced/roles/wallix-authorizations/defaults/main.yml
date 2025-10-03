@@ -1,0 +1,140 @@
+---
+# Default variables for wallix-authorizations role
+
+# Authorization Management Settings
+wallix_authorizations_mode: "normal"  # normal, dry_run
+wallix_authorizations_allow_unrecorded: false  # Security setting for unrecorded sessions
+
+# Debug settings
+wallix_authorizations_debug:
+  enabled: false
+  show_details: true
+
+# Default authorizations list (empty - to be overridden in group_vars or host_vars)
+wallix_authorizations: []
+
+# Authorization examples (commented out):
+# wallix_authorizations:
+#   - name: "Linux_Admins_SSH"
+#     description: "Linux administration via SSH"
+#     user_group: "Linux_Admins"
+#     target_group: "Linux_Servers"
+#     subprotocol: "SSH_SHELL_SESSION"
+#     is_critical: false
+#     is_recorded: true
+#     approval_required: false
+#     state: present
+#
+#   - name: "DB_Admins_RDP"
+#     description: "Database administration via RDP"
+#     user_group: "Database_Admins"
+#     target_group: "Database_Servers"
+#     subprotocol: "RDP_SESSION"
+#     is_critical: true
+#     is_recorded: true
+#     approval_required: true
+#     active_quorum: 2
+#     inactive_quorum: 1
+#     state: present
+#
+#   - name: "Web_Developers_HTTP"
+#     description: "Web application access"
+#     user_group: "Web_Developers"
+#     target_group: "Web_Applications"
+#     subprotocol: "HTTP_SESSION"
+#     is_critical: false
+#     is_recorded: true
+#     approval_required: false
+#     state: present
+
+# Target Groups Configuration
+wallix_target_groups:
+  # Target group definitions
+  groups: []
+  # Example:
+  # - name: "all_servers"
+  #   description: "All server targets"
+  #   devices:
+  #     - "web-server-01"
+  #     - "db-server-01"
+  #     - "app-server-01"
+  #   services:
+  #     - "ssh"
+  #     - "rdp"
+  #   restrictions:
+  #     time_restrictions: []
+  #     ip_restrictions: []
+
+# User Groups for Authorization
+wallix_auth_user_groups:
+  # User group definitions for authorization
+  groups: []
+  # Example:
+  # - name: "administrators"
+  #   description: "System administrators"
+  #   members:
+  #     - "admin1"
+  #     - "admin2"
+  #   permissions:
+  #     - "full_access"
+  #     - "user_management"
+
+# Time Frames Configuration
+wallix_time_frames:
+  # Time frame definitions
+  frames: []
+  # Example:
+  # - name: "business_hours"
+  #   description: "Standard business hours"
+  #   periods:
+  #     - days: ["monday", "tuesday", "wednesday", "thursday", "friday"]
+  #       start_time: "08:00"
+  #       end_time: "18:00"
+  #     - days: ["saturday"]
+  #       start_time: "09:00"
+  #       end_time: "12:00"
+  #   timezone: "UTC"
+
+# Authorization Templates
+wallix_authorization_templates:
+  authorization_config: "authorization_config.json.j2"
+  target_group_config: "target_group_config.json.j2"
+  user_group_config: "user_group_config.json.j2"
+  time_frame_config: "time_frame_config.json.j2"
+
+# Default Authorization Settings
+wallix_authorization_defaults:
+  # Session settings
+  session:
+    approval_required: false
+    approval_timeout: 3600
+    session_sharing: false
+    session_invitation: false
+    is_critical: false
+  
+  # Time restrictions
+  time:
+    default_time_frame: "24x7"
+    enforce_time_restrictions: true
+  
+  # Security settings
+  security:
+    require_reason: false
+    require_ticket: false
+    audit_level: "full"
+
+# Error Handling
+wallix_authorizations_error_handling:
+  ignore_errors: false
+  rollback_on_failure: true
+  notify_on_changes: true
+  validation_strict: true
+  skip_existing_authorizations: false
+
+# Debug and Development
+wallix_authorizations_debug_mode:
+  enabled: false
+  log_requests: false
+  log_responses: false
+  save_configs: false
+  validate_authorizations: true

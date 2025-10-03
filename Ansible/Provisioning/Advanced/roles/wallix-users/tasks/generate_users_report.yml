@@ -1,0 +1,15 @@
+---
+# Generate users report
+
+- name: Skip users report generation
+  debug:
+    msg:
+      - "⚠️ Users report generation skipped"
+      - "Reason: Report generation not enabled"
+      - "Enable with wallix_users_generate_report: true"
+  when: not (wallix_users_generate_report | default(false))
+
+- name: Set users report status
+  set_fact:
+    wallix_users_report_status: "skipped"
+    wallix_users_report_reason: "report_generation_disabled"

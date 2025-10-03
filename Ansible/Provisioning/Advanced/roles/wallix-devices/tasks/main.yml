@@ -1,0 +1,48 @@
+---
+# WALLIX Devices Management Main Task
+
+- name: Display device management start
+  debug:
+    msg:
+      - "🖥️ Starting WALLIX device management"
+      - "Mode: {{ wallix_devices_mode | default('normal') }}"
+      - "Devices to manage: {{ wallix_devices | length }}"
+
+# Create devices
+- name: Include device creation tasks
+  include_tasks: create_devices.yml
+  when: 
+    - wallix_devices | length > 0
+    - wallix_session_cookie is defined
+
+# Configure services
+- name: Include service configuration tasks
+  include_tasks: configure_services.yml
+  when: 
+    - wallix_device_services | default([]) | length > 0
+    - wallix_session_cookie is defined
+
+# Manage accounts
+- name: Include account management tasks
+  include_tasks: manage_accounts.yml
+  when: 
+    - wallix_accounts | default([]) | length > 0
+    - wallix_session_cookie is defined
+
+# Validate devices
+- name: Include device validation tasks
+  include_tasks: validate_devices.yml
+  when: 
+    - wallix_devices | length > 0
+    - wallix_session_cookie is defined
+    - wallix_devices_mode | default('normal') != 'dry_run'
+
+- name: Display device management completion
+  debug:
+    msg:
+      - "✅ WALLIX device management completed"
+      - "Status: {{ wallix_devices_status | default('completed') }}"
+
+- name: Validate devices configuration
+  include_tasks: validate_devices.yml
+  when: wallix_devices_validate | default(true)

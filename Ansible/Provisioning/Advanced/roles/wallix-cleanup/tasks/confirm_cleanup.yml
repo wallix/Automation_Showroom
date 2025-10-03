@@ -1,0 +1,63 @@
+---
+# WALLIX Cleanup - Safety Confirmation Tasks
+
+- name: "⚠️ Cleanup | Display cleanup warning"
+  debug:
+    msg:
+      - "🚨 WARNING: DESTRUCTIVE OPERATION 🚨"
+      - "This will permanently delete WALLIX Bastion resources!"
+      - "Target Bastion: {{ wallix_api.base_url }}"
+      - "Components to cleanup:"
+      - "  - Authorizations: {{ wallix_cleanup_components.authorizations.enabled | default(false) }}"
+      - "  - Target Groups: {{ wallix_cleanup_components.target_groups.enabled | default(false) }}"
+      - "  - Devices: {{ wallix_cleanup_components.devices.enabled | default(false) }}"
+      - "  - Users: {{ wallix_cleanup_components.users.enabled | default(false) }}"
+      - "  - Domains: {{ wallix_cleanup_components.domains.enabled | default(false) }}"
+      - ""
+      - "Filters:"
+      - "  - Include patterns: {{ wallix_cleanup_filters.include_patterns | default(['none']) }}"
+      - "  - Exclude patterns: {{ wallix_cleanup_filters.exclude_patterns | default(['none']) }}"
+      - ""
+      - "Backup enabled: {{ wallix_cleanup_backup.enabled | default(false) }}"
+
+- name: "⏳ Cleanup | Confirmation timeout"
+  wait_for:
+    timeout: "{{ wallix_cleanup_confirmation.timeout | default(30) }}"
+  delegate_to: localhost
+  when: wallix_cleanup_confirmation.timeout | default(0) > 0
+
+- name: "✋ Cleanup | Require explicit confirmation"
+  pause:
+    prompt: |
+      🚨 CONFIRM DESTRUCTIVE OPERATION 🚨
+      
+      You are about to permanently delete WALLIX Bastion resources.
+      This action CANNOT be undone!
+      
+      Target: {{ wallix_api.base_url }}
+      
+      Type "{{ wallix_cleanup_safety.confirmation_phrase | default('DELETE_CONFIRMED') }}" to proceed
+  register: cleanup_confirmation_input
+  when: wallix_cleanup_safety.require_explicit_confirmation | default(true)
+
+- name: "🔒 Cleanup | Validate confirmation phrase"
+  assert:
+    that:
+      - cleanup_confirmation_input.user_input == wallix_cleanup_safety.confirmation_phrase | default('DELETE_CONFIRMED')
+    fail_msg: "Cleanup cancelled - incorrect confirmation phrase"
+    success_msg: "Cleanup confirmed - proceeding with deletion"
+  when: 
+    - wallix_cleanup_safety.require_explicit_confirmation | default(true)
+    - cleanup_confirmation_input is defined
+
+- name: "✅ Cleanup | Set confirmation flag"
+  set_fact:
+    wallix_cleanup_confirmed: true
+  when: 
+    - cleanup_confirmation_input is not defined or cleanup_confirmation_input.user_input == wallix_cleanup_safety.confirmation_phrase | default('DELETE_CONFIRMED')
+
+- name: "❌ Cleanup | Cancel if not confirmed"
+  fail:
+    msg: "Cleanup operation cancelled by user or confirmation failed"
+  when: 
+    - wallix_cleanup_confirmed is not defined or not wallix_cleanup_confirmed

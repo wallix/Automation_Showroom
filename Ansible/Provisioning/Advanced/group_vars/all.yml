@@ -1,0 +1,58 @@
+---
+# Global variables for WALLIX Bastion automation
+
+# Environment configuration
+deployment_environment: "{{ env | default('development') }}"
+
+# WALLIX Bastion global settings
+wallix_global:
+  api_version: "3.12"
+  timeout: 30
+  retry_count: 3
+  retry_delay: 5
+
+# Operation settings
+operation_settings:
+  dry_run: "{{ dry_run | default(false) }}"
+  validate_before_apply: true
+  backup_before_changes: true
+  rollback_on_error: false
+
+# Component management flags (can be overridden per playbook)
+default_components:
+  domains: true
+  users: true
+  usergroups: true
+  devices: true
+  applications: true
+  policies: true
+  authorizations: true
+  targetgroups: true
+
+# Logging and debugging
+logging:
+  level: "{{ log_level | default('info') }}"  # debug, info, warning, error
+  log_api_requests: false
+  log_api_responses: false
+  save_responses: false
+
+# Security settings
+security:
+  verify_ssl: true
+  force_basic_auth: false
+  session_timeout: 3600
+  auto_logout: true
+
+# Performance settings
+performance:
+  parallel_requests: false
+  batch_size: 10
+  request_throttle: 0.5  # seconds between requests
+
+# Report settings
+reporting:
+  enabled: true
+  format: "json"  # json, yaml, html
+  include_timestamps: true
+  include_changes: true
+  output_directory: "/tmp"

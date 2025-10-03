@@ -1,0 +1,86 @@
+# Example configuration for Global Target Accounts
+# These accounts can be used across multiple devices and services
+
+# Global Target Accounts Configuration
+wallix_global_accounts:
+  # Production admin account - usable on all production servers
+  - account_name: "prod-admin"
+    account_login: "admin"
+    domain: "production.local"
+    description: "Production environment global administrator"
+    auto_change_password: false
+    auto_change_ssh_key: false
+    checkout_policy: "admin_checkout"
+    certificate_validity: 365
+    password: "{{ vault_prod_admin_password }}"  # Store in vault
+    state: "present"
+
+  # Service account for applications
+  - account_name: "app-service"
+    account_login: "svc_application"
+    domain: "production.local"
+    description: "Global application service account"
+    auto_change_password: true
+    auto_change_ssh_key: false
+    checkout_policy: "service_checkout"
+    certificate_validity: 90
+    password: "{{ vault_app_service_password }}"
+    enable_password_rotation: true
+    state: "present"
+
+  # SSH key based account for automation
+  - account_name: "automation-ssh"
+    account_login: "ansible"
+    domain: "production.local"
+    description: "SSH key based automation account"
+    auto_change_password: false
+    auto_change_ssh_key: true
+    checkout_policy: "automation_checkout"
+    certificate_validity: 30
+    ssh_private_key: "{{ vault_automation_ssh_private_key }}"
+    ssh_public_key: "{{ vault_automation_ssh_public_key }}"
+    state: "present"
+
+  # Database administrator account
+  - account_name: "db-admin"
+    account_login: "dbadmin"
+    domain: "database.local"
+    description: "Global database administrator account"
+    auto_change_password: true
+    auto_change_ssh_key: false
+    checkout_policy: "db_admin_checkout"
+    certificate_validity: 180
+    password: "{{ vault_db_admin_password }}"
+    enable_password_rotation: true
+    state: "present"
+
+# Global Domains Configuration
+wallix_global_domains:
+  # Production Active Directory domain
+  - domain_name: "production.local"
+    description: "Production Active Directory domain"
+    type: "LDAP"
+    ldap_server: "ldap://prod-dc.production.local"
+    ldap_base_dn: "DC=production,DC=local"
+    state: "present"
+
+  # Database domain for specialized accounts
+  - domain_name: "database.local"
+    description: "Database administration domain"
+    type: "LDAP"
+    ldap_server: "ldap://db-dc.database.local"
+    ldap_base_dn: "DC=database,DC=local"
+    state: "present"
+
+# Usage in Target Groups:
+# These global accounts can be referenced in target groups as:
+# - "prod-admin@production.local@device:service"
+# - "app-service@production.local@device:service"
+# - "automation-ssh@production.local@device:service"
+# 
+# Benefits of Global Target Accounts:
+# 1. Centralized credential management
+# 2. Consistent access across multiple systems
+# 3. Automated password rotation
+# 4. Reduced credential sprawl
+# 5. Better audit trail and compliance
