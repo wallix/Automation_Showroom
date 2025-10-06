@@ -427,7 +427,7 @@ Update `CHANGELOG.md`:
 ### Resources
 
 - [Ansible Documentation](https://docs.ansible.com/)
-- [WALLIX API Documentation](https://documentation.wallix.com)
+- [WALLIX API Documentation](https://doc.wallix.com/)
 - [Project README](README.md)
 
 ## Recognition

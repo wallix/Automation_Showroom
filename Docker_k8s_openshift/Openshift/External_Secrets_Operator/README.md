@@ -275,7 +275,7 @@ kubectl get secret app-credentials -o yaml
 
 - **[External Secrets Operator Docs](https://external-secrets.io/)** - Official documentation
 - **[Webhook Provider Guide](https://external-secrets.io/latest/provider/webhook/)** - Webhook details
-- **[WALLIX API Docs](https://documentation.wallix.com)** - WALLIX API reference
+- **[WALLIX API Docs](https://doc.wallix.com/)** - WALLIX API reference
 - **[Simple Integration](../WALLIX_Simple_Integration/)** - Recommended for most cases
 
 ## 📝 Best Practices
