@@ -144,15 +144,19 @@ Thanks goes to these wonderful people :
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
 <!-- markdownlint-disable -->
+
 <table>
   <tbody>
     <tr>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/bsimonWallix"><img src="https://avatars.githubusercontent.com/u/130672981?v=4?s=100" width="100px;" alt="bsimon-wallix"/><br /><sub><b>bsimon-wallix</b></sub></a><br /><a href="https://github.com/wallix/Automation_Showroom/commits?author=bsimonWallix" title="Code">💻</a> <a href="https://github.com/wallix/Automation_Showroom/commits?author=bsimonWallix" title="Tests">⚠️</a> <a href="https://github.com/wallix/Automation_Showroom/pulls?q=is%3Apr+reviewed-by%3AbsimonWallix" title="Reviewed Pull Requests">👀</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/moulip"><img src="https://avatars.githubusercontent.com/u/805421?v=4?s=100" width="100px;" alt="moulip"/><br /><sub><b>moulip</b></sub></a><br /><a href="https://github.com/wallix/Automation_Showroom/commits?author=moulip" title="Code">💻</a> <a href="https://github.com/wallix/Automation_Showroom/commits?author=moulip" title="Tests">⚠️</a> <a href="https://github.com/wallix/Automation_Showroom/pulls?q=is%3Apr+reviewed-by%3Amoulip" title="Reviewed Pull Requests">👀</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/swcortetWALLIX"><img src="https://avatars.githubusercontent.com/u/190351850?v=4?s=100" width="100px;" alt="swcortetWALLIX"/><br /><sub><b>swcortetWALLIX</b></sub></a><br /><a href="https://github.com/wallix/Automation_Showroom/commits?author=swcortetWALLIX" title="Code">💻</a> <a href="https://github.com/wallix/Automation_Showroom/commits?author=swcortetWALLIX" title="Tests">⚠️</a> <a href="https://github.com/wallix/Automation_Showroom/pulls?q=is%3Apr+reviewed-by%3AswcortetWALLIX" title="Reviewed Pull Requests">👀</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/bsimonWallix"><img src="https://avatars.githubusercontent.com/u/130672981?v=4" width="100px;" alt=""/><br /><sub><b>bsimon-wallix</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/moulip"><img src="https://avatars.githubusercontent.com/u/805421?v=4" width="100px;" alt=""/><br /><sub><b>moulip</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/swcortetWALLIX"><img src="https://avatars.githubusercontent.com/u/190351850?v=4" width="100px;" alt=""/><br /><sub><b>swcortetWALLIX</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/shelleu-wallix"><img src="https://avatars.githubusercontent.com/u/148475813?v=4" width="100px;" alt=""/><br /><sub><b>Sébastien Helleu</b></sub></a></td>
     </tr>
   </tbody>
 </table>
+
+
 
 <!-- markdownlint-restore -->
 <!-- prettier-ignore-end -->
