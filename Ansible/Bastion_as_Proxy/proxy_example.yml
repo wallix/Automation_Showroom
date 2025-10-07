@@ -1,0 +1,71 @@
+---
+- name: Test connection through WALLIX Bastion proxy
+  hosts: remote_servers
+  gather_facts: yes
+
+  tasks:
+    - name: Ping remote servers
+      ping:
+      register: ping_result
+
+    - name: Display connection success
+      debug:
+        msg: "Successfully connected to {{ inventory_hostname }} through bastion"
+
+    - name: Get hostname
+      command: hostname
+      register: hostname_result
+
+    - name: Display hostname
+      debug:
+        msg: "Remote hostname: {{ hostname_result.stdout }}"
+
+    - name: Check uptime
+      command: uptime
+      register: uptime_result
+
+    - name: Display uptime
+      debug:
+        msg: "{{ uptime_result.stdout }}"
+
+    - name: Gather system information
+      setup:
+        filter: ansible_distribution*
+
+    - name: Display OS information
+      debug:
+        msg:
+          - "OS: {{ ansible_distribution }} {{ ansible_distribution_version }}"
+          - "Architecture: {{ ansible_architecture }}"
+
+    - name: Create test file
+      copy:
+        content: |
+          This file was created via WALLIX Bastion proxy
+          Date: {{ ansible_date_time.iso8601 }}
+          From: {{ ansible_hostname }}
+        dest: /tmp/bastion_proxy_test.txt
+        mode: '0644'
+
+    - name: Read test file
+      command: cat /tmp/bastion_proxy_test.txt
+      register: file_content
+
+    - name: Display file content
+      debug:
+        msg: "{{ file_content.stdout_lines }}"
+
+    - name: Clean up test file
+      file:
+        path: /tmp/bastion_proxy_test.txt
+        state: absent
+
+- name: Summary
+  hosts: remote_servers
+  gather_facts: no
+
+  tasks:
+    - name: Display summary
+      debug:
+        msg: "All {{ ansible_play_hosts | length }} remote servers accessed successfully through WALLIX Bastion"
+      run_once: true

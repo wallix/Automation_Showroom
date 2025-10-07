@@ -1,0 +1,22 @@
+# Ansible Vault encrypted files
+group_vars/*/vault.yml
+
+# Vault password files
+.vault_pass
+.vault_pass.txt
+vault_pass.txt
+
+# Temporary files
+*.tmp
+*.swp
+*~
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Ansible retry files
+*.retry
+
+# Local test files
+test_*.yml
