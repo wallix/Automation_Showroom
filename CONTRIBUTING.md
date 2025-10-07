@@ -437,5 +437,96 @@ Contributors will be recognized in:
 - `CONTRIBUTORS.md` file
 - Release notes
 - Project documentation
+- README.md contributors section (via all-contributors)
+
+### Adding Contributors with all-contributors
+
+This project uses [all-contributors](https://allcontributors.org/) to recognize all contributors, not just code contributors.
+
+#### Adding a New Contributor
+
+**Method 1: Using the all-contributors bot (Recommended)**
+
+Comment on an issue or pull request:
+
+```
+@all-contributors please add @username for code, doc, example
+```
+
+Available contribution types:
+- `code`: Code contributions
+- `doc`: Documentation
+- `example`: Examples
+- `test`: Tests
+- `ideas`: Ideas & planning
+- `infra`: Infrastructure (CI/CD, build tools)
+- `maintenance`: Maintenance
+- `review`: Reviewing pull requests
+- `question`: Answering questions
+- `bug`: Bug reports
+- `talk`: Talks/presentations
+- `tutorial`: Tutorials
+
+**Method 2: Using the CLI**
+
+```bash
+# Add a contributor
+npx all-contributors add username code,doc
+
+# Generate the contributors list
+npx all-contributors generate
+```
+
+**Method 3: Manual editing**
+
+1. Edit `.all-contributorsrc`:
+
+```json
+{
+  "contributors": [
+    {
+      "login": "username",
+      "name": "Full Name",
+      "avatar_url": "https://avatars.githubusercontent.com/u/12345",
+      "profile": "https://github.com/username",
+      "contributions": [
+        "code",
+        "doc"
+      ]
+    }
+  ]
+}
+```
+
+2. Generate the table:
+
+```bash
+npx all-contributors generate
+```
+
+3. Commit the changes:
+
+```bash
+git add .all-contributorsrc README.md
+git commit -m "docs: add @username as a contributor"
+```
+
+#### Contribution Types Guide
+
+Choose the appropriate types for the contribution:
+
+| Type | When to Use |
+|------|-------------|
+| `code` | Any code contributions (playbooks, roles, scripts) |
+| `doc` | Documentation improvements (README, guides, comments) |
+| `example` | Adding or improving examples |
+| `test` | Adding or improving tests |
+| `ideas` | Feature suggestions, architecture discussions |
+| `infra` | CI/CD, GitHub Actions, build scripts |
+| `review` | Reviewing PRs, providing feedback |
+| `bug` | Filing detailed bug reports |
+| `question` | Helping others in issues/discussions |
+
+**Note:** Contributors are automatically added when their PR is merged if using the all-contributors bot.
 
 Thank you for contributing! 🎉

@@ -1,6 +1,6 @@
 # WALLIX Automation Showroom
 
-[![All Contributors](https://img.shields.io/badge/all_contributors-3-green.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-4-green.svg?style=flat-square)](#contributors-)
 [![Production Ready](https://img.shields.io/badge/status-production--ready-green)](Ansible/Provisioning/Advanced/)
 [![WALLIX API](https://img.shields.io/badge/WALLIX%20API-v3.12-blue)](https://www.wallix.com/)
 
@@ -22,10 +22,10 @@ Enterprise-grade automation patterns for:
 ```text
 Automation_Showroom/
 ├── Ansible/Provisioning/Advanced/    # Production-ready Ansible automation
-├── Terraform/                        # Infrastructure as Code templates
-├── cloud-init/                       # Cloud deployment automation
+├── Terraform/                        # Infrastructure as Code templates for provisionning and deploying
+├── cloud-init/                       # Cloud-init configuration generator and instructions
 ├── pulumi/                           # Modern IaC examples
-└── Docker_k8s_openshift/            # Container and orchestration
+└── Docker_k8s_openshift/             # Container and orchestration
 ```
 
 ## Quick Start
@@ -46,7 +46,7 @@ See [Ansible Advanced README](Ansible/Provisioning/Advanced/README.md) for compl
 # Terraform
 cd Terraform/Deploying/aws && terraform init && terraform apply
 
-# Pulumi  
+# Pulumi
 cd pulumi/bastion4gcp && pulumi up
 ```
 
