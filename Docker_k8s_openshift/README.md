@@ -89,7 +89,7 @@ For issues, questions, or contributions:
 
 ## Related Resources
 
-- [WALLIX Bastion Documentation](https://docs.wallix.com/)
+- [WALLIX Bastion Documentation](https://doc.wallix.com/)
 - [OpenShift Documentation](https://docs.openshift.com/)
 - [Kubernetes Documentation](https://kubernetes.io/docs/)
 - [External Secrets Operator](https://external-secrets.io/)

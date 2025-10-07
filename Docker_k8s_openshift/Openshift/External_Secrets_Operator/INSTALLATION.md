@@ -469,5 +469,5 @@ kubectl create configmap wallix-ca --from-file=ca.crt=wallix-ca.pem
 
 - [External Secrets Operator Documentation](https://external-secrets.io/)
 - [Webhook Provider Guide](https://external-secrets.io/latest/provider/webhook/)
-- [WALLIX Bastion API Documentation](https://documentation.wallix.com)
+- [WALLIX Bastion API Documentation](https://doc.wallix.com/)
 - [Helm Charts](https://github.com/external-secrets/external-secrets/tree/main/deploy/charts/external-secrets)

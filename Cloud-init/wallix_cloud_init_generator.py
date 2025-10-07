@@ -179,7 +179,7 @@ class WallixCloudInitGenerator:
 # ⚠️  WARNING: This file contains sensitive security configurations.
 #    Handle with appropriate security measures.
 #
-# 📚 Documentation: https://docs.wallix.com
+# 📚 Documentation: https://doc.wallix.com
 # 🔧 Support: support@wallix.com
 #
 

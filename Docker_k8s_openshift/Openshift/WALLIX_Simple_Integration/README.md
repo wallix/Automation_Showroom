@@ -257,7 +257,7 @@ WALLIX_Simple_Integration/
 
 ## 📚 Additional Resources
 
-- [WALLIX Bastion API Documentation](https://doc.wallix.com/en/index.html)
+- [WALLIX Bastion API Documentation](https://doc.wallix.com/)
 - [Kubernetes Init Containers](https://kubernetes.io/docs/concepts/workloads/pods/init-containers/)
 - [Kubernetes CronJobs](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/)
 

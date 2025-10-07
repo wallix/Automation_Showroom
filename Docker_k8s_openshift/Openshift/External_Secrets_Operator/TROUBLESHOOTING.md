@@ -756,7 +756,7 @@ chmod +x eso-diagnostics.sh
 
 1. **Check Documentation**
    - [External Secrets Operator Docs](https://external-secrets.io/)
-   - [WALLIX API Documentation](https://documentation.wallix.com)
+   - [WALLIX API Documentation](https://doc.wallix.com/)
    - [Webhook Provider Guide](https://external-secrets.io/latest/provider/webhook/)
 
 2. **Community Support**
