@@ -1,0 +1,42 @@
+---
+- name: Deploy wrapper and execute WALLIX commands
+  hosts: wallix_bastions
+  gather_facts: no
+
+  tasks:
+    - name: Copy wabsuper-wrapper.py to bastion
+      copy:
+        src: wabsuper-wrapper.py
+        dest: /tmp/wabsuper-wrapper.py
+        mode: '0755'
+      tags:
+        - deploy
+
+    - name: Get WALLIX Bastion version
+      command: WABVersion
+      become: yes
+      become_user: root
+      register: wab_version
+
+    - name: Display WALLIX version
+      debug:
+        msg: "{{ wab_version.stdout_lines }}"
+
+    - name: Get bastion authentication statistics
+      command: bastion-get-auth-statistics
+      become: yes
+      become_user: root
+      register: auth_stats
+
+    - name: Parse authentication statistics
+      set_fact:
+        auth_stats_json: "{{ auth_stats.stdout | from_json }}"
+
+    - name: Display authentication statistics (formatted)
+      debug:
+        msg:
+          - "Minimum concurrent users: {{ auth_stats_json.min }}"
+          - "Average concurrent users: {{ auth_stats_json.average }}"
+          - "Maximum concurrent users: {{ auth_stats_json.max }}"
+          - "Peak users: {{ auth_stats_json.peak_users | join(', ') }}"
+          - "Peak period: {{ auth_stats_json.peak_start_datetime }} to {{ auth_stats_json.peak_end_datetime }}"
