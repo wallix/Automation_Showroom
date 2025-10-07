@@ -57,3 +57,8 @@ Backups/
 vault.yml
 !vault.example.yml
 .ansible
+
+# all contributors
+node_modules/
+package-lock.json
+package.json
