@@ -1,0 +1,33 @@
+# Ansible
+*.retry
+*.pyc
+__pycache__/
+.ansible/
+
+# Logs
+*.log
+
+# Vault files (if unencrypted)
+**/vault.yml
+**/secrets.yml
+
+# Temporary files
+*.tmp
+*.swp
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# Custom inventory files with real IPs/credentials
+inventory_prod.ini
+inventory_real.ini
+
+# Work in progress
+WIP/
