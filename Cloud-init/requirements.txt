@@ -1,0 +1,28 @@
+# WALLIX Automation Showroom - Python Requirements
+# Install with: pip install -r requirements.txt
+
+# Core dependencies for cloud-init generator and automation scripts
+requests>=2.25.0
+jinja2>=3.0.0
+pyyaml>=6.0
+
+# For JSON schema validation and configuration management
+jsonschema>=4.0.0
+
+# For better CLI output and logging
+colorama>=0.4.4
+rich>=13.0.0
+
+# For cryptographic operations (password generation, etc.)
+cryptography>=3.4.8
+passlib>=1.7.4
+
+# For date/time handling in scripts
+python-dateutil>=2.8.0
+
+# Development and testing dependencies
+# Uncomment if you're contributing to the project
+# pytest>=7.0.0
+# black>=22.0.0
+# flake8>=4.0.0
+# mypy>=0.910

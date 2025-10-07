@@ -17,7 +17,7 @@ import string
 import time
 import platform
 import logging
-import crypt
+from passlib.hash import sha512_crypt
 from pathlib import Path
 from datetime import datetime, timezone
 from typing import Dict, Optional, Any, List
@@ -91,8 +91,21 @@ class WallixCloudInitGenerator:
 
     def _generate_password_hash(self, password: str) -> str:
         """Generate SHA-512 hash for password (compatible with Linux shadow file)"""
-        salt = crypt.mksalt(crypt.METHOD_SHA512)
-        return crypt.crypt(password, salt)
+        # Use passlib for better cross-platform compatibility and enhanced security
+        # Default rounds=656000 provides good security while maintaining compatibility
+        return sha512_crypt.hash(password)
+
+    def generate_password_hashes(self) -> Dict[str, str]:
+        """Generate hashes for all stored passwords"""
+        password_hashes = {}
+        if hasattr(self, 'passwords') and self.passwords:
+            for key, password in self.passwords.items():
+                if password and key.startswith('password_'):
+                    # Create hash key: password_wabadmin -> wabadmin_password_hash
+                    account = key.replace('password_', '')
+                    hash_key = f'{account}_password_hash'
+                    password_hashes[hash_key] = self._generate_password_hash(password)
+        return password_hashes
 
     def _get_ssh_public_key(self, ssh_key_path: Optional[str] = None) -> Optional[str]:
         """Load SSH public key from file or return None"""
@@ -340,8 +353,13 @@ class WallixCloudInitGenerator:
         # Prepare template variables
         template_vars = self._prepare_template_vars(config_options)
 
-        # Always use the chpasswd template
-        base_template = 'cloud-init-conf-WALLIX_UNIFIED.tpl'
+        # Select template based on password type
+        if config_options.get('use_hashed_passwords', False):
+            base_template = 'cloud-init-conf-WALLIX_HASHED.tpl'
+            logging.info("Using hashed passwords template for enhanced security")
+        else:
+            base_template = 'cloud-init-conf-WALLIX_UNIFIED.tpl'
+            logging.info("Using plain text passwords template")
 
         # Generate simple YAML cloud-config (not multipart)
         cloud_config_content = self._render_template(
@@ -385,12 +403,26 @@ class WallixCloudInitGenerator:
 
         # Add passwords if passwords are generated
         if hasattr(self, 'passwords') and self.passwords:
-            for account in ['wabadmin', 'wabsuper', 'wabupgrade']:
-                password = self.passwords.get(f'password_{account}', '')
-                if password:
-                    template_vars[f'{account}_password'] = password
-                else:
+            use_hashed_passwords = config_options.get('use_hashed_passwords', False)
+            
+            if use_hashed_passwords:
+                # Generate and add password hashes
+                password_hashes = self.generate_password_hashes()
+                template_vars.update(password_hashes)
+                # Also add empty plain password fields for compatibility
+                for account in ['wabadmin', 'wabsuper', 'wabupgrade']:
                     template_vars[f'{account}_password'] = ''
+            else:
+                # Add plain text passwords (current behavior)
+                for account in ['wabadmin', 'wabsuper', 'wabupgrade']:
+                    password = self.passwords.get(f'password_{account}', '')
+                    if password:
+                        template_vars[f'{account}_password'] = password
+                    else:
+                        template_vars[f'{account}_password'] = ''
+                # Add empty hash fields for compatibility
+                for account in ['wabadmin', 'wabsuper', 'wabupgrade']:
+                    template_vars[f'{account}_password_hash'] = ''
 
         # Add additional boot commands
         additional_bootcmd = config_options.get('additional_bootcmd', [])
@@ -622,6 +654,8 @@ Templates and scripts location:
                         help='Output directory for generated files (default: ./output)')
     parser.add_argument('--set-service-user-password', action='store_true',
                         help='Set passwords for WALLIX service users (wabadmin, wabsuper, wabupgrade)')
+    parser.add_argument('--use-hashed-passwords', action='store_true',
+                        help='Use hashed passwords instead of plain text (more secure)')
     parser.add_argument('--use-of-lb', action='store_true',
                         help='Enable load balancer configuration')
     parser.add_argument('--http-host-trusted-hostnames', default='',
@@ -723,6 +757,7 @@ Templates and scripts location:
             'fqdn': args.fqdn,
             'product_type': args.product_type,
             'set_service_user_password': args.set_service_user_password,
+            'use_hashed_passwords': args.use_hashed_passwords,
             'ssh_public_key_path': args.ssh_public_key_path,
             'use_of_lb': args.use_of_lb,
             'http_host_trusted_hostnames': args.http_host_trusted_hostnames,
