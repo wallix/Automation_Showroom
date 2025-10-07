@@ -1,6 +1,6 @@
 # WALLIX Automation Showroom
 
-[![All Contributors](https://img.shields.io/badge/all_contributors-3-green.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-4-green.svg?style=flat-square)](#contributors-)
 [![Production Ready](https://img.shields.io/badge/status-production--ready-green)](Ansible/Provisioning/Advanced/)
 [![WALLIX API](https://img.shields.io/badge/WALLIX%20API-v3.12-blue)](https://www.wallix.com/)
 
