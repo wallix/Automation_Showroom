@@ -10,6 +10,7 @@ This directory contains JSON configuration files for various WALLIX PAM deployme
 - `config_loadbalancer.json`: Bastion with load balancer configuration
 - `config_webadminpass_crypto.json`: Access Manager with WebAdmin password and encryption key
 - `config_bastion_full.json`: Full Bastion configuration
+- `config_hashed_passwords.json`: **NEW** Bastion with SHA-512 hashed passwords for enhanced security
 
 ## Using the Examples
 
@@ -44,5 +45,17 @@ python3 wallix_cloud_init_generator.py --config-file config_example/config_with_
 ```bash
 python3 wallix_cloud_init_generator.py --config-file config_example/config_network.json --output-dir output/network
 ```
+
+### Enhanced Security with Hashed Passwords
+
+```bash
+python3 wallix_cloud_init_generator.py --config-file config_example/config_hashed_passwords.json --output-dir output/hashed
+```
+
+This example demonstrates the use of SHA-512 hashed passwords instead of plain text passwords for enhanced security. The configuration automatically:
+- Generates SHA-512 password hashes with 656,000 rounds
+- Uses `type: hash` in the chpasswd section
+- Provides better security for cloud deployments
+- Maintains compatibility with Linux shadow file format
 
 Refer to each JSON file for more details on specific configurations.
