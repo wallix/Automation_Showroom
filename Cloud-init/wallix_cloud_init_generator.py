@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# flake8: noqa: E501
 """
 WALLIX Cloud-Init Generator - Unified Version
 Portable Python script to generate cloud-init configurations for
@@ -8,7 +9,6 @@ WALLIX Access Manager and Session Manager
 import os
 import sys
 import json
-import yaml
 import base64
 import gzip
 import argparse
@@ -17,10 +17,11 @@ import string
 import time
 import platform
 import logging
-from passlib.hash import sha512_crypt
-from pathlib import Path
 from datetime import datetime, timezone
 from typing import Dict, Optional, Any, List
+from pathlib import Path
+from passlib.hash import sha512_crypt
+import yaml
 
 logging.basicConfig(
     level=logging.INFO,
@@ -34,15 +35,9 @@ class WallixCloudInitGenerator:
     Combines all functionality in a single script with external templates
     """
 
-    def __init__(self, base_path: Optional[str] = None) -> None: """
-    Unified WALLIX Cloud-Init Generator
-    Combines all functionality in a single script with external templates
-    """
-
     def __init__(self, base_path: Optional[str] = None) -> None:
         """Initialize generator with base path"""
-        self.base_path = Path(
-            base_path) if base_path else Path(__file__).parent
+        self.base_path = Path(base_path) if base_path else Path(__file__).parent
         self.templates_path = self.base_path / "templates"
         self.scripts_path = self.base_path / "scripts"
         self.passwords: Dict[str, str] = {}
@@ -113,7 +108,7 @@ class WallixCloudInitGenerator:
             return None
 
         try:
-            with open(ssh_key_path, 'r') as f:
+            with open(ssh_key_path, 'r', encoding='utf-8') as f:
                 key_content = f.read().strip()
                 if key_content:
                     return key_content
@@ -434,7 +429,7 @@ class WallixCloudInitGenerator:
         """Render template with variables, handling dynamic sections"""
         template_path = self.templates_path / template_name
         try:
-            with open(template_path, 'r') as f:
+            with open(template_path, 'r', encoding='utf-8') as f:
                 template = f.read()
 
             # Process dynamic sections
@@ -496,7 +491,7 @@ class WallixCloudInitGenerator:
         # Replication script
         if variables.get('install_replication', False):
             try:
-                with open('scripts/install_replication.sh', 'r') as f:
+                with open('scripts/install_replication.sh', 'r', encoding='utf-8') as f:
                     script_content = f.read()
                 write_files.append({
                     'path': '/root/install_replication.sh',
@@ -511,7 +506,7 @@ class WallixCloudInitGenerator:
         # Webadminpass-crypto script
         if variables.get('set_webui_password_and_crypto', False):
             try:
-                with open('scripts/webadminpass-crypto.py', 'r') as f:
+                with open('scripts/webadminpass-crypto.py', 'r', encoding='utf-8') as f:
                     script_content = f.read()
 
                 # Replace placeholders with actual passwords
@@ -811,8 +806,8 @@ Templates and scripts location:
 
         return 0
 
-    except Exception as e:
-        logging.error(f"Error generating cloud-init configuration: {e}")
+    except (OSError, ValueError, RuntimeError):
+        logging.exception("Error generating cloud-init configuration")
         return 1
 
 
