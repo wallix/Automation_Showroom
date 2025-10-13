@@ -12,15 +12,53 @@
     status_code: [200]
     return_content: yes
   register: wallix_session_test
+  when: 
+    - wallix_session_cookie is defined
+    - wallix_session_cookie != ""
 
-- name: Validate API connectivity
+- name: Test basic API connectivity without session cookie
+  uri:
+    url: "{{ wallix_api.base_url }}/api/version"
+    method: GET
+    user: "{{ wallix_auth.credentials.username }}"
+    password: "{{ wallix_auth.credentials.password }}"
+    force_basic_auth: true
+    headers: "{{ wallix_api.headers }}"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl }}"
+    timeout: "{{ wallix_auth.connection.timeout }}"
+    status_code: [200]
+    return_content: yes
+  register: wallix_basic_test
+  when: 
+    - wallix_session_cookie is not defined or wallix_session_cookie == ""
+    - wallix_auth.initial_auth_method == 'credentials'
+
+- name: Validate API connectivity with session cookie
   debug:
     msg:
       - "✅ API connectivity validated successfully"
       - "Session cookie is working correctly"
       - "API Version: {{ wallix_session_test.json.version | default('unknown') }}"
+  when: 
+    - wallix_session_test is defined
+    - wallix_session_test is not skipped
+    - wallix_session_test.status == 200
+
+- name: Validate API connectivity with basic auth
+  debug:
+    msg:
+      - "✅ API connectivity validated successfully"
+      - "Basic authentication is working correctly"
+      - "API Version: {{ wallix_basic_test.json.version | default('unknown') }}"
+  when: 
+    - wallix_basic_test is defined
+    - wallix_basic_test is not skipped
+    - wallix_basic_test.status == 200
 
 - name: Set connectivity status
   set_fact:
     wallix_connectivity_status: "success"
     wallix_session_validated: true
+  when: >
+    (wallix_session_test is defined and wallix_session_test is not skipped and wallix_session_test.status == 200) or
+    (wallix_basic_test is defined and wallix_basic_test is not skipped and wallix_basic_test.status == 200)

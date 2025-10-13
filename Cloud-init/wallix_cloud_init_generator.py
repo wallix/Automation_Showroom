@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# flake8: noqa: E501
 """
 WALLIX Cloud-Init Generator - Unified Version
 Portable Python script to generate cloud-init configurations for
@@ -8,7 +9,6 @@ WALLIX Access Manager and Session Manager
 import os
 import sys
 import json
-import yaml
 import base64
 import gzip
 import argparse
@@ -17,10 +17,11 @@ import string
 import time
 import platform
 import logging
-import crypt
-from pathlib import Path
 from datetime import datetime, timezone
 from typing import Dict, Optional, Any, List
+from pathlib import Path
+from passlib.hash import sha512_crypt
+import yaml
 
 logging.basicConfig(
     level=logging.INFO,
@@ -34,15 +35,9 @@ class WallixCloudInitGenerator:
     Combines all functionality in a single script with external templates
     """
 
-    def __init__(self, base_path: Optional[str] = None) -> None: """
-    Unified WALLIX Cloud-Init Generator
-    Combines all functionality in a single script with external templates
-    """
-
     def __init__(self, base_path: Optional[str] = None) -> None:
         """Initialize generator with base path"""
-        self.base_path = Path(
-            base_path) if base_path else Path(__file__).parent
+        self.base_path = Path(base_path) if base_path else Path(__file__).parent
         self.templates_path = self.base_path / "templates"
         self.scripts_path = self.base_path / "scripts"
         self.passwords: Dict[str, str] = {}
@@ -91,8 +86,21 @@ class WallixCloudInitGenerator:
 
     def _generate_password_hash(self, password: str) -> str:
         """Generate SHA-512 hash for password (compatible with Linux shadow file)"""
-        salt = crypt.mksalt(crypt.METHOD_SHA512)
-        return crypt.crypt(password, salt)
+        # Use passlib for better cross-platform compatibility and enhanced security
+        # Default rounds=656000 provides good security while maintaining compatibility
+        return sha512_crypt.hash(password)
+
+    def generate_password_hashes(self) -> Dict[str, str]:
+        """Generate hashes for all stored passwords"""
+        password_hashes = {}
+        if hasattr(self, 'passwords') and self.passwords:
+            for key, password in self.passwords.items():
+                if password and key.startswith('password_'):
+                    # Create hash key: password_wabadmin -> wabadmin_password_hash
+                    account = key.replace('password_', '')
+                    hash_key = f'{account}_password_hash'
+                    password_hashes[hash_key] = self._generate_password_hash(password)
+        return password_hashes
 
     def _get_ssh_public_key(self, ssh_key_path: Optional[str] = None) -> Optional[str]:
         """Load SSH public key from file or return None"""
@@ -100,7 +108,7 @@ class WallixCloudInitGenerator:
             return None
 
         try:
-            with open(ssh_key_path, 'r') as f:
+            with open(ssh_key_path, 'r', encoding='utf-8') as f:
                 key_content = f.read().strip()
                 if key_content:
                     return key_content
@@ -340,8 +348,13 @@ class WallixCloudInitGenerator:
         # Prepare template variables
         template_vars = self._prepare_template_vars(config_options)
 
-        # Always use the chpasswd template
-        base_template = 'cloud-init-conf-WALLIX_UNIFIED.tpl'
+        # Select template based on password type
+        if config_options.get('use_hashed_passwords', False):
+            base_template = 'cloud-init-conf-WALLIX_HASHED.tpl'
+            logging.info("Using hashed passwords template for enhanced security")
+        else:
+            base_template = 'cloud-init-conf-WALLIX_UNIFIED.tpl'
+            logging.info("Using plain text passwords template")
 
         # Generate simple YAML cloud-config (not multipart)
         cloud_config_content = self._render_template(
@@ -385,12 +398,26 @@ class WallixCloudInitGenerator:
 
         # Add passwords if passwords are generated
         if hasattr(self, 'passwords') and self.passwords:
-            for account in ['wabadmin', 'wabsuper', 'wabupgrade']:
-                password = self.passwords.get(f'password_{account}', '')
-                if password:
-                    template_vars[f'{account}_password'] = password
-                else:
+            use_hashed_passwords = config_options.get('use_hashed_passwords', False)
+            
+            if use_hashed_passwords:
+                # Generate and add password hashes
+                password_hashes = self.generate_password_hashes()
+                template_vars.update(password_hashes)
+                # Also add empty plain password fields for compatibility
+                for account in ['wabadmin', 'wabsuper', 'wabupgrade']:
                     template_vars[f'{account}_password'] = ''
+            else:
+                # Add plain text passwords (current behavior)
+                for account in ['wabadmin', 'wabsuper', 'wabupgrade']:
+                    password = self.passwords.get(f'password_{account}', '')
+                    if password:
+                        template_vars[f'{account}_password'] = password
+                    else:
+                        template_vars[f'{account}_password'] = ''
+                # Add empty hash fields for compatibility
+                for account in ['wabadmin', 'wabsuper', 'wabupgrade']:
+                    template_vars[f'{account}_password_hash'] = ''
 
         # Add additional boot commands
         additional_bootcmd = config_options.get('additional_bootcmd', [])
@@ -402,7 +429,7 @@ class WallixCloudInitGenerator:
         """Render template with variables, handling dynamic sections"""
         template_path = self.templates_path / template_name
         try:
-            with open(template_path, 'r') as f:
+            with open(template_path, 'r', encoding='utf-8') as f:
                 template = f.read()
 
             # Process dynamic sections
@@ -464,7 +491,7 @@ class WallixCloudInitGenerator:
         # Replication script
         if variables.get('install_replication', False):
             try:
-                with open('scripts/install_replication.sh', 'r') as f:
+                with open('scripts/install_replication.sh', 'r', encoding='utf-8') as f:
                     script_content = f.read()
                 write_files.append({
                     'path': '/root/install_replication.sh',
@@ -479,7 +506,7 @@ class WallixCloudInitGenerator:
         # Webadminpass-crypto script
         if variables.get('set_webui_password_and_crypto', False):
             try:
-                with open('scripts/webadminpass-crypto.py', 'r') as f:
+                with open('scripts/webadminpass-crypto.py', 'r', encoding='utf-8') as f:
                     script_content = f.read()
 
                 # Replace placeholders with actual passwords
@@ -622,6 +649,8 @@ Templates and scripts location:
                         help='Output directory for generated files (default: ./output)')
     parser.add_argument('--set-service-user-password', action='store_true',
                         help='Set passwords for WALLIX service users (wabadmin, wabsuper, wabupgrade)')
+    parser.add_argument('--use-hashed-passwords', action='store_true',
+                        help='Use hashed passwords instead of plain text (more secure)')
     parser.add_argument('--use-of-lb', action='store_true',
                         help='Enable load balancer configuration')
     parser.add_argument('--http-host-trusted-hostnames', default='',
@@ -723,6 +752,7 @@ Templates and scripts location:
             'fqdn': args.fqdn,
             'product_type': args.product_type,
             'set_service_user_password': args.set_service_user_password,
+            'use_hashed_passwords': args.use_hashed_passwords,
             'ssh_public_key_path': args.ssh_public_key_path,
             'use_of_lb': args.use_of_lb,
             'http_host_trusted_hostnames': args.http_host_trusted_hostnames,
@@ -776,8 +806,8 @@ Templates and scripts location:
 
         return 0
 
-    except Exception as e:
-        logging.error(f"Error generating cloud-init configuration: {e}")
+    except (OSError, ValueError, RuntimeError):
+        logging.exception("Error generating cloud-init configuration")
         return 1
 
 

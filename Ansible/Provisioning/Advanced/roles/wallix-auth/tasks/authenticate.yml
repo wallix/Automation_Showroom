@@ -5,7 +5,7 @@
   block:
     - name: Test connectivity with basic auth
       uri:
-        url: "{{ wallix_api.base_url }}/api/version"
+        url: "{{ wallix_api.base_url }}/version"
         method: GET
         user: "{{ wallix_auth.credentials.username }}"
         password: "{{ wallix_auth.credentials.password }}"
@@ -21,7 +21,7 @@
 
     - name: Create session with POST to /api
       uri:
-        url: "{{ wallix_api.base_url }}/api"
+        url: "{{ wallix_api.base_url }}"
         method: POST
         user: "{{ wallix_auth.credentials.username }}"
         password: "{{ wallix_auth.credentials.password }}"
@@ -38,7 +38,6 @@
       set_fact:
         wallix_session_cookie: "{{ wallix_auth_response.cookies_string | default('') }}"
         wallix_session_id: "{{ wallix_auth_response.cookies.wab_session_id | default('') }}"
-      when: wallix_auth_response.cookies is defined
 
     - name: Set authentication status
       set_fact:

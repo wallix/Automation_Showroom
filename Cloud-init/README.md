@@ -36,6 +36,22 @@ Supports NoCloud datasource for major hypervisors and cloud platforms.
 
 ## Quick Start
 
+**Recommended**: Use a Python virtual environment to avoid dependency conflicts.
+
+### Setting up Virtual Environment
+
+```bash
+# Create and activate virtual environment
+python3 -m venv wallix-cloudinit-env
+source wallix-cloudinit-env/bin/activate
+
+# Install dependencies
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+### Basic Usage
+
 ```bash
 # Clone the repository
 git clone https://github.com/yourusername/Automation_Showroom.git
@@ -48,6 +64,9 @@ cd Automation_Showroom/cloud-init
 
 # View generated files
 ls -la ./output/basic/
+
+# Deactivate virtual environment when done
+deactivate
 # user-data                 # Main cloud-init file
 # network-config           # Network configuration (if --generate-network-config)
 # generated_passwords.json # Generated passwords
@@ -58,15 +77,63 @@ ls -la ./output/basic/
 
 ### Prerequisites
 
-```bash
-# Python 3.6+ (uses only standard library)
-python3 --version
+- **Python 3.6+** - Required for the cloud-init generator
+- **Virtual Environment** - Strongly recommended to avoid dependency conflicts
 
-# Optional: PyYAML for YAML config files
-pip3 install pyyaml
-# Or with system packages:
-sudo apt-get install python3-yaml  # Debian/Ubuntu
-sudo yum install python3-pyyaml    # RHEL/CentOS
+### Python Virtual Environment Setup
+
+It's strongly recommended to use a Python virtual environment:
+
+```bash
+# Create virtual environment
+python3 -m venv wallix-cloudinit-env
+
+# Activate virtual environment
+# On Linux/macOS:
+source wallix-cloudinit-env/bin/activate
+
+# On Windows:
+# wallix-cloudinit-env\Scripts\activate
+
+# Install dependencies
+pip install --upgrade pip
+pip install -r requirements.txt
+
+# When finished working:
+deactivate
+```
+
+### Dependencies
+
+The `requirements.txt` file includes all necessary dependencies:
+
+```bash
+# Core dependencies
+requests>=2.25.0          # HTTP requests
+jinja2>=3.0.0             # Template rendering  
+pyyaml>=6.0               # YAML parsing
+jsonschema>=4.0.0         # JSON validation
+cryptography>=3.4.8       # Crypto operations
+passlib>=1.7.4            # Password hashing (replaces crypt module)
+colorama>=0.4.4           # CLI colors
+rich>=13.0.0              # Enhanced CLI output
+python-dateutil>=2.8.0    # Date/time handling
+```
+
+### Alternative: System Dependencies
+
+If you prefer not to use a virtual environment:
+
+```bash
+# Debian/Ubuntu
+sudo apt-get update
+sudo apt-get install python3 python3-pip python3-yaml python3-requests
+
+# RHEL/CentOS/Fedora
+sudo dnf install python3 python3-pip python3-pyyaml python3-requests
+
+# Install additional dependencies
+pip3 install --user -r requirements.txt
 ```
 
 ### File Structure

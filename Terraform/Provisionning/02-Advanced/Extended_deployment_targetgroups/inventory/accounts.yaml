@@ -1,0 +1,124 @@
+# WALLIX Bastion Device Accounts Inventory
+# This file defines the accounts on each device
+
+accounts:
+  # Web Server Accounts
+  - device_name: "web-server-01"
+    account_name: "webadmin"
+    account_login: "webadmin"
+    description: "Web server administrator account"
+    domain_name: "linux_domain"
+    auto_change_password: true
+    auto_change_ssh_key: false
+    can_edit_certificate_validity: false
+    certificate_validity: ""
+    checkout_policy: ""
+    credentials:
+      password: "WebAdmin123!"
+      private_key: ""
+      passphrase: ""
+    services: ["ssh", "sftp"]
+
+  - device_name: "web-server-01"
+    account_name: "readonly"
+    account_login: "readonly"
+    description: "Read-only account for auditing"
+    domain_name: "linux_domain"
+    auto_change_password: false
+    auto_change_ssh_key: false
+    can_edit_certificate_validity: false
+    certificate_validity: ""
+    checkout_policy: ""
+    credentials:
+      password: "ReadOnly123!"
+      private_key: ""
+      passphrase: ""
+    services: ["ssh"]
+
+  # Database Server Accounts
+  - device_name: "db-server-01"
+    account_name: "mysql_admin"
+    account_login: "dbadmin"
+    description: "MySQL database administrator"
+    domain_name: "database_domain"
+    auto_change_password: true
+    auto_change_ssh_key: false
+    can_edit_certificate_validity: false
+    certificate_validity: ""
+    checkout_policy: ""
+    credentials:
+      password: "DbAdmin123!"
+      private_key: ""
+      passphrase: ""
+    services: ["ssh", "mysql"]
+
+  - device_name: "db-server-01"
+    account_name: "readonly"
+    account_login: "readonly"
+    description: "Database read-only account"
+    domain_name: "database_domain"
+    auto_change_password: false
+    auto_change_ssh_key: false
+    can_edit_certificate_validity: false
+    certificate_validity: ""
+    checkout_policy: ""
+    credentials:
+      password: "DbReadOnly123!"
+      private_key: ""
+      passphrase: ""
+    services: ["ssh"]
+
+  # Windows Server Accounts
+  - device_name: "win-server-01"
+    account_name: "administrator"
+    account_login: "administrator"
+    description: "Windows administrator account"
+    domain_name: "windows_domain"
+    auto_change_password: true
+    auto_change_ssh_key: false
+    can_edit_certificate_validity: false
+    certificate_validity: ""
+    checkout_policy: ""
+    credentials:
+      password: "WinAdmin123!"
+      private_key: ""
+      passphrase: ""
+    services: ["rdp", "winrm"]
+
+  # Network Switch Accounts
+  - device_name: "switch-core-01"
+    account_name: "netadmin"
+    account_login: "admin"
+    description: "Network switch administrator"
+    domain_name: "network_domain"
+    auto_change_password: true
+    auto_change_ssh_key: false
+    can_edit_certificate_validity: false
+    certificate_validity: ""
+    checkout_policy: ""
+    credentials:
+      password: "NetAdmin123!"
+      private_key: ""
+      passphrase: ""
+    services: ["ssh", "telnet"]
+
+  # Application Server Accounts
+  - device_name: "app-server-01"
+    account_name: "appuser"
+    account_login: "appuser"
+    description: "Application user account"
+    domain_name: "linux_domain"
+    auto_change_password: false
+    auto_change_ssh_key: true
+    can_edit_certificate_validity: false
+    certificate_validity: ""
+    checkout_policy: ""
+    credentials:
+      password: "AppUser123!"
+      private_key: |
+        -----BEGIN OPENSSH PRIVATE KEY-----
+        # This would be the actual private key content
+        # For security, keys should be managed separately
+        -----END OPENSSH PRIVATE KEY-----
+      passphrase: "KeyPassphrase123!"
+    services: ["ssh", "http"]
