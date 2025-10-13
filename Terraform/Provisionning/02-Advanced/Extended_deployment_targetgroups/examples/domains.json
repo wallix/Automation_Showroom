@@ -1,0 +1,14 @@
+{
+  "domains": [
+    {
+      "domain_name": "json_test_domain",
+      "description": "Test domain defined in JSON format",
+      "enable_password_change": true,
+      "admin_account": {
+        "account_login": "json_admin",
+        "account_name": "JSON Administrator",
+        "description": "JSON format administrator account"
+      }
+    }
+  ]
+}

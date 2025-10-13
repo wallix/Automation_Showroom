@@ -1,0 +1,96 @@
+# WALLIX Bastion Timeframes
+# Defines access time restrictions for user groups
+
+timeframes:
+  business_hours:
+    name: "business_hours"
+    description: "Standard business hours (8 AM - 6 PM)"
+    start_date: "2025-01-01"
+    end_date: "2030-12-31"
+    periods:
+      - start_time: "08:00"
+        end_time: "18:00"
+        start_date: "2025-01-01"
+        end_date: "2030-12-31"
+        week_days:
+          - monday
+          - tuesday
+          - wednesday
+          - thursday
+          - friday
+
+  extended_hours:
+    name: "extended_hours"
+    description: "Extended business hours (6 AM - 10 PM)"
+    start_date: "2025-01-01"
+    end_date: "2030-12-31"
+    periods:
+      - start_time: "06:00"
+        end_time: "22:00"
+        start_date: "2025-01-01"
+        end_date: "2030-12-31"
+        week_days:
+          - monday
+          - tuesday
+          - wednesday
+          - thursday
+          - friday
+      - start_time: "08:00"
+        end_time: "18:00"
+        start_date: "2025-01-01"
+        end_date: "2030-12-31"
+        week_days:
+          - saturday
+
+  twenty_four_seven:
+    name: "24x7"
+    description: "24/7 access - always available"
+    start_date: "2025-01-01"
+    end_date: "2030-12-31"
+    periods:
+      - start_time: "00:00"
+        end_time: "23:59"
+        start_date: "2025-01-01"
+        end_date: "2030-12-31"
+        week_days:
+          - monday
+          - tuesday
+          - wednesday
+          - thursday
+          - friday
+          - saturday
+          - sunday
+
+  emergency_only:
+    name: "emergency_only"
+    description: "Emergency access outside business hours"
+    start_date: "2025-01-01"
+    end_date: "2030-12-31"
+    periods:
+      - start_time: "00:00"
+        end_time: "07:59"
+        start_date: "2025-01-01"
+        end_date: "2030-12-31"
+        week_days:
+          - monday
+          - tuesday
+          - wednesday
+          - thursday
+          - friday
+      - start_time: "18:01"
+        end_time: "23:59"
+        start_date: "2025-01-01"
+        end_date: "2030-12-31"
+        week_days:
+          - monday
+          - tuesday
+          - wednesday
+          - thursday
+          - friday
+      - start_time: "00:00"
+        end_time: "23:59"
+        start_date: "2025-01-01"
+        end_date: "2030-12-31"
+        week_days:
+          - saturday
+          - sunday

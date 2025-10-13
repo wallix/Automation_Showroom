@@ -1,0 +1,48 @@
+# WALLIX Bastion Target Groups
+# Groups of devices/services that can be accessed together
+
+target_groups:
+  web_servers:
+    group_name: "web_servers"
+    description: "Web servers - Frontend applications"
+    devices:
+      - "web-server-01"
+    
+  database_servers:
+    group_name: "database_servers"
+    description: "Database servers - Backend data storage"
+    devices:
+      - "db-server-01"
+    
+  application_servers:
+    group_name: "application_servers"
+    description: "Application servers - Business logic tier"
+    devices:
+      - "app-server-01"
+    
+  windows_infrastructure:
+    group_name: "windows_infrastructure"
+    description: "Windows servers and infrastructure"
+    devices:
+      - "win-server-01"
+    
+  network_equipment:
+    group_name: "network_equipment"
+    description: "Network switches and routers"
+    devices:
+      - "switch-core-01"
+    
+  production_systems:
+    group_name: "production_systems"
+    description: "All production systems"
+    devices:
+      - "web-server-01"
+      - "db-server-01"
+      - "app-server-01"
+    
+  critical_infrastructure:
+    group_name: "critical_infrastructure"
+    description: "Critical infrastructure requiring special access"
+    devices:
+      - "db-server-01"
+      - "switch-core-01"

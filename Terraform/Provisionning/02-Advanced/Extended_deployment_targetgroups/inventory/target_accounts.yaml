@@ -1,0 +1,125 @@
+# WALLIX Bastion Target Accounts Inventory
+# This file defines accounts on target devices
+
+target_accounts:
+  # Web server accounts
+  web_admin:
+    account_name: "web_admin"
+    description: "Web server administrator account"
+    device_name: "web-server-01"
+    domain_name: "linux_domain"
+    login: "webadmin"
+    password: "WebAdmin123!"
+    auto_change_password: false
+    target_groups:
+      - "web_servers"
+      - "production_systems"
+
+  web_app:
+    account_name: "web_app"
+    description: "Web application service account"
+    device_name: "web-server-01"
+    domain_name: "linux_domain"
+    login: "webapp"
+    password: "WebApp456!"
+    auto_change_password: false
+    target_groups:
+      - "web_servers"
+
+  # Application server accounts
+  app_admin:
+    account_name: "app_admin"
+    description: "Application server administrator"
+    device_name: "app-server-01"
+    domain_name: "linux_domain"
+    login: "appadmin"
+    password: "AppAdmin789!"
+    auto_change_password: false
+    target_groups:
+      - "application_servers"
+      - "production_systems"
+
+  app_service:
+    account_name: "app_service"
+    description: "Application service account"
+    device_name: "app-server-01"
+    domain_name: "linux_domain"
+    login: "appservice"
+    password: "AppService321!"
+    auto_change_password: false
+    target_groups:
+      - "application_servers"
+
+  # Database server accounts
+  db_admin:
+    account_name: "db_admin"
+    description: "Database administrator account"
+    device_name: "db-server-01"
+    domain_name: "database_domain"
+    login: "dbadmin"
+    password: "DbAdmin654!"
+    auto_change_password: true
+    target_groups:
+      - "database_servers"
+      - "production_systems"
+      - "critical_infrastructure"
+
+  mysql_root:
+    account_name: "mysql_root"
+    description: "MySQL root account"
+    device_name: "db-server-01"
+    domain_name: "database_domain"
+    login: "root"
+    password: "MysqlRoot987!"
+    auto_change_password: true
+    target_groups:
+      - "database_servers"
+      - "critical_infrastructure"
+
+  # Windows server accounts
+  win_admin:
+    account_name: "win_admin"
+    description: "Windows administrator account"
+    device_name: "win-server-01"
+    domain_name: "windows_domain"
+    login: "Administrator"
+    password: "WinAdmin123!"
+    auto_change_password: true
+    target_groups:
+      - "windows_infrastructure"
+      - "production_systems"
+
+  win_service:
+    account_name: "win_service"
+    description: "Windows service account"
+    device_name: "win-server-01"
+    domain_name: "windows_domain"
+    login: "ServiceAccount"
+    password: "WinService456!"
+    auto_change_password: false
+    target_groups:
+      - "windows_infrastructure"
+
+  # Network equipment accounts
+  switch_admin:
+    account_name: "switch_admin"
+    description: "Network switch administrator"
+    device_name: "switch-core-01"
+    domain_name: "network_domain"
+    login: "admin"
+    password: "SwitchAdmin789!"
+    auto_change_password: false
+    target_groups:
+      - "network_equipment"
+      - "critical_infrastructure"
+
+  switch_readonly:
+    account_name: "switch_readonly"
+    description: "Network switch read-only account"
+    device_name: "switch-core-01"
+    domain_name: "network_domain"
+    login: "readonly"
+    password: "SwitchRead321!"
+    auto_change_password: false
+    target_groups:
+      - "network_equipment"

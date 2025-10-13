@@ -1,0 +1,47 @@
+# WALLIX Bastion Domains Inventory
+# This file defines the domains for password management and delegation
+
+domains:
+  - domain_name: "windows_domain"
+    description: "Windows Active Directory Domain"
+    enable_password_change: false
+    password_change_plugin: "Windows"
+    password_change_plugin_parameters: ""
+    password_change_policy: "default"
+    admin_account:
+      account_login: "domain_admin"
+      account_name: "Domain Administrator"
+      description: "Windows domain administrator account"
+
+  - domain_name: "linux_domain"
+    description: "Linux/Unix Domain"
+    enable_password_change: false
+    password_change_plugin: "Unix"
+    password_change_plugin_parameters: ""
+    password_change_policy: "default"
+    admin_account:
+      account_login: "root"
+      account_name: "Root Administrator"
+      description: "Linux root administrator account"
+
+  - domain_name: "database_domain"
+    description: "Database Domain for Oracle/MySQL/PostgreSQL"
+    enable_password_change: false
+    password_change_plugin: ""
+    password_change_plugin_parameters: ""
+    password_change_policy: ""
+    admin_account:
+      account_login: "dba_admin"
+      account_name: "Database Administrator"
+      description: "Database administrator account"
+
+  - domain_name: "network_domain"
+    description: "Network Equipment Domain"
+    enable_password_change: false
+    password_change_plugin: ""
+    password_change_plugin_parameters: ""
+    password_change_policy: ""
+    admin_account:
+      account_login: "network_admin"
+      account_name: "Network Administrator"
+      description: "Network equipment administrator account"
