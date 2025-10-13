@@ -1,0 +1,120 @@
+# WALLIX Bastion Connection Policies
+# Define connection policies for different types of access
+
+connection_policies:
+  # SSH Policies
+  ssh_restricted:
+    policy_name: "SSH_Restricted"
+    description: "Restricted SSH access with limited commands"
+    protocol: "SSH"
+    authentication_methods: ["PASSWORD_INTERACTIVE", "PUBKEY_VAULT"]
+    options:
+      session_timeout: 1800
+      max_sessions: 1
+
+  ssh_admin:
+    policy_name: "SSH_Admin"
+    description: "Full SSH access for administrators"
+    protocol: "SSH"
+    authentication_methods: ["PASSWORD_INTERACTIVE", "PUBKEY_VAULT", "KERBEROS_FORWARDING"]
+    options:
+      session_timeout: 3600
+      max_sessions: 3
+
+  ssh_developer:
+    policy_name: "SSH_Developer"
+    description: "Developer SSH access with development tools"
+    protocol: "SSH"
+    authentication_methods: ["PASSWORD_INTERACTIVE", "PUBKEY_VAULT"]
+    options:
+      session_timeout: 2400
+      max_sessions: 2
+
+  # RDP Policies
+  rdp_standard:
+    policy_name: "RDP_Standard"
+    description: "Standard RDP access with basic restrictions"
+    protocol: "RDP"
+    authentication_methods: ["PASSWORD_INTERACTIVE"]
+    options:
+      session_timeout: 2400
+      max_sessions: 1
+
+  rdp_admin:
+    policy_name: "RDP_Admin"
+    description: "Full RDP access for administrators"
+    protocol: "RDP"
+    authentication_methods: ["PASSWORD_INTERACTIVE"]
+    options:
+      session_timeout: 3600
+      max_sessions: 2
+
+  # Database Policies - Disabled temporarily due to 500 errors
+  # db_readonly:
+  #   policy_name: "DB_ReadOnly"
+  #   description: "Read-only database access"
+  #   protocol: "RAWTCPIP"
+  #   options:
+  #     session_timeout: 1800
+  #     max_sessions: 3
+  #     query_logging: true
+  #     read_only: true
+
+  # db_admin:
+  #   policy_name: "DB_Admin"
+  #   description: "Full database access for administrators"
+  #   protocol: "RAWTCPIP"
+  #   options:
+  #     session_timeout: 3600
+  #     max_sessions: 5
+  #     query_logging: true
+  #     read_only: false
+
+  # Network Equipment Policies
+  network_readonly:
+    policy_name: "Network_ReadOnly"
+    description: "Read-only access to network equipment"
+    protocol: "SSH"
+    authentication_methods: ["PASSWORD_INTERACTIVE", "PUBKEY_VAULT"]
+    options:
+      session_timeout: 1800
+      max_sessions: 1
+
+  network_config:
+    policy_name: "Network_Config"
+    description: "Configuration access to network equipment"
+    protocol: "SSH"
+    authentication_methods: ["PASSWORD_INTERACTIVE", "PUBKEY_VAULT"]
+    options:
+      session_timeout: 2400
+      max_sessions: 1
+
+  # Emergency Access Policy
+  emergency_access:
+    policy_name: "Emergency_Access"
+    description: "Emergency access with full privileges"
+    protocol: "SSH"
+    authentication_methods: ["PASSWORD_INTERACTIVE", "PUBKEY_VAULT", "KERBEROS_FORWARDING"]
+    options:
+      session_timeout: 7200
+      max_sessions: 5
+
+  # TELNET Policy for legacy network equipment
+  telnet_management:
+    policy_name: "TELNET_Management"
+    description: "TELNET access for legacy network equipment"
+    protocol: "TELNET"
+    authentication_methods: ["PASSWORD_INTERACTIVE"]
+    options:
+      session_timeout: 1800
+      max_sessions: 1
+
+  # WinRM Policy for Windows Remote Management - using same auth as DB_Admin
+  winrm_management:
+    policy_name: "WinRM_Management"
+    description: "Windows Remote Management access via RAWTCPIP"
+    protocol: "RAWTCPIP"
+    authentication_methods: []  # Empty like DB_Admin which works
+    options:
+      session_timeout: 2400
+      max_sessions: 2

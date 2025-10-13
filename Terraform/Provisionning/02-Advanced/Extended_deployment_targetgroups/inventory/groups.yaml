@@ -1,0 +1,144 @@
+# WALLIX Bastion User Groups Inventory
+# This file defines user groups and their permissions
+
+groups:
+  - group_name: "developers"
+    description: "Development Team - Access to development resources"
+    timeframes: ["business_hours"]
+    restrictions:
+      - "no_password_checkout"
+      - "session_recording_required"
+    authorizations:
+      - device_name: "web-server-01"
+        account_name: "webadmin"
+        services: ["ssh", "sftp"]
+        subprotocols: ["SSH_SHELL_SESSION", "SFTP_SESSION"]
+        timeframes: ["business_hours"]
+        description: "Development access to web server"
+      
+      - device_name: "app-server-01"
+        account_name: "appuser"
+        services: ["ssh", "http"]
+        subprotocols: ["SSH_SHELL_SESSION", "HTTP_SESSION"]
+        timeframes: ["business_hours"]
+        description: "Application development access"
+
+  - group_name: "linux_admins"
+    description: "Linux System Administrators"
+    timeframes: ["24x7"]
+    restrictions:
+      - "session_recording_required"
+    authorizations:
+      - device_name: "web-server-01"
+        account_name: "webadmin"
+        services: ["ssh", "sftp"]
+        subprotocols: ["SSH_SHELL_SESSION", "SFTP_SESSION"]
+        timeframes: ["24x7"]
+        description: "Full Linux administration access"
+      
+      - device_name: "app-server-01"
+        account_name: "appuser"
+        services: ["ssh"]
+        subprotocols: ["SSH_SHELL_SESSION"]
+        timeframes: ["24x7"]
+        description: "Linux system administration"
+
+  - group_name: "db_admins"
+    description: "Database Administrators"
+    timeframes: ["extended_hours"]
+    restrictions:
+      - "approval_required"
+      - "session_recording_required"
+    authorizations:
+      - device_name: "db-server-01"
+        account_name: "mysql_admin"
+        services: ["ssh", "mysql"]
+        subprotocols: ["SSH_SHELL_SESSION", "MYSQL_SESSION"]
+        timeframes: ["extended_hours"]
+        description: "Database administration access"
+
+  - group_name: "administrators"
+    description: "System Administrators - Full access"
+    timeframes: ["24x7"]
+    restrictions:
+      - "approval_required_for_privileged"
+      - "session_recording_required"
+    authorizations:
+      - device_name: "win-server-01"
+        account_name: "administrator"
+        services: ["rdp", "winrm"]
+        subprotocols: ["RDP_SESSION", "WINRM_SESSION"]
+        timeframes: ["24x7"]
+        description: "Windows system administration"
+      
+      - device_name: "db-server-01"
+        account_name: "mysql_admin"
+        services: ["ssh", "mysql"]
+        subprotocols: ["SSH_SHELL_SESSION", "MYSQL_SESSION"]
+        timeframes: ["24x7"]
+        description: "Database administration"
+
+  - group_name: "network_team"
+    description: "Network Operations Team"
+    timeframes: ["business_hours"]
+    restrictions:
+      - "session_recording_required"
+    authorizations:
+      - device_name: "switch-core-01"
+        account_name: "netadmin"
+        services: ["ssh", "telnet"]
+        subprotocols: ["SSH_SHELL_SESSION", "TELNET_SESSION"]
+        timeframes: ["business_hours"]
+        description: "Network equipment management"
+
+  - group_name: "auditors"
+    description: "Security Auditors - Read-only access"
+    timeframes: ["business_hours"]
+    restrictions:
+      - "read_only_access"
+      - "session_recording_required"
+      - "no_file_transfer"
+    authorizations:
+      - device_name: "web-server-01"
+        account_name: "readonly"
+        services: ["ssh"]
+        subprotocols: ["SSH_SHELL_SESSION"]
+        timeframes: ["business_hours"]
+        description: "Audit access to web server"
+      
+      - device_name: "db-server-01"
+        account_name: "readonly"
+        services: ["ssh"]
+        subprotocols: ["SSH_SHELL_SESSION"]
+        timeframes: ["business_hours"]
+        description: "Audit access to database server"
+
+  - group_name: "emergency_access"
+    description: "Emergency Access Group - Break-glass access"
+    timeframes: ["24x7"]
+    restrictions:
+      - "approval_required"
+      - "justification_required"
+      - "session_recording_required"
+      - "notification_required"
+    authorizations:
+      - device_name: "web-server-01"
+        account_name: "webadmin"
+        services: ["ssh", "sftp"]
+        subprotocols: ["SSH_SHELL_SESSION", "SFTP_SESSION"]
+        timeframes: ["24x7"]
+        description: "Emergency access to web server"
+      
+      - device_name: "db-server-01"
+        account_name: "mysql_admin"
+        services: ["ssh", "mysql"]
+        subprotocols: ["SSH_SHELL_SESSION", "MYSQL_SESSION"]
+        timeframes: ["24x7"]
+        description: "Emergency database access"
+      
+      - device_name: "win-server-01"
+        account_name: "administrator"
+        services: ["rdp", "winrm"]
+        subprotocols: ["RDP_SESSION", "WINRM_SESSION"]
+        timeframes: ["24x7"]
+        description: "Emergency Windows access"

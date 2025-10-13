@@ -1,0 +1,94 @@
+# WALLIX Bastion Devices Inventory
+# This file defines the target devices/servers to be managed
+
+devices:
+  - device_name: "web-server-01"
+    host: "192.168.1.10"
+    description: "Production Web Server #1"
+    services:
+      - id: "ssh"
+        port: 22
+        protocol: "SSH"
+        service_name: "SSH_Access"
+        connection_policy: "SSH_Developer"
+        global_domains: []
+        subprotocols: ["SSH_SHELL_SESSION"]
+      
+      - id: "sftp"
+        port: 22
+        protocol: "SSH"
+        service_name: "SFTP_Access"
+        connection_policy: "SSH_Developer"
+        global_domains: []
+        subprotocols: ["SFTP_SESSION"]
+
+  - device_name: "db-server-01"
+    host: "192.168.1.20"
+    description: "Production Database Server"
+    services:
+      - id: "ssh"
+        port: 22
+        protocol: "SSH"
+        service_name: "SSH_Access"
+        connection_policy: "SSH_Admin"
+        global_domains: ["linux_domain"]
+        subprotocols: ["SSH_SHELL_SESSION"]
+      
+      - id: "mysql"
+        port: 3306
+        protocol: "RAWTCPIP"
+        service_name: "MySQL_Database"
+        connection_policy: "DB_Admin"  # Back to DB_Admin since it matches RAWTCPIP protocol
+        global_domains: ["database_domain"]
+        subprotocols: []
+
+  - device_name: "win-server-01"
+    host: "192.168.1.30"
+    description: "Windows Server 2019"
+    services:
+      - id: "rdp"
+        port: 3389
+        protocol: "RDP"
+        service_name: "Remote_Desktop"
+        connection_policy: "RDP_Admin"
+        global_domains: ["windows_domain"]
+        subprotocols: []
+      
+      - id: "winrm"
+        port: 5985
+        protocol: "RAWTCPIP"
+        service_name: "Windows_Remote_Management"
+        connection_policy: "WinRM_Management"  # Using specific WinRM policy for RAWTCPIP
+        global_domains: ["windows_domain"]
+        subprotocols: []
+
+  - device_name: "switch-core-01"
+    host: "192.168.1.100"
+    description: "Core Network Switch"
+    services:
+      - id: "ssh"
+        port: 22
+        protocol: "SSH"
+        service_name: "SSH_Management"
+        connection_policy: "Network_Config"
+        global_domains: ["network_domain"]
+        subprotocols: ["SSH_SHELL_SESSION"]
+      
+      - id: "telnet"
+        port: 23
+        protocol: "TELNET"
+        service_name: "Telnet_Management"
+        connection_policy: "TELNET_Management"  # Using proper TELNET policy
+        global_domains: ["network_domain"]
+
+  - device_name: "app-server-01"
+    host: "192.168.1.40"
+    description: "Application Server"
+    services:
+      - id: "ssh"
+        port: 22
+        protocol: "SSH"
+        service_name: "SSH_Access"
+        connection_policy: "SSH_Developer"
+        global_domains: []
+        subprotocols: ["SSH_SHELL_SESSION"]

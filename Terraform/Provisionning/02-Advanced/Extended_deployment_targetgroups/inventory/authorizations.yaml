@@ -1,0 +1,137 @@
+# WALLIX Bastion Authorizations
+# Define access permissions between user groups and target groups
+
+authorizations:
+  developers_web_access:
+    authorization_name: "developers_web_access"
+    description: "Developers access to web servers"
+    user_groups:
+      - "developers"
+    target_groups:
+      - "web_servers"
+    timeframes:
+      - "business_hours"
+    authorize_sessions: true
+    subprotocols: ["SSH_SHELL_SESSION", "SFTP_SESSION"]
+    authorize_password_retrieval: false
+    approval_required: false
+    active_quorum: 1
+    inactive_quorum: 1
+    
+  developers_app_access:
+    authorization_name: "developers_app_access"
+    description: "Developers access to application servers"
+    user_groups:
+      - "developers"
+    target_groups:
+      - "application_servers"
+    timeframes:
+      - "business_hours"
+    authorize_sessions: true
+    subprotocols: ["SSH_SHELL_SESSION"]
+    authorize_password_retrieval: false
+    approval_required: false
+    active_quorum: 1
+    inactive_quorum: 1
+    
+  linux_admins_production:
+    authorization_name: "linux_admins_production"
+    description: "Linux admins access to production systems"
+    user_groups:
+      - "linux_admins"
+    target_groups:
+      - "production_systems"
+    timeframes:
+      - "extended_hours"
+    authorize_sessions: true
+    subprotocols: ["SSH_SHELL_SESSION", "SFTP_SESSION"]
+    authorize_password_retrieval: true
+    approval_required: false
+    active_quorum: 1
+    inactive_quorum: 1
+    
+  db_admins_database_access:
+    authorization_name: "db_admins_database_access"
+    description: "Database administrators access to database servers"
+    user_groups:
+      - "db_admins"
+    target_groups:
+      - "database_servers"
+    timeframes:
+      - "24x7"
+    authorize_sessions: true
+    subprotocols: ["SSH_SHELL_SESSION"]
+    authorize_password_retrieval: true
+    approval_required: false
+    active_quorum: 1
+    inactive_quorum: 1
+    
+  network_team_infrastructure:
+    authorization_name: "network_team_infrastructure"
+    description: "Network team access to network equipment"
+    user_groups:
+      - "network_team"
+    target_groups:
+      - "network_equipment"
+    timeframes:
+      - "business_hours"
+    authorize_sessions: true
+    subprotocols: ["SSH_SHELL_SESSION"]
+    authorize_password_retrieval: false
+    approval_required: false
+    active_quorum: 1
+    inactive_quorum: 1
+    
+  administrators_full_access:
+    authorization_name: "administrators_full_access"
+    description: "Administrators full access to all systems"
+    user_groups:
+      - "administrators"
+    target_groups:
+      - "production_systems"
+      - "critical_infrastructure"
+      - "windows_infrastructure"
+    timeframes:
+      - "24x7"
+    authorize_sessions: true
+    subprotocols: ["SSH_SHELL_SESSION"]
+    authorize_password_retrieval: true
+    approval_required: false
+    active_quorum: 1
+    inactive_quorum: 1
+    
+  emergency_critical_access:
+    authorization_name: "emergency_critical_access"
+    description: "Emergency access to critical infrastructure"
+    user_groups:
+      - "emergency_access"
+    target_groups:
+      - "critical_infrastructure"
+    timeframes:
+      - "24x7"
+    authorize_sessions: true
+    subprotocols: ["SSH_SHELL_SESSION"]
+    authorize_password_retrieval: true
+    approval_required: true
+    approvers:
+      - "administrators"
+    active_quorum: 2
+    inactive_quorum: 1
+    
+  auditors_readonly_access:
+    authorization_name: "auditors_readonly_access"
+    description: "Auditors read-only access to all systems"
+    user_groups:
+      - "auditors"
+    target_groups:
+      - "production_systems"
+      - "windows_infrastructure"
+      - "network_equipment"
+    timeframes:
+      - "business_hours"
+    authorize_sessions: true
+    subprotocols: ["SSH_SHELL_SESSION"]
+    authorize_password_retrieval: false
+    approval_required: false
+    active_quorum: 1
+    inactive_quorum: 1

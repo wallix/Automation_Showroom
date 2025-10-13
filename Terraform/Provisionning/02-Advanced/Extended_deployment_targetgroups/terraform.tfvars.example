@@ -1,0 +1,24 @@
+# Example Terraform variables file for WALLIX Bastion Extended Deployment
+# Copy this file to terraform.tfvars and update with your actual values
+
+# WALLIX Bastion connection details
+bastion_ip       = "192.168.1.50"
+bastion_user     = "admin"
+bastion_password = "your_bastion_password"
+bastion_port     = 443
+
+# Deployment configuration
+inventory_format             = "yaml"
+create_default_timeframes    = true
+default_user_profile         = "user"
+enable_password_policies     = true
+default_connection_policy    = ""
+
+# Common tags for all resources
+tags = {
+  Environment = "production"
+  ManagedBy   = "terraform"
+  Project     = "wallix-extended-deployment"
+  Owner       = "security-team"
+  CostCenter  = "IT-Security"
+}

@@ -1,0 +1,105 @@
+# WALLIX Bastion Users Inventory
+# This file defines the users and their access rights
+
+users:
+  - user_name: "john.doe"
+    display_name: "John Doe"
+    email: "john.doe@company.com"
+    profile: "user"
+    user_auths: ["local_password"]
+    password: "TempPassword123!"
+    force_password_change: true
+    groups: ["developers", "linux_admins"]
+    preferred_language: "en"
+    ip_source_restrictions: []
+    ssh_public_keys:
+      - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC... john.doe@workstation"
+    certificate_dn: "CN=john.doe,OU=IT,O=Company,C=US"
+    authorizations:
+      - device_name: "web-server-01"
+        account_name: "webadmin"
+        services: ["ssh", "sftp"]
+        subprotocols: ["SSH_SHELL_SESSION", "SFTP_SESSION"]
+        timeframes: ["business_hours"]
+        description: "Web server administration access"
+      
+      - device_name: "app-server-01"
+        account_name: "appuser"
+        services: ["ssh"]
+        subprotocols: ["SSH_SHELL_SESSION"]
+        timeframes: ["business_hours"]
+        description: "Application server access"
+
+  - user_name: "jane.smith"
+    display_name: "Jane Smith"
+    email: "jane.smith@company.com"
+    profile: "user"
+    user_auths: ["local_password"]
+    password: "AdminPass456!"
+    force_password_change: false
+    groups: ["administrators", "db_admins"]
+    preferred_language: "en"
+    ip_source_restrictions: ["192.168.1.0/24"]
+    ssh_public_keys: []
+    certificate_dn: ""
+    authorizations:
+      - device_name: "db-server-01"
+        account_name: "mysql_admin"
+        services: ["ssh", "mysql"]
+        subprotocols: ["SSH_SHELL_SESSION", "MYSQL_SESSION"]
+        timeframes: ["24x7"]
+        description: "Database administration access"
+      
+      - device_name: "win-server-01"
+        account_name: "administrator"
+        services: ["rdp", "winrm"]
+        subprotocols: ["RDP_SESSION", "WINRM_SESSION"]
+        timeframes: ["business_hours"]
+        description: "Windows server administration"
+
+  - user_name: "bob.wilson"
+    display_name: "Bob Wilson"
+    email: "bob.wilson@company.com"
+    profile: "user"
+    user_auths: ["local_password"]
+    password: "UserPass789!"
+    force_password_change: true
+    groups: ["network_team"]
+    preferred_language: "en"
+    ip_source_restrictions: []
+    ssh_public_keys: []
+    certificate_dn: ""
+    authorizations:
+      - device_name: "switch-core-01"
+        account_name: "netadmin"
+        services: ["ssh", "telnet"]
+        subprotocols: ["SSH_SHELL_SESSION", "TELNET_SESSION"]
+        timeframes: ["business_hours"]
+        description: "Network equipment management"
+
+  - user_name: "alice.brown"
+    display_name: "Alice Brown"
+    email: "alice.brown@company.com"
+    profile: "user"
+    user_auths: ["local_password"]
+    password: "AuditorPass101!"
+    force_password_change: false
+    groups: ["auditors"]
+    preferred_language: "en"
+    ip_source_restrictions: ["192.168.1.0/24", "10.0.0.0/8"]
+    ssh_public_keys: []
+    certificate_dn: ""
+    authorizations:
+      - device_name: "web-server-01"
+        account_name: "readonly"
+        services: ["ssh"]
+        subprotocols: ["SSH_SHELL_SESSION"]
+        timeframes: ["business_hours"]
+        description: "Read-only access for auditing"
+      
+      - device_name: "db-server-01"
+        account_name: "readonly"
+        services: ["ssh"]
+        subprotocols: ["SSH_SHELL_SESSION"]
+        timeframes: ["business_hours"]
+        description: "Database audit access"
