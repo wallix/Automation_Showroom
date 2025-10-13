@@ -53,6 +53,7 @@ python3 wallix_cloud_init_generator.py --config-file config_example/config_hashe
 ```
 
 This example demonstrates the use of SHA-512 hashed passwords instead of plain text passwords for enhanced security. The configuration automatically:
+
 - Generates SHA-512 password hashes with 656,000 rounds
 - Uses `type: hash` in the chpasswd section
 - Provides better security for cloud deployments
