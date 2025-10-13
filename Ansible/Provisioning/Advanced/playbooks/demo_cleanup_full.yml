@@ -170,18 +170,8 @@
       when: user_confirmation.user_input != "yes"
 
     - name: "🔐 Step 1: Authentication"
-      block:
-        - name: "Prepare wallix_api for different role requirements"
-          set_fact:
-            # Create a version without /api for wallix-auth role using group_vars values
-            wallix_api_auth: "{{ wallix_api | combine({'base_url': wallix_api.base_url | regex_replace('/api$', '')}) }}"
-
-        - name: "Execute wallix-auth role"
-          include_role:
-            name: wallix-auth
-          vars:
-            # Override wallix_api for this role only
-            wallix_api: "{{ wallix_api_auth }}"
+      include_role:
+        name: wallix-auth
 
     - name: "🧹 Step 2: Execute cleanup operations"
       include_role:

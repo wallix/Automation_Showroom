@@ -20,8 +20,10 @@
 - name: "🗑️ Cleanup | Check each user group against include patterns"
   set_fact:
     user_groups_to_delete: "{{ user_groups_to_delete + [item] }}"
-  loop: "{{ all_user_groups.json }}"
+  loop: "{{ all_user_groups.json | default([]) }}"
   when:
+    - all_user_groups is defined
+    - all_user_groups.json is defined
     - item.group_name is match(include_regex)
     - not (item.group_name is match(exclude_regex))
   vars:
