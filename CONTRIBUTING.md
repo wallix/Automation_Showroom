@@ -139,7 +139,7 @@ git commit -m "feat: add support for RADIUS authentication
 
 ### Commit Message Format
 
-```
+```text
 <type>: <subject>
 
 <body>
@@ -238,7 +238,7 @@ git push origin feature/my-new-feature
 
 #### Role Structure
 
-```
+```text
 roles/wallix-component/
 ├── defaults/
 │   └── main.yml          # Default variables
@@ -445,15 +445,16 @@ This project uses [all-contributors](https://allcontributors.org/) to recognize 
 
 #### Adding a New Contributor
 
-**Method 1: Using the all-contributors bot (Recommended)**
+##### Method 1: Using the all-contributors bot (Recommended)
 
 Comment on an issue or pull request:
 
-```
+```text
 @all-contributors please add @username for code, doc, example
 ```
 
 Available contribution types:
+
 - `code`: Code contributions
 - `doc`: Documentation
 - `example`: Examples
@@ -467,7 +468,7 @@ Available contribution types:
 - `talk`: Talks/presentations
 - `tutorial`: Tutorials
 
-**Method 2: Using the CLI**
+##### Method 2: Using the CLI
 
 ```bash
 # Add a contributor
@@ -477,39 +478,39 @@ npx all-contributors add username code,doc
 npx all-contributors generate
 ```
 
-**Method 3: Manual editing**
+##### Method 3: Manual editing
 
 1. Edit `.all-contributorsrc`:
 
-```json
-{
-  "contributors": [
-    {
-      "login": "username",
-      "name": "Full Name",
-      "avatar_url": "https://avatars.githubusercontent.com/u/12345",
-      "profile": "https://github.com/username",
-      "contributions": [
-        "code",
-        "doc"
-      ]
-    }
-  ]
-}
-```
+   ```json
+   {
+   "contributors": [
+      {
+         "login": "username",
+         "name": "Full Name",
+         "avatar_url": "https://avatars.githubusercontent.com/u/12345",
+         "profile": "https://github.com/username",
+         "contributions": [
+         "code",
+         "doc"
+         ]
+      }
+   ]
+   }
+   ```
 
 2. Generate the table:
 
-```bash
-npx all-contributors generate
-```
+   ```bash
+   npx all-contributors generate
+   ```
 
 3. Commit the changes:
 
-```bash
-git add .all-contributorsrc README.md
-git commit -m "docs: add @username as a contributor"
-```
+   ```bash
+   git add .all-contributorsrc README.md
+   git commit -m "docs: add @username as a contributor"
+   ```
 
 #### Contribution Types Guide
 

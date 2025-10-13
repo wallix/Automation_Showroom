@@ -362,7 +362,7 @@ virt-install \
 
 ### Hyper-V
 
-#### Configuration avec ISO Cloud-Init
+#### Configuration avec ISO Cloud-Init - Hyper-V
 
 ```powershell
 # Generate cloud-init files
@@ -387,7 +387,7 @@ Add-VMDvdDrive -VMName "WALLIX-Bastion" -Path ".\cloud-init.iso"
 
 ### VirtualBox
 
-#### Configuration avec ISO Cloud-Init
+#### Configuration avec ISO Cloud-Init - VirtualBox
 
 ```bash
 # Generate cloud-init files
