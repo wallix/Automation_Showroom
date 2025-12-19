@@ -61,13 +61,13 @@ output "device_services" {
   description = "Created device services"
   value = {
     for name, service in wallix-bastion_device_service.device_services : name => {
-      id               = service.id
-      service_name     = service.service_name
-      device_id        = service.device_id
-      port             = service.port
-      protocol         = service.protocol
+      id                = service.id
+      service_name      = service.service_name
+      device_id         = service.device_id
+      port              = service.port
+      protocol          = service.protocol
       connection_policy = service.connection_policy
-      subprotocols     = service.subprotocols
+      subprotocols      = service.subprotocols
     }
   }
 }
@@ -78,9 +78,9 @@ output "connection_policies" {
     for name, policy in wallix-bastion_connection_policy.connection_policies : name => {
       id                     = policy.id
       connection_policy_name = policy.connection_policy_name
-      description           = policy.description
-      protocol              = policy.protocol
-      type                  = policy.type
+      description            = policy.description
+      protocol               = policy.protocol
+      type                   = policy.type
     }
   }
 }
