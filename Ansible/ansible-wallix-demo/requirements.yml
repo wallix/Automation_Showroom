@@ -1,5 +1,5 @@
 ---
 collections:
-  - name: wallix.pam_secret_action
-    source: https://gitlab.apps-crc.testing/root/ansible-wallix-collection.git
+  - name: https://github.com/wallix/Automation_Showroom.git#/Ansible/wallix-ansible-collection
     type: git
+    version: main

@@ -21,7 +21,7 @@ The most common way to manage collections in production or CI/CD pipelines is us
     ---
     collections:
       # Install directly from the Git repository
-      - name: https://github.com/wallix/ansible-collection.git
+      - name: https://github.com/wallix/Automation_Showroom.git#/Ansible/wallix-ansible-collection
         type: git
         version: main
     ```
@@ -39,7 +39,7 @@ The most common way to manage collections in production or CI/CD pipelines is us
 You can install the collection directly from the command line without a requirements file:
 
 ```bash
-ansible-galaxy collection install git+https://github.com/wallix/ansible-collection.git
+ansible-galaxy collection install git+https://github.com/wallix/Automation_Showroom.git#/Ansible/wallix-ansible-collection
 ```
 
 ### Installing from Source (Local Build)
