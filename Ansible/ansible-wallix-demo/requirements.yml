@@ -1,0 +1,5 @@
+---
+collections:
+  - name: https://github.com/wallix/Automation_Showroom.git#/Ansible/wallix-ansible-collection
+    type: git
+    version: main

@@ -140,9 +140,8 @@ resource "aws_instance" "debian_admin" {
 
   user_data = data.cloudinit_config.integration_debian.rendered
 
-  network_interface {
+  primary_network_interface {
     network_interface_id = aws_network_interface.debian-linux.id
-    device_index         = 0
   }
 
   tags = merge(

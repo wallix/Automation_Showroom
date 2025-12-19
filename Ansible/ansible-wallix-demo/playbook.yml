@@ -1,0 +1,58 @@
+---
+- name: Deploy to Target using Wallix Secrets
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    # These come from CI/CD Variables injected into the EE
+    wallix_url: "{{ lookup('env', 'WALLIX_URL') }}"
+    wallix_user: "{{ lookup('env', 'WALLIX_USER') }}"
+    wallix_password: "{{ lookup('env', 'WALLIX_PASSWORD') }}"
+    target_account: "ansible@local@DEBIAN"
+
+  tasks:
+    - block:
+        - name: 1. Retrieve Password from Wallix Bastion
+          wallix.pam_secret_action.secret:
+            wallix_url: "{{ wallix_url }}"
+            username: "{{ wallix_user }}"
+            password: "{{ wallix_password }}"
+            device: "DEBIAN"
+            account: "ansible"
+            domain: "local"
+            validate_certs: false
+          register: wallix_secret
+          no_log: true
+
+        - name: Save SSH Key to file
+          copy:
+            content: "{{ wallix_secret.password }}"
+            dest: "/tmp/ssh_key"
+            mode: '0600'
+          no_log: true
+
+        - name: 2. Add Target to Inventory
+          add_host:
+            name: "target-server"
+            ansible_host: "10.122.80.6"
+            ansible_user: "ansible"
+            ansible_ssh_private_key_file: "/tmp/ssh_key"
+            ansible_connection: "ssh"
+            ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
+
+        - name: 3. Run Command on Target
+          delegate_to: target-server
+          command: hostname
+          register: cmd_out
+
+        - name: 4. Show Output
+          debug:
+            msg: "Command output: {{ cmd_out.stdout }}"
+
+      always:
+        - name: Secure Cleanup - Remove SSH Key file
+          file:
+            path: "/tmp/ssh_key"
+            state: absent
+          delegate_to: localhost
+          ignore_errors: yes

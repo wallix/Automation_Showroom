@@ -1,0 +1,67 @@
+---
+# Template Playbook for Wallix Ansible Collection
+# Usage:
+# 1. Install collection: ansible-galaxy collection install git+https://github.com/wallix/ansible-collection.git
+# 2. Set environment variables: export WALLIX_URL=... WALLIX_USER=... WALLIX_PASSWORD=...
+# 3. Run: ansible-playbook template_playbook.yml
+
+- name: Wallix Integration Demo
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    # -------------------------------------------------------------------------
+    # CONFIGURATION
+    # -------------------------------------------------------------------------
+    # Wallix Bastion Connection Details (Best practice: use env vars)
+    wallix_url: "{{ lookup('env', 'WALLIX_URL') | default('https://bastion.example.com', true) }}"
+    wallix_user: "{{ lookup('env', 'WALLIX_USER') | default('admin', true) }}"
+    wallix_password: "{{ lookup('env', 'WALLIX_PASSWORD') | default('secret', true) }}"
+    
+    # Target Account Details (The account you want to checkout)
+    target_account: "root"          # e.g., root, admin, ansible
+    target_domain: "local"          # e.g., local, mydomain.com
+    target_device: "target-server"  # The device name as defined in Wallix
+    
+    # -------------------------------------------------------------------------
+
+  tasks:
+    - name: 1. Checkout Secret (Module)
+      wallix.pam_secret_action.secret:
+        wallix_url: "{{ wallix_url }}"
+        username: "{{ wallix_user }}"
+        password: "{{ wallix_password }}"
+        account: "{{ target_account }}"
+        domain: "{{ target_domain }}"
+        device: "{{ target_device }}"
+        state: checkout
+        validate_certs: no # Set to yes in production
+      register: wallix_secret
+      no_log: true
+
+    - name: 2. Display Result (Safe)
+      debug:
+        msg: 
+          - "Successfully checked out credentials for: {{ wallix_secret.login }}"
+          - "Secret Type: {{ 'SSH Key' if wallix_secret.ssh_key is defined else 'Password' }}"
+
+    - name: 3. Use Secret (Example: Save SSH Key)
+      copy:
+        content: "{{ wallix_secret.ssh_key }}"
+        dest: "/tmp/ssh_key_demo"
+        mode: '0600'
+      when: wallix_secret.ssh_key is defined
+      no_log: true
+
+    - name: 4. Checkin Secret (Release)
+      wallix.pam_secret_action.secret:
+        wallix_url: "{{ wallix_url }}"
+        username: "{{ wallix_user }}"
+        password: "{{ wallix_password }}"
+        account: "{{ target_account }}"
+        domain: "{{ target_domain }}"
+        device: "{{ target_device }}"
+        state: checkin
+        force: true
+        comment: "Testing finished"
+      validate_certs: no

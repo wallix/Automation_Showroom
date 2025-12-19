@@ -49,7 +49,7 @@ locals {
   # Process device services from inventory (flatten services for all devices)
   device_services = merge([
     for device in try(local.devices_inventory.devices, []) : {
-      for service in try(device.services, []) : 
+      for service in try(device.services, []) :
       "${device.device_name}_${service.id}" => merge(service, {
         device_name = device.device_name
       })
@@ -116,12 +116,12 @@ resource "wallix-bastion_connection_policy" "connection_policies" {
   for_each = local.connection_policies
 
   connection_policy_name = each.value.policy_name
-  description           = try(each.value.description, "")
-  protocol              = each.value.protocol
-  
+  description            = try(each.value.description, "")
+  protocol               = each.value.protocol
+
   # Convert options map to JSON string if provided
   options = try(jsonencode(each.value.options), "")
-  
+
   # Authentication methods (optional)
   authentication_methods = try(each.value.authentication_methods, [])
 }
@@ -132,12 +132,12 @@ resource "wallix-bastion_domain" "domains" {
 
   domain_name = each.value.domain_name
   description = try(each.value.description, "")
-  
+
   # Password change configuration
-  enable_password_change = try(each.value.enable_password_change, false)
-  password_change_plugin = try(each.value.password_change_plugin, "")
+  enable_password_change            = try(each.value.enable_password_change, false)
+  password_change_plugin            = try(each.value.password_change_plugin, "")
   password_change_plugin_parameters = try(each.value.password_change_plugin_parameters, "")
-  password_change_policy = try(each.value.password_change_policy, "")
+  password_change_policy            = try(each.value.password_change_policy, "")
 }
 
 # Create timeframes
@@ -174,12 +174,12 @@ resource "wallix-bastion_device_service" "device_services" {
   for_each   = local.device_services
   depends_on = [wallix-bastion_device.devices, wallix-bastion_domain.domains]
 
-  device_id        = wallix-bastion_device.devices[each.value.device_name].id
-  service_name     = each.value.service_name
-  port             = each.value.port
-  protocol         = each.value.protocol
+  device_id         = wallix-bastion_device.devices[each.value.device_name].id
+  service_name      = each.value.service_name
+  port              = each.value.port
+  protocol          = each.value.protocol
   connection_policy = try(each.value.connection_policy, "")
-  global_domains   = []
+  global_domains    = []
   # global_domains   = [
   #   for domain_name in try(each.value.global_domains, []) :
   #   wallix-bastion_domain.domains[domain_name].id
