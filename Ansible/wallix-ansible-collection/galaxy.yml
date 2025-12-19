@@ -1,0 +1,24 @@
+namespace: wallix
+name: pam_secret_action
+version: 1.0.1
+readme: README.md
+authors:
+  - Wallix Integration Team
+description: Ansible Collection for Wallix Access Manager integration
+license:
+  - GPL-2.0-or-later
+tags:
+  - security
+  - wallix
+  - pam
+  - secrets
+repository: http://github.com/wallix/ansible-collection
+documentation: http://docs.wallix.com
+homepage: http://www.wallix.com
+issues: http://github.com/wallix/ansible-collection/issues
+build_ignore:
+  - .gitignore
+  - .git
+  - tests/
+  - "*.tar.gz"
+  - "*.log"

@@ -1,0 +1,59 @@
+<mxfile host="app.diagrams.net" modified="2023-10-26T10:00:00.000Z" agent="5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" etag="W_abcdef123456" version="21.7.5" type="device">
+  <diagram id="C5RBs43oDa-KdzZeNtuy" name="Architecture">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- GitLab CI/CD -->
+        <mxCell id="2" value="GitLab CI/CD" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fc8800;fontColor=#ffffff;strokeColor=#d07000;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="80" y="200" width="140" height="70" as="geometry" />
+        </mxCell>
+        
+        <!-- OpenShift / Ansible Runner -->
+        <mxCell id="3" value="OpenShift&#xa;(Ansible Runner)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e01b24;fontColor=#ffffff;strokeColor=#a4000f;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="320" y="200" width="140" height="70" as="geometry" />
+        </mxCell>
+        
+        <!-- Wallix Bastion -->
+        <mxCell id="4" value="Wallix Bastion&#xa;(PAM)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2D2D2D;fontColor=#ffffff;strokeColor=#000000;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="320" y="40" width="140" height="70" as="geometry" />
+        </mxCell>
+        
+        <!-- Target Server -->
+        <mxCell id="5" value="Target Server&#xa;(Debian)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1ba1e2;fontColor=#ffffff;strokeColor=#006eaf;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="560" y="200" width="140" height="70" as="geometry" />
+        </mxCell>
+        
+        <!-- Edge: GitLab -> OpenShift -->
+        <mxCell id="6" value="1. Trigger Job" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;dashed=1;" edge="1" parent="1" source="2" target="3">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Edge: Ansible -> Wallix -->
+        <mxCell id="7" value="2. Retrieve Secret (API)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=2;" edge="1" parent="1" source="3" target="4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- Edge: Ansible -> Target -->
+        <mxCell id="8" value="3. SSH Connection" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=2;" edge="1" parent="1" source="3" target="5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- Note on Secret -->
+        <mxCell id="9" value="Secret (SSH Key)&#xa;is never logged" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#fff2cc;strokeColor=#d6b656;size=15;" vertex="1" parent="1">
+          <mxGeometry x="400" y="120" width="100" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="10" value="" style="endArrow=none;dashed=1;html=1;dashPattern=1 3;strokeWidth=2;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0.75;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="1" source="7" target="9">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="390" y="160" as="sourcePoint" />
+            <mxPoint x="440" y="110" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

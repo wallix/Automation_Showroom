@@ -1,0 +1,19 @@
+stages:
+  - deploy
+
+deploy_app:
+  stage: deploy
+  image: quay.io/ansible/ansible-runner:latest
+  variables:
+    # Secrets (WALLIX_URL, WALLIX_USER, WALLIX_PASSWORD) are injected via GitLab CI/CD Settings
+    ANSIBLE_HOST_KEY_CHECKING: "False"
+    HOME: "/tmp"
+  script:
+    - echo "Installing dependencies..."
+    - ansible-galaxy collection install --force -r requirements.yml
+    - echo "Fixing OpenShift UID..."
+    - echo "default:x:$(id -u):0:Default User:/tmp:/bin/bash" >> /etc/passwd
+    - echo "Deploying to target using Wallix secrets..."
+    - ansible-playbook playbook.yml -vvv
+  tags:
+    - openshift

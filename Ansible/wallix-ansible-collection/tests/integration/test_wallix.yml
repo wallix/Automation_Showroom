@@ -1,0 +1,43 @@
+---
+- name: Test Wallix Integration
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    # Configuration provided via Environment Variables or defaults
+    wallix_host: "{{ lookup('env', 'WALLIX_API_URL') | default('https://bastion.example.com', true) }}"
+    wallix_user: "{{ lookup('env', 'WALLIX_API_USER') | default('admin', true) }}"
+    wallix_password: "{{ lookup('env', 'WALLIX_API_PASSWORD') | default('secret', true) }}"
+    
+    # Target breakdown: ansible@local@ansible.wallix.local
+    target_account: "ansible"
+    target_domain: "local"
+    #target_device: "ansible.wallix.local"
+    target_device: "DEBIAN"
+    full_target_name: "{{ target_account }}@{{ target_domain }}@{{ target_device }}"
+
+  tasks:
+    # Step 1: Test the Custom Module with Basic Auth
+    - name: Test 'checkout' using Wallix Module (Basic Auth)
+      wallix.pam_secret_action.secret:
+        wallix_url: "{{ wallix_host }}"
+        username: "{{ wallix_user }}"
+        password: "{{ wallix_password }}"
+        account: "{{ target_account }}"
+        domain: "{{ target_domain }}"
+        device: "{{ target_device }}"
+        state: checkout
+        validate_certs: no
+      register: module_result
+
+    - name: Display Module Result
+      debug:
+        msg: 
+          - "Login: {{ module_result.login | default('Unknown') }}"
+          - "Password: {{ module_result.password | default('***') }}"
+          - "SSH Key: {{ module_result.ssh_key | default('None') | truncate(20) }}"
+
+    # Step 2: Test the Lookup Plugin with Basic Auth
+    - name: Test Lookup Plugin
+      debug:
+        msg: "Retrieved via Lookup: {{ lookup('wallix.pam_secret_action.secret', full_target_name, wallix_url=wallix_host, username=wallix_user, password=wallix_password, validate_certs=False) }}"

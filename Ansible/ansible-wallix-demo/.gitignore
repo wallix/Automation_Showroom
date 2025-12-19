@@ -1,0 +1,4 @@
+*.retry
+*.log
+.vscode/
+.idea/

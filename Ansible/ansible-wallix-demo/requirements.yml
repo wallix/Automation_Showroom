@@ -1,0 +1,5 @@
+---
+collections:
+  - name: wallix.pam_secret_action
+    source: https://gitlab.apps-crc.testing/root/ansible-wallix-collection.git
+    type: git
