@@ -9,8 +9,8 @@ PRIVATE_TOKEN=${PRIVATE_TOKEN:-"your_token_here"}
 # Variables to set
 declare -A VARS
 VARS["WALLIX_URL"]="https://10.122.80.7"
-VARS["WALLIX_USER"]="gilbert"
-VARS["WALLIX_PASSWORD"]="SecureLinux\$\$42"
+VARS["WALLIX_USER"]="privileged_user"
+VARS["WALLIX_PASSWORD"]="ChangeMe123!"
 
 echo "Configuring CI/CD Variables for Project ID $PROJECT_ID..."
 

@@ -1,0 +1,37 @@
+---
+# Create connection policies in WALLIX Bastion
+
+- name: "🔗 Create connection policies"
+  uri:
+    url: "{{ wallix_api.base_url }}/sessionrights"
+    method: POST
+    headers:
+      Cookie: "{{ wallix_session_cookie }}"
+      Content-Type: "application/json"
+    body_format: json
+    body:
+      connection_policy_name: "{{ item.connection_policy_name }}"
+      description: "{{ item.description | default('') }}"
+      protocol: "{{ item.protocol }}"
+      options: "{{ item.options | default({}) }}"
+      subprotocols: "{{ item.subprotocols | default([]) }}"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(false) }}"
+    timeout: 30
+    status_code: [200, 201, 204, 409]
+    return_content: yes
+  register: connection_policy_create_result
+  loop: "{{ wallix_connection_policies }}"
+  loop_control:
+    label: "{{ item.connection_policy_name }}"
+
+- name: "📊 Display connection policy creation results"
+  debug:
+    msg:
+      - "Connection Policy: {{ item.item.connection_policy_name }}"
+      - "Protocol: {{ item.item.protocol }}"
+      - "Status: {{ item.status }}"
+      - "Result: {{ 'Created' if item.status in [200, 201, 204] else 'Already exists' if item.status == 409 else 'Error' }}"
+  loop: "{{ connection_policy_create_result.results }}"
+  loop_control:
+    label: "{{ item.item.connection_policy_name }}"
+  when: connection_policy_create_result.results is defined

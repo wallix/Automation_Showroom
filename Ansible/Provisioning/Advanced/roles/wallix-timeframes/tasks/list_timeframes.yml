@@ -1,0 +1,18 @@
+---
+# List all timeframes
+
+- name: "🔍 Get all timeframes"
+  uri:
+    url: "{{ wallix_api.base_url }}/timeframes"
+    method: GET
+    headers:
+      Cookie: "{{ wallix_session_cookie }}"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(false) }}"
+    timeout: 30
+    status_code: [200]
+    return_content: yes
+  register: wallix_timeframes_list_result
+
+- name: "📋 Display timeframes list"
+  debug:
+    var: wallix_timeframes_list_result.json

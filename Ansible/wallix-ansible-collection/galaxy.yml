@@ -12,10 +12,10 @@ tags:
   - wallix
   - pam
   - secrets
-repository: http://github.com/wallix/ansible-collection
+repository: https://github.com/wallix/Automation_Showroom/tree/main/Ansible/wallix-ansible-collection
 documentation: http://docs.wallix.com
 homepage: http://www.wallix.com
-issues: http://github.com/wallix/ansible-collection/issues
+issues: https://github.com/wallix/Automation_Showroom/issues
 build_ignore:
   - .gitignore
   - .git

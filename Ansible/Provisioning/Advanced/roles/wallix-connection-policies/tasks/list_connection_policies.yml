@@ -1,0 +1,18 @@
+---
+# List all connection policies
+
+- name: "🔍 Get all connection policies"
+  uri:
+    url: "{{ wallix_api.base_url }}/sessionrights"
+    method: GET
+    headers:
+      Cookie: "{{ wallix_session_cookie }}"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(false) }}"
+    timeout: 30
+    status_code: [200]
+    return_content: yes
+  register: wallix_connection_policies_list_result
+
+- name: "📋 Display connection policies list"
+  debug:
+    var: wallix_connection_policies_list_result.json

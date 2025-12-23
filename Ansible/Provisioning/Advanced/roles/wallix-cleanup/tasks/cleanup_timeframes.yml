@@ -1,0 +1,78 @@
+---
+# Task file for cleaning up WALLIX Timeframes
+
+- name: "🔍 Cleanup | Get all timeframes"
+  uri:
+    url: "{{ wallix_api.base_url }}/timeframes"
+    method: GET
+    headers:
+      Cookie: "{{ wallix_session_cookie }}"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(false) }}"
+    timeout: 30
+    status_code: [200]
+    return_content: yes
+  register: all_timeframes
+
+- name: "🗑️ Cleanup | Filter timeframes for deletion"
+  set_fact:
+    timeframes_to_delete: []
+
+- name: "🗑️ Cleanup | Check each timeframe against include patterns"
+  set_fact:
+    timeframes_to_delete: "{{ timeframes_to_delete + [item] }}"
+  loop: "{{ all_timeframes.json | default([]) }}"
+  when:
+    - all_timeframes is defined
+    - all_timeframes.json is defined
+    - item.timeframe_name is match(include_regex)
+    - not (item.timeframe_name is match(exclude_regex))
+  vars:
+    include_regex: "{{ wallix_cleanup_filters.include_patterns | map('replace', '*', '.*') | map('replace', '?', '.') | join('|') }}"
+    exclude_regex: "{{ wallix_cleanup_filters.exclude_patterns | map('replace', '*', '.*') | map('replace', '?', '.') | join('|') }}"
+
+- name: "📊 Cleanup | Display timeframes to delete"
+  debug:
+    msg:
+      - "Found {{ timeframes_to_delete | length }} timeframes to delete"
+      - "Timeframes: {{ timeframes_to_delete | map(attribute='timeframe_name') | list }}"
+
+- name: "🗑️ Cleanup | Delete timeframes"
+  uri:
+    url: "{{ wallix_api.base_url }}/timeframes/{{ item.id }}"
+    method: DELETE
+    headers:
+      Cookie: "{{ wallix_session_cookie }}"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(false) }}"
+    timeout: 30
+    status_code: [200, 204, 404, 409]  # 404 = already deleted, 409 = constraint violation
+    return_content: yes
+  register: timeframe_delete_result
+  loop: "{{ timeframes_to_delete }}"
+  loop_control:
+    label: "{{ item.timeframe_name }}"
+  when:
+    - timeframes_to_delete | length > 0
+    - wallix_cleanup.operation_mode == 'execute'
+
+- name: "📈 Cleanup | Update timeframes deletion stats"
+  set_fact:
+    wallix_cleanup_stats: >-
+      {{
+        wallix_cleanup_stats | default({}) | combine({
+          'timeframes_processed': (timeframes_to_delete | default([]) | length),
+          'timeframes_deleted': (timeframe_delete_result.results | default([]) | selectattr('status', 'in', [200, 204]) | list | length),
+          'timeframes_skipped': (timeframe_delete_result.results | default([]) | selectattr('status', 'equalto', 404) | list | length),
+          'timeframes_conflicts': (timeframe_delete_result.results | default([]) | selectattr('status', 'equalto', 409) | list | length)
+        })
+      }}
+  when:
+    - wallix_cleanup.operation_mode == 'execute'
+    - timeframe_delete_result.results is defined
+
+- name: "✅ Cleanup | Timeframes deletion summary"
+  debug:
+    msg:
+      - "Timeframes cleanup completed"
+      - "Processed: {{ wallix_cleanup_stats.timeframes_processed | default(0) }}"
+      - "Deleted: {{ wallix_cleanup_stats.timeframes_deleted | default(0) }}"
+      - "Skipped: {{ wallix_cleanup_stats.timeframes_skipped | default(0) }}"

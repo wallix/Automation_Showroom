@@ -62,6 +62,10 @@
         enabled: true
       domains:
         enabled: false  # Disabled for safety
+      timeframes:
+        enabled: true
+      connection-policies:
+        enabled: true
 
     # Cleanup filters - target all test resources with improved patterns
     wallix_cleanup_filters:
@@ -204,6 +208,9 @@
           - "  - Global Domains: {{ wallix_cleanup_stats.global_domains_deleted | default(0) }} deleted"
           - "  - Devices: {{ wallix_cleanup_stats.devices_deleted | default(0) }} deleted"
           - "  - Users: {{ wallix_cleanup_stats.users_deleted | default(0) }} deleted"
+          - "  - Domains: {{ wallix_cleanup_stats.domains_deleted | default(0) }} deleted"
+          - "  - Timeframes: {{ wallix_cleanup_stats.timeframes_deleted | default(0) }} deleted"
+          - "  - Connection Policies: {{ wallix_cleanup_stats.connection_policies_deleted | default(0) }} deleted"
           - ""
           - "📄 Cleanup report: {{ wallix_cleanup_reporting.destination }}"
           - "💾 Backup location: {{ wallix_cleanup_backup.destination }}"

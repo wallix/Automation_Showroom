@@ -1,0 +1,10 @@
+---
+# Main tasks for wallix-timeframes role
+
+- name: "⏰ Create WALLIX timeframes"
+  include_tasks: create_timeframes.yml
+  when: wallix_timeframes is defined and wallix_timeframes | length > 0
+
+- name: "🔍 List WALLIX timeframes"
+  include_tasks: list_timeframes.yml
+  when: wallix_timeframes_list | default(false)

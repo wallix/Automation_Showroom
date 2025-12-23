@@ -82,6 +82,19 @@
   include_tasks: cleanup_domains.yml
   when: wallix_cleanup_components.domains.enabled | default(false)
 
+- name: "🗑️ Cleanup timeframes"
+  include_tasks: cleanup_timeframes.yml
+  when: wallix_cleanup_components.timeframes.enabled | default(false)
+
+- name: "🗑️ Cleanup connection policies"
+  include_tasks: cleanup_connection_policies.yml
+  when: wallix_cleanup_components['connection-policies'].enabled | default(false)
+
+# Generate conflict report
+- name: "⚠️ Generate conflict report"
+  include_tasks: conflict_report.yml
+  when: wallix_cleanup_reporting.enabled | default(true)
+
 # Generate cleanup report
 - name: "📊 Generate cleanup report"
   include_tasks: generate_report.yml

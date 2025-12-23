@@ -1,0 +1,26 @@
+---
+# Default variables for wallix-connection-policies role
+
+# Example connection policies configuration
+# wallix_connection_policies:
+#   - connection_policy_name: "SSH_Policy"
+#     description: "Standard SSH connection policy"
+#     protocol: "SSH"
+#     options:
+#       recording: true
+#       session_sharing: false
+#     subprotocols:
+#       - "SSH_SHELL_SESSION"
+#       - "SFTP_SESSION"
+#
+#   - connection_policy_name: "RDP_Policy"
+#     description: "Standard RDP connection policy"
+#     protocol: "RDP"
+#     options:
+#       recording: true
+#       clipboard: "up"
+#     subprotocols:
+#       - "RDP_REMOTE_APP"
+
+# List connection policies flag
+wallix_connection_policies_list: false

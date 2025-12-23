@@ -1,0 +1,16 @@
+---
+# Default variables for wallix-timeframes role
+
+# Example timeframes configuration
+# wallix_timeframes:
+#   - timeframe_name: "business_hours"
+#     description: "Standard business hours"
+#     periods:
+#       - start_date: "2024-01-01"
+#         end_date: "2024-12-31"
+#         start_time: "08:00"
+#         end_time: "18:00"
+#         week_days: [1, 2, 3, 4, 5]  # Monday to Friday
+
+# List timeframes flag
+wallix_timeframes_list: false

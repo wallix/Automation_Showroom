@@ -1,0 +1,10 @@
+---
+# Main tasks for wallix-connection-policies role
+
+- name: "🔗 Create WALLIX connection policies"
+  include_tasks: create_connection_policies.yml
+  when: wallix_connection_policies is defined and wallix_connection_policies | length > 0
+
+- name: "🔍 List WALLIX connection policies"
+  include_tasks: list_connection_policies.yml
+  when: wallix_connection_policies_list | default(false)

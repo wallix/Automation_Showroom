@@ -39,7 +39,7 @@ Clone this repository and push it to your new GitLab project.
 
 ```bash
 # Clone this demo
-git clone <this-repo-url> ansible-wallix-demo
+git clone https://github.com/wallix/Automation_Showroom.git ansible-wallix-demo
 cd ansible-wallix-demo
 
 # Point to your new GitLab project

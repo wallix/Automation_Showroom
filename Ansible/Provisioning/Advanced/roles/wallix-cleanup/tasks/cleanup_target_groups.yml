@@ -47,14 +47,27 @@
       Cookie: "{{ wallix_session_cookie }}"
     validate_certs: "{{ wallix_auth.connection.verify_ssl | default(false) }}"
     timeout: 30
-    status_code: [200, 204, 404]  # 404 = already deleted
+    status_code: [200, 204, 404, 409]  # 404 = already deleted, 409 = constraint violation (used in authorization)
     return_content: yes
   register: delete_target_group_result
   loop: "{{ target_groups_to_delete | default([]) }}"
+  loop_control:
+    label: "{{ item.group_name }}"
   when: 
     - wallix_cleanup.operation_mode != 'dry_run'
     - wallix_cleanup_components.target_groups.enabled | default(true)
-  ignore_errors: "{{ wallix_cleanup_error_handling.continue_on_error }}"
+
+- name: "⚠️ Cleanup | Display target groups with constraint violations"
+  debug:
+    msg:
+      - "Target group '{{ item.item.group_name }}' cannot be deleted: {{ item.json.description | default('Constraint violation') }}"
+      - "This target group is still referenced in authorizations or other resources"
+  loop: "{{ delete_target_group_result.results | default([]) }}"
+  loop_control:
+    label: "{{ item.item.group_name }}"
+  when:
+    - delete_target_group_result is defined
+    - item.status == 409
 
 - name: "📈 Cleanup | Update target group deletion stats (dry run)"
   set_fact:
@@ -75,7 +88,9 @@
         wallix_cleanup_stats | default({}) | combine({
           'target_groups_processed': (target_groups_to_delete | default([]) | length),
           'target_groups_deleted': (delete_target_group_result.results | default([]) | selectattr('status', 'in', [200, 204]) | list | length),
-          'target_groups_errors': (delete_target_group_result.results | default([]) | selectattr('status', 'ge', 400) | list | length)
+          'target_groups_skipped_constraints': (delete_target_group_result.results | default([]) | selectattr('status', 'equalto', 409) | list | length),
+          'target_groups_already_deleted': (delete_target_group_result.results | default([]) | selectattr('status', 'equalto', 404) | list | length),
+          'target_groups_errors': (delete_target_group_result.results | default([]) | selectattr('status', 'ge', 400) | selectattr('status', 'ne', 404) | selectattr('status', 'ne', 409) | list | length)
         })
       }}
   when: wallix_cleanup.operation_mode != 'dry_run'
@@ -86,4 +101,6 @@
       - "Target group cleanup completed"
       - "Processed: {{ wallix_cleanup_stats.target_groups_processed | default(0) }}"
       - "Deleted: {{ wallix_cleanup_stats.target_groups_deleted | default(0) }}"
+      - "Skipped (constraints): {{ wallix_cleanup_stats.target_groups_skipped_constraints | default(0) }}"
+      - "Already deleted: {{ wallix_cleanup_stats.target_groups_already_deleted | default(0) }}"
       - "Errors: {{ wallix_cleanup_stats.target_groups_errors | default(0) }}"
