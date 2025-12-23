@@ -1,0 +1,78 @@
+---
+# Task file for cleaning up WALLIX Connection Policies
+
+- name: "🔍 Cleanup | Get all connection policies"
+  uri:
+    url: "{{ wallix_api.base_url }}/sessionrights"
+    method: GET
+    headers:
+      Cookie: "{{ wallix_session_cookie }}"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(false) }}"
+    timeout: 30
+    status_code: [200]
+    return_content: yes
+  register: all_connection_policies
+
+- name: "🗑️ Cleanup | Filter connection policies for deletion"
+  set_fact:
+    connection_policies_to_delete: []
+
+- name: "🗑️ Cleanup | Check each connection policy against include patterns"
+  set_fact:
+    connection_policies_to_delete: "{{ connection_policies_to_delete + [item] }}"
+  loop: "{{ all_connection_policies.json | default([]) }}"
+  when:
+    - all_connection_policies is defined
+    - all_connection_policies.json is defined
+    - item.connection_policy_name is match(include_regex)
+    - not (item.connection_policy_name is match(exclude_regex))
+  vars:
+    include_regex: "{{ wallix_cleanup_filters.include_patterns | map('replace', '*', '.*') | map('replace', '?', '.') | join('|') }}"
+    exclude_regex: "{{ wallix_cleanup_filters.exclude_patterns | map('replace', '*', '.*') | map('replace', '?', '.') | join('|') }}"
+
+- name: "📊 Cleanup | Display connection policies to delete"
+  debug:
+    msg:
+      - "Found {{ connection_policies_to_delete | length }} connection policies to delete"
+      - "Connection Policies: {{ connection_policies_to_delete | map(attribute='connection_policy_name') | list }}"
+
+- name: "🗑️ Cleanup | Delete connection policies"
+  uri:
+    url: "{{ wallix_api.base_url }}/sessionrights/{{ item.id }}"
+    method: DELETE
+    headers:
+      Cookie: "{{ wallix_session_cookie }}"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(false) }}"
+    timeout: 30
+    status_code: [200, 204, 404, 409]  # 404 = already deleted, 409 = constraint violation
+    return_content: yes
+  register: connection_policy_delete_result
+  loop: "{{ connection_policies_to_delete }}"
+  loop_control:
+    label: "{{ item.connection_policy_name }}"
+  when:
+    - connection_policies_to_delete | length > 0
+    - wallix_cleanup.operation_mode == 'execute'
+
+- name: "📈 Cleanup | Update connection policies deletion stats"
+  set_fact:
+    wallix_cleanup_stats: >-
+      {{
+        wallix_cleanup_stats | default({}) | combine({
+          'connection_policies_processed': (connection_policies_to_delete | default([]) | length),
+          'connection_policies_deleted': (connection_policy_delete_result.results | default([]) | selectattr('status', 'in', [200, 204]) | list | length),
+          'connection_policies_skipped': (connection_policy_delete_result.results | default([]) | selectattr('status', 'equalto', 404) | list | length),
+          'connection_policies_conflicts': (connection_policy_delete_result.results | default([]) | selectattr('status', 'equalto', 409) | list | length)
+        })
+      }}
+  when:
+    - wallix_cleanup.operation_mode == 'execute'
+    - connection_policy_delete_result.results is defined
+
+- name: "✅ Cleanup | Connection policies deletion summary"
+  debug:
+    msg:
+      - "Connection policies cleanup completed"
+      - "Processed: {{ wallix_cleanup_stats.connection_policies_processed | default(0) }}"
+      - "Deleted: {{ wallix_cleanup_stats.connection_policies_deleted | default(0) }}"
+      - "Skipped: {{ wallix_cleanup_stats.connection_policies_skipped | default(0) }}"

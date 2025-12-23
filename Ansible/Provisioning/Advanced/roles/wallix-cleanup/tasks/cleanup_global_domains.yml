@@ -48,7 +48,7 @@
       Cookie: "{{ wallix_session_cookie }}"
     validate_certs: "{{ wallix_auth.connection.verify_ssl | default(false) }}"
     timeout: 30
-    status_code: [200, 204, 404]  # 404 = already deleted
+    status_code: [200, 204, 404, 409]  # 404 = already deleted, 409 = constraint violation
     return_content: yes
   register: delete_global_domain_result
   loop: "{{ global_domains_to_delete | default([]) }}"
@@ -76,7 +76,9 @@
         wallix_cleanup_stats | default({}) | combine({
           'global_domains_processed': (global_domains_to_delete | default([]) | length),
           'global_domains_deleted': (delete_global_domain_result.results | default([]) | selectattr('status', 'in', [200, 204]) | list | length),
-          'global_domains_errors': (delete_global_domain_result.results | default([]) | selectattr('status', 'ge', 400) | list | length)
+          'global_domains_skipped': (delete_global_domain_result.results | default([]) | selectattr('status', 'equalto', 404) | list | length),
+          'global_domains_conflicts': (delete_global_domain_result.results | default([]) | selectattr('status', 'equalto', 409) | list | length),
+          'global_domains_errors': (delete_global_domain_result.results | default([]) | selectattr('status', 'ge', 400) | rejectattr('status', 'in', [404, 409]) | list | length)
         })
       }}
   when: wallix_cleanup.operation_mode != 'dry_run'

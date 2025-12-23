@@ -44,7 +44,7 @@
       Cookie: "{{ wallix_session_cookie }}"
     validate_certs: "{{ wallix_auth.connection.verify_ssl | default(false) }}"
     timeout: 30
-    status_code: [200, 204, 404]
+    status_code: [200, 204, 404, 409]  # 404 = already deleted, 409 = constraint violation
     return_content: yes
   loop: "{{ user_groups_to_delete }}"
   register: delete_user_group_result
@@ -66,7 +66,9 @@
     wallix_cleanup_stats: "{{ wallix_cleanup_stats | default({}) | combine({
         'user_groups_processed': user_groups_to_delete | length,
         'user_groups_deleted': (delete_user_group_result.results | default([]) | selectattr('status', 'defined') | selectattr('status', 'in', [200, 204]) | list | length),
-        'user_groups_errors': (delete_user_group_result.results | default([]) | selectattr('status', 'defined') | rejectattr('status', 'in', [200, 204, 404]) | list | length)
+        'user_groups_skipped': (delete_user_group_result.results | default([]) | selectattr('status', 'defined') | selectattr('status', 'equalto', 404) | list | length),
+        'user_groups_conflicts': (delete_user_group_result.results | default([]) | selectattr('status', 'defined') | selectattr('status', 'equalto', 409) | list | length),
+        'user_groups_errors': (delete_user_group_result.results | default([]) | selectattr('status', 'defined') | rejectattr('status', 'in', [200, 204, 404, 409]) | list | length)
       }) }}"
   when: wallix_cleanup.operation_mode == 'execute'
 

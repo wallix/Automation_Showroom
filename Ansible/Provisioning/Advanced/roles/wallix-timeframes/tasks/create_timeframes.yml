@@ -1,0 +1,34 @@
+---
+# Create timeframes in WALLIX Bastion
+
+- name: "⏰ Create timeframes"
+  uri:
+    url: "{{ wallix_api.base_url }}/timeframes"
+    method: POST
+    headers:
+      Cookie: "{{ wallix_session_cookie }}"
+      Content-Type: "application/json"
+    body_format: json
+    body:
+      timeframe_name: "{{ item.timeframe_name }}"
+      description: "{{ item.description | default('') }}"
+      periods: "{{ item.periods }}"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(false) }}"
+    timeout: 30
+    status_code: [200, 201, 204, 409]
+    return_content: yes
+  register: timeframe_create_result
+  loop: "{{ wallix_timeframes }}"
+  loop_control:
+    label: "{{ item.timeframe_name }}"
+
+- name: "📊 Display timeframe creation results"
+  debug:
+    msg:
+      - "Timeframe: {{ item.item.timeframe_name }}"
+      - "Status: {{ item.status }}"
+      - "Result: {{ 'Created' if item.status in [200, 201, 204] else 'Already exists' if item.status == 409 else 'Error' }}"
+  loop: "{{ timeframe_create_result.results }}"
+  loop_control:
+    label: "{{ item.item.timeframe_name }}"
+  when: timeframe_create_result.results is defined

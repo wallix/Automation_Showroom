@@ -33,7 +33,7 @@ spec:
       # Init container that retrieves the secret from WALLIX
       initContainers:
       - name: fetch-wallix-password
-        image: curlimages/curl:latest
+        image: alpine/curl:latest
         command:
           - sh
           - -c
@@ -41,15 +41,29 @@ spec:
             set -e
             echo "Fetching password from WALLIX Bastion..."
             
-            PASSWORD=$(curl -k -s -f \
+            # Install jq for JSON parsing
+            apk add --no-cache jq > /dev/null 2>&1
+            
+            # Fetch password (using -k for self-signed certs, removed -f for better error handling)
+            RESPONSE=$(curl -k -s -w "\n%{http_code}" \
               -H "X-Auth-User: $WALLIX_API_USER" \
               -H "X-Auth-Key: $WALLIX_API_KEY" \
               -H "Content-Type: application/json" \
-              "https://your-bastion.example.com/api/targetpasswords/checkout/$TARGET_KEY" \
-              | jq -r '.password')
+              "https://your-bastion.example.com/api/targetpasswords/checkout/$TARGET_KEY")
             
-            if [ -z "$PASSWORD" ]; then
-              echo "ERROR: Failed to fetch password"
+            HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+            BODY=$(echo "$RESPONSE" | head -n-1)
+            
+            if [ "$HTTP_CODE" != "200" ]; then
+              echo "ERROR: API call failed with HTTP $HTTP_CODE"
+              echo "Response: $BODY"
+              exit 1
+            fi
+            
+            PASSWORD=$(echo "$BODY" | jq -r '.password')
+            
+            if [ -z "$PASSWORD" ] || [ "$PASSWORD" == "null" ]; then
+              echo "ERROR: Failed to extract password from response"
               exit 1
             fi
             
@@ -75,14 +89,16 @@ spec:
       # Main application
       containers:
       - name: app
-        image: myapp:latest
+        image: alpine:latest
         command:
           - sh
           - -c
           - |
             export DB_PASSWORD=$(cat /secrets/database-password)
             echo "Starting application with database credentials..."
-            exec /app/start.sh
+            echo "Password retrieved successfully (length: ${#DB_PASSWORD})"
+            # Keep container running for demo
+            while true; do sleep 3600; done
         volumeMounts:
         - name: secrets
           mountPath: /secrets
@@ -120,15 +136,22 @@ spec:
       initContainers:
       # Init container 1: Database password
       - name: fetch-db-password
-        image: curlimages/curl:latest
+        image: alpine/curl:latest
         command:
           - sh
           - -c
           - |
-            curl -s -H "X-Auth-Key: $WALLIX_API_KEY" \
+            apk add --no-cache jq > /dev/null 2>&1
+            curl -k -s -H "X-Auth-User: $WALLIX_API_USER" \
+              -H "X-Auth-Key: $WALLIX_API_KEY" \
               "https://bastion.example.com/api/targetpasswords/checkout/dbadmin@postgres@prod.local" \
               | jq -r '.password' > /secrets/db-password
         env:
+        - name: WALLIX_API_USER
+          valueFrom:
+            secretKeyRef:
+              name: wallix-api-credentials
+              key: api-user
         - name: WALLIX_API_KEY
           valueFrom:
             secretKeyRef:
@@ -140,12 +163,14 @@ spec:
 
       # Init container 2: API key
       - name: fetch-api-key
-        image: curlimages/curl:latest
+        image: alpine/curl:latest
         command:
           - sh
           - -c
           - |
-            curl -s -H "X-Auth-Key: $WALLIX_API_KEY" \
+            apk add --no-cache jq > /dev/null 2>&1
+            curl -k -s -H "X-Auth-User: $WALLIX_API_USER" \
+              -H "X-Auth-Key: $WALLIX_API_KEY" \
               "https://bastion.example.com/api/targetpasswords/checkout/apiuser@external-api@prod.local" \
               | jq -r '.password' > /secrets/api-key
         env:

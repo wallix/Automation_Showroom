@@ -105,7 +105,7 @@ These roles exist in the structure but have no implementation:
 
 ## Role Dependency Matrix
 
-```
+```text
 wallix-auth (foundational)
 ├── wallix-config
 ├── wallix-domains
