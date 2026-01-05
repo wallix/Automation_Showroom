@@ -4,9 +4,9 @@ __metaclass__ = type
 DOCUMENTATION = r'''
   name: secret
   author: Wallix Integration Team
-  short_description: Look up secrets in Wallix Access Manager
+  short_description: Look up secrets in WALLIX PRIVILEGED ACCESS MANAGEMENT
   description:
-      - This lookup plugin retrieves secrets from Wallix Access Manager.
+      - This lookup plugin retrieves secrets from WALLIX PRIVILEGED ACCESS MANAGEMENT.
   options:
     _terms:
       description: The account identifier (e.g., 'account@domain@device').

@@ -4,7 +4,7 @@ version: 1.0.1
 readme: README.md
 authors:
   - Wallix Integration Team
-description: Ansible Collection for Wallix Access Manager integration
+description: Ansible Collection for WALLIX PRIVILEGED ACCESS MANAGEMENT integration
 license:
   - GPL-2.0-or-later
 tags:

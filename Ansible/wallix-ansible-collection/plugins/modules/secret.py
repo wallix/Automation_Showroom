@@ -34,10 +34,10 @@ from ansible.module_utils.urls import fetch_url
 DOCUMENTATION = r'''
 ---
 module: secret
-short_description: Retrieve a secret from Wallix Access Manager
+short_description: Retrieve a secret from WALLIX PRIVILEGED ACCESS MANAGEMENT
 version_added: "1.0.0"
 description:
-  - This module retrieves a password or SSH key from Wallix Access Manager using the API.
+  - This module retrieves a password or SSH key from WALLIX PRIVILEGED ACCESS MANAGEMENT using the API.
 options:
   wallix_url:
     description: URL of the Wallix Bastion.

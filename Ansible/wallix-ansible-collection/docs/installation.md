@@ -1,6 +1,6 @@
 # Installation Guide
 
-This guide describes how to install the Wallix Access Manager Ansible Collection.
+This guide describes how to install the WALLIX PRIVILEGED ACCESS MANAGEMENT Ansible Collection.
 
 ## Prerequisites
 

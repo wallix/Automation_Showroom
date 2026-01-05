@@ -1,6 +1,6 @@
 # Wallix PAM Secret Action Collection
 
-This collection provides modules and plugins to integrate Wallix Access Manager with Ansible Automation Platform.
+This collection provides modules and plugins to integrate WALLIX PRIVILEGED ACCESS MANAGEMENT with Ansible Automation Platform.
 
 ## Content
 
