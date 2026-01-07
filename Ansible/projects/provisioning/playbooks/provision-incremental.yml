@@ -1,0 +1,33 @@
+---
+# playbooks/provision-incremental.yml - Idempotent infrastructure updates
+# Run: ansible-playbook playbooks/provision-incremental.yml -i inventories/test/hosts.ini -v
+
+- name: WALLIX Bastion - Incremental Provisioning
+  hosts: bastions
+  gather_facts: no
+
+  tasks:
+    - name: Authenticate
+      include_role:
+        name: wallix.bastion.auth
+      vars:
+        wallix_bastion_api_version: "api"
+
+    - name: Update Users (idempotent)
+      include_role:
+        name: wallix.bastion.users
+      when: wallix_users is defined
+
+    - name: Update Devices (idempotent)
+      include_role:
+        name: wallix.bastion.devices
+      when: wallix_devices is defined
+
+    - name: Update Authorizations (idempotent)
+      include_role:
+        name: wallix.bastion.authorizations
+      when: wallix_authorizations is defined
+
+    - name: Display update summary
+      debug:
+        msg: "✅ Incremental provisioning complete!"

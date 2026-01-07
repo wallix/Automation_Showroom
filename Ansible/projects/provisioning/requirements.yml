@@ -1,0 +1,8 @@
+---
+# requirements.yml - Ansible roles and collections for provisioning project
+# Install: ansible-galaxy install -r requirements.yml
+
+collections:
+  - name: wallix.bastion
+    version: ">=1.0.0"
+    # In development, use local path: source: /path/to/wallix-ansible-collection

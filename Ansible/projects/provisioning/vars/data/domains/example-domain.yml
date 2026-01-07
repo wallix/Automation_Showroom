@@ -1,0 +1,13 @@
+---
+# vars/data/domains/example-domain.yml
+# Template for domain creation; copy to environment-specific file and customize
+
+name: "EXAMPLE_DOMAIN"
+domain_real_name: "example.local"
+description: "Example domain"
+enable_password_change: false
+state: present
+
+# Optional: password change policy configuration
+# password_change_policy: "default"
+# password_change_plugin: "Windows"
