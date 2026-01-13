@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import (absolute_import, division, print_function)
+import urllib3
+import requests
 __metaclass__ = type
 
 import os
@@ -16,13 +18,15 @@ if 'HOME' not in os.environ:
 try:
     import pwd
     _original_getpwuid = pwd.getpwuid
+
     def _mock_getpwuid(uid):
         try:
             return _original_getpwuid(uid)
         except KeyError:
             # Return a dummy struct
             import collections
-            StructPwd = collections.namedtuple("struct_passwd", ["pw_name", "pw_passwd", "pw_uid", "pw_gid", "pw_gecos", "pw_dir", "pw_shell"])
+            StructPwd = collections.namedtuple("struct_passwd", [
+                                               "pw_name", "pw_passwd", "pw_uid", "pw_gid", "pw_gecos", "pw_dir", "pw_shell"])
             return StructPwd("default", "x", uid, 0, "Default User", "/tmp", "/bin/bash")
     pwd.getpwuid = _mock_getpwuid
 except ImportError:
@@ -100,13 +104,6 @@ options:
     required: false
     type: str
     no_log: true
-<<<<<<< HEAD
-  validate_certs:
-    description: Verify SSL certificates.
-    required: false
-    type: bool
-    default: false
-=======
   state:
     description: The action to perform (checkout, checkin, extend).
     required: false
@@ -122,14 +119,13 @@ options:
     description: Comment for forced checkin (required if force=true).
     required: false
     type: str
->>>>>>> 7a88c07 (Update collection to wallix.pam_secret_action and update modules)
 author:
   - Wallix Integration Team
 '''
 
 EXAMPLES = r'''
 - name: Get database password (checkout)
-  wallix.pam_secret_action.secret:
+  wallix.pam.secret:
     wallix_url: "https://bastion.example.com"
     username: "admin"
     password: "password"
@@ -139,7 +135,7 @@ EXAMPLES = r'''
   register: wallix_secret
 
 - name: Extend checkout duration
-  wallix.pam_secret_action.secret:
+  wallix.pam.secret:
     wallix_url: "https://bastion.example.com"
     username: "admin"
     password: "password"
@@ -149,7 +145,7 @@ EXAMPLES = r'''
   register: ssh_key
 
 - name: Extend checkout duration
-  wallix.pam_secret_action.secret:
+  wallix.pam.secret:
     wallix_url: "https://bastion.example.com"
     api_key: "my-secret-api-key"
     account: "admin"
@@ -159,7 +155,7 @@ EXAMPLES = r'''
   register: extend_result
 
 - name: Release the secret (checkin)
-  wallix.pam_secret_action.secret:
+  wallix.pam.secret:
     wallix_url: "https://bastion.example.com"
     api_key: "my-secret-api-key"
     account: "admin"
@@ -179,11 +175,10 @@ metadata:
   returned: always
 '''
 
-import requests
-import urllib3
 
 # Disable warnings for self-signed certificates if necessary
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
 
 def run_module():
     module_args = dict(
@@ -200,7 +195,8 @@ def run_module():
         authorization=dict(type='str', required=False),
         duration=dict(type='int', required=False),
         key_passphrase=dict(type='str', required=False, no_log=True),
-        state=dict(type='str', required=False, default='checkout', choices=['checkout', 'checkin', 'extend']),
+        state=dict(type='str', required=False, default='checkout',
+                   choices=['checkout', 'checkin', 'extend']),
         force=dict(type='bool', required=False, default=False),
         comment=dict(type='str', required=False),
         validate_certs=dict(type='bool', required=False, default=True)
@@ -247,18 +243,19 @@ def run_module():
     api_key = module.params['api_key']
     username = module.params['username']
     password = module.params['password']
-    
+
     headers = {
         "Content-Type": "application/json"
     }
-    
+
     auth = None
     if api_key:
         headers["X-Auth-Token"] = api_key
     elif username and password:
         auth = (username, password)
     else:
-        module.fail_json(msg="Either api_key or username/password must be provided", **result)
+        module.fail_json(
+            msg="Either api_key or username/password must be provided", **result)
 
     # DEBUG: Print headers to fail_json for debugging (remove later)
     # module.fail_json(msg=f"DEBUG HEADERS: {headers}", **result)
@@ -275,20 +272,22 @@ def run_module():
                 params['authorization'] = module.params['authorization']
             if module.params['duration']:
                 params['duration'] = module.params['duration']
-            
+
             if module.params['key_passphrase']:
                 headers['X-Key-Passphrase'] = module.params['key_passphrase']
 
-            response = requests.get(url, params=params, headers=headers, auth=auth, verify=module.params['validate_certs'])
+            response = requests.get(
+                url, params=params, headers=headers, auth=auth, verify=module.params['validate_certs'])
 
         elif state == 'extend':
             url = f"{base_url}/api/targetpasswords/extendcheckout/{account_name}"
             params = {}
             if module.params['authorization']:
                 params['authorization'] = module.params['authorization']
-            
-            response = requests.get(url, params=params, headers=headers, auth=auth, verify=module.params['validate_certs'])
-            
+
+            response = requests.get(
+                url, params=params, headers=headers, auth=auth, verify=module.params['validate_certs'])
+
         elif state == 'checkin':
             url = f"{base_url}/api/targetpasswords/checkin/{account_name}"
             params = {}
@@ -297,17 +296,20 @@ def run_module():
             if module.params['force']:
                 params['force'] = 'true'
                 if not module.params['comment']:
-                    module.fail_json(msg="Comment is required when force is true", **result)
+                    module.fail_json(
+                        msg="Comment is required when force is true", **result)
                 params['comment'] = module.params['comment']
-            
-            response = requests.get(url, params=params, headers=headers, auth=auth, verify=module.params['validate_certs'])
+
+            response = requests.get(
+                url, params=params, headers=headers, auth=auth, verify=module.params['validate_certs'])
 
         # Handle Response
         if response.status_code == 200:
             data = response.json()
             result['metadata'] = data
-            result['changed'] = True # Assuming any successful API call is a change or access
-            
+            # Assuming any successful API call is a change or access
+            result['changed'] = True
+
             if state == 'checkout':
                 if 'login' in data:
                     result['login'] = data['login']
@@ -319,15 +321,18 @@ def run_module():
                 elif 'key' in data:
                     result['password'] = data['key']
         else:
-            module.fail_json(msg=f"API Error {response.status_code}: {response.text}", **result)
+            module.fail_json(
+                msg=f"API Error {response.status_code}: {response.text}", **result)
 
     except Exception as e:
         module.fail_json(msg=f"Request failed: {str(e)}", **result)
 
     module.exit_json(**result)
 
+
 def main():
     run_module()
+
 
 if __name__ == '__main__':
     main()

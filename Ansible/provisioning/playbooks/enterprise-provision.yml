@@ -1,0 +1,252 @@
+---
+# Enterprise Provisioning Playbook
+#
+# Complete provisioning for a large-scale enterprise environment.
+# This playbook provisions all resources from the enterprise dataset:
+# - 45+ devices across Prod/Staging/Dev/CICD/Security/Network
+# - 65+ services (SSH, RDP, database connections)
+# - 50+ accounts
+# - 35+ target groups
+# - 20+ user groups
+# - 40+ users
+# - 30+ authorizations
+# - 6 timeframes
+#
+# Usage:
+#   # Full enterprise provisioning
+#   make enterprise
+#
+#   # Or manually:
+#   ansible-playbook playbooks/enterprise-provision.yml \
+#     -e wallix_bastion_host=10.10.122.15 \
+#     -e wallix_bastion_port=443 \
+#     --vault-password-file /tmp/.vault_pass
+#
+# Estimated run time: 10-15 minutes
+
+- name: "Enterprise Environment - Full Provisioning"
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars_files:
+    - "../vars/data/enterprise/infrastructure.yml"
+    - "../vars/data/enterprise/target_groups.yml"
+    - "../vars/data/enterprise/domains.yml"
+    - "../vars/data/enterprise/users.yml"
+    - "../vars/data/enterprise/authorizations.yml"
+
+  vars:
+    # Bastion connection - override with -e or environment variables
+    wallix_bastion_host: "{{ lookup('env', 'WALLIX_HOST') | default('10.10.122.15', true) }}"
+    wallix_bastion_port: "{{ lookup('env', 'WALLIX_PORT') | default('443', true) }}"
+    wallix_bastion_protocol: "https"
+    wallix_bastion_user: "admin"
+
+    # API configuration (required by all wallix-* roles)
+    wallix_api:
+      base_url: "{{ wallix_bastion_protocol }}://{{ wallix_bastion_host }}:{{ wallix_bastion_port }}/api"
+      headers:
+        Content-Type: "application/json"
+        Accept: "application/json"
+
+    # Note: wallix_auth is defined in inventories/dev/group_vars/all/main.yml
+    # and vault credentials in inventories/dev/group_vars/all/vault.yml
+
+    # Mode settings for roles
+    wallix_global_accounts_mode: "normal"
+    wallix_devices_mode: "normal"
+
+    # Provisioning control flags
+    provision_domains: true
+    provision_global_accounts: true
+    provision_devices: true
+    provision_user_groups: true
+    provision_users: true
+    provision_target_groups: true
+    provision_authorizations: true
+    provision_timeframes: true
+
+  pre_tasks:
+    - name: "Display provisioning scope"
+      ansible.builtin.debug:
+        msg: |
+          ══════════════════════════════════════════════════════════════
+           ENTERPRISE PROVISIONING - LARGE SCALE DEPLOYMENT
+          ══════════════════════════════════════════════════════════════
+
+           Target Bastion : {{ wallix_bastion_protocol }}://{{ wallix_bastion_host }}:{{ wallix_bastion_port }}
+           User           : {{ wallix_bastion_user }}
+
+           RESOURCES TO PROVISION:
+           ───────────────────────────────────────────────────────────────
+           Devices        : {{ wallix_devices | default([]) | length }}
+           Services       : {{ wallix_device_services | default([]) | length }}
+           Accounts       : {{ wallix_accounts | default([]) | length }}
+           Target Groups  : {{ wallix_target_groups | default([]) | length }}
+           Group Mappings : {{ wallix_target_group_mappings | default([]) | length }}
+
+           Domains        : {{ wallix_global_domains | default([]) | length }}
+           Global Accounts: {{ wallix_global_accounts | default([]) | length }}
+
+           User Groups    : {{ wallix_user_groups | default([]) | length }}
+           Users          : {{ wallix_users | default([]) | length }}
+
+           Authorizations : {{ wallix_authorizations | default([]) | length }}
+           Timeframes     : {{ wallix_timeframes | default([]) | length }}
+          ══════════════════════════════════════════════════════════════
+
+  tasks:
+    # ==========================================================================
+    # PHASE 1: Authentication
+    # ==========================================================================
+    - name: "PHASE 1: Authenticate to Bastion"
+      ansible.builtin.include_role:
+        name: wallix-auth
+      vars:
+        wallix_auth_action: "login"
+
+    # ==========================================================================
+    # PHASE 2: Global Resources (Domains, Global Accounts)
+    # ==========================================================================
+    - name: "PHASE 2: Provision Global Domains"
+      when: provision_domains | bool
+      block:
+        - name: "Create global domains"
+          ansible.builtin.include_role:
+            name: wallix-global-domains
+            tasks_from: create_global_domains.yml
+          when: wallix_global_domains is defined and wallix_global_domains | length > 0
+
+    - name: "PHASE 2: Provision Global Accounts"
+      when: provision_global_accounts | bool
+      block:
+        - name: "Create global accounts"
+          ansible.builtin.include_role:
+            name: wallix-global-accounts
+            tasks_from: create_global_accounts.yml
+          when: wallix_global_accounts is defined and wallix_global_accounts | length > 0
+
+    # ==========================================================================
+    # PHASE 3: Infrastructure (Devices, Services, Accounts)
+    # ==========================================================================
+    - name: "PHASE 3: Provision Devices"
+      when: provision_devices | bool
+      block:
+        - name: "Create devices"
+          ansible.builtin.include_role:
+            name: wallix-devices
+            tasks_from: create_devices.yml
+          when: wallix_devices is defined and wallix_devices | length > 0
+
+        - name: "Create device services"
+          ansible.builtin.include_role:
+            name: wallix-devices
+            tasks_from: configure_services.yml
+          when: wallix_device_services is defined and wallix_device_services | length > 0
+
+        - name: "Create device accounts"
+          ansible.builtin.include_role:
+            name: wallix-devices
+            tasks_from: manage_accounts.yml
+          when: wallix_accounts is defined and wallix_accounts | length > 0
+
+    # ==========================================================================
+    # PHASE 4: User Groups & Users
+    # ==========================================================================
+    - name: "PHASE 4: Provision User Groups"
+      when: provision_user_groups | bool
+      block:
+        - name: "Create user groups"
+          ansible.builtin.include_role:
+            name: wallix-users
+            tasks_from: create_user_groups.yml
+          when: wallix_user_groups is defined and wallix_user_groups | length > 0
+
+    - name: "PHASE 4: Provision Users"
+      when: provision_users | bool
+      block:
+        - name: "Create users"
+          ansible.builtin.include_role:
+            name: wallix-users
+            tasks_from: create_users.yml
+          when: wallix_users is defined and wallix_users | length > 0
+
+    # ==========================================================================
+    # PHASE 5: Target Groups & Mappings
+    # ==========================================================================
+    - name: "PHASE 5: Provision Target Groups"
+      when: provision_target_groups | bool
+      block:
+        - name: "Create target groups"
+          ansible.builtin.include_role:
+            name: wallix-authorizations
+            tasks_from: create_target_groups.yml
+          when: wallix_target_groups is defined and wallix_target_groups | length > 0
+
+        # Note: Target group mappings (adding accounts to target groups)
+        # is handled via the WALLIX web UI or requires custom API calls
+        # The wallix_target_group_mappings data is defined for reference
+
+    # ==========================================================================
+    # PHASE 6: Timeframes & Authorizations
+    # ==========================================================================
+    # Re-authenticate before final phase (session may have expired during long provisioning)
+    - name: "PHASE 6: Re-authenticate to Bastion"
+      ansible.builtin.include_role:
+        name: wallix-auth
+      vars:
+        wallix_auth_action: "login"
+
+    - name: "PHASE 6: Provision Timeframes"
+      when: provision_timeframes | bool
+      block:
+        - name: "Create timeframes"
+          ansible.builtin.include_role:
+            name: wallix-timeframes
+            tasks_from: create_timeframes.yml
+          when: wallix_timeframes is defined and wallix_timeframes | length > 0
+
+    - name: "PHASE 6: Provision Authorizations"
+      when: provision_authorizations | bool
+      block:
+        - name: "Create authorizations"
+          ansible.builtin.include_role:
+            name: wallix-authorizations
+            tasks_from: create_authorizations.yml
+          when: wallix_authorizations is defined and wallix_authorizations | length > 0
+
+    # ==========================================================================
+    # PHASE 7: Cleanup
+    # ==========================================================================
+    - name: "PHASE 7: Logout from Bastion"
+      ansible.builtin.include_role:
+        name: wallix-auth
+      vars:
+        wallix_auth_action: "logout"
+
+  post_tasks:
+    - name: "Display summary"
+      ansible.builtin.debug:
+        msg:
+          - "══════════════════════════════════════════════════════════════"
+          - "ENTERPRISE PROVISIONING COMPLETE"
+          - "══════════════════════════════════════════════════════════════"
+          - ""
+          - "Environments provisioned:"
+          - "  ✓ Production (DC1-Paris) - 25+ servers"
+          - "  ✓ Staging (DC1-Paris) - 5 servers"
+          - "  ✓ Development (DC2-London) - 5 servers"
+          - "  ✓ CI/CD Infrastructure - 7 servers"
+          - "  ✓ Security Infrastructure - 3 servers"
+          - "  ✓ Network Devices - 4 devices"
+          - ""
+          - "User access configured:"
+          - "  ✓ IT Operations (Infrastructure, DBA, Network)"
+          - "  ✓ Development & DevOps (DevOps, SRE, Developers, QA)"
+          - "  ✓ Security (Security Team, SOC Analysts)"
+          - "  ✓ Management & Approvers"
+          - "  ✓ External Access (Contractors, Vendors)"
+          - "  ✓ Emergency Break-Glass"
+          - ""
+          - "══════════════════════════════════════════════════════════════"

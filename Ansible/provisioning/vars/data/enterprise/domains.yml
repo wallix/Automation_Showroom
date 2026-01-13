@@ -1,0 +1,156 @@
+---
+# Enterprise Domains Configuration
+#
+# Multiple authentication domains for enterprise environments:
+# - Corporate Active Directory (CORP.ENTERPRISE.COM)
+# - Partner/External LDAP (PARTNERS.ENTERPRISE.COM)
+# - Local domain for service accounts
+#
+# Usage:
+#   Include with: -e @vars/data/enterprise/domains.yml
+
+# ============================================================================
+# GLOBAL DOMAINS - External authentication sources
+# ============================================================================
+
+wallix_global_domains:
+  # Primary Corporate Active Directory
+  - name: "CORP"
+    type: "ActiveDirectory"
+    description: "Corporate Active Directory - Main"
+    server: "dc01.corp.enterprise.com"
+    port: 636
+    use_ssl: true
+    admin_account: "svc_wallix@corp.enterprise.com"
+    default_language: "en"
+    default_email_domain: "enterprise.com"
+    state: present
+
+  # Secondary Corporate AD (failover)
+  - name: "CORP-DR"
+    type: "ActiveDirectory"
+    description: "Corporate Active Directory - DR Site"
+    server: "dc02.corp.enterprise.com"
+    port: 636
+    use_ssl: true
+    admin_account: "svc_wallix@corp.enterprise.com"
+    default_language: "en"
+    default_email_domain: "enterprise.com"
+    state: present
+
+  # Partner/External Access LDAP
+  - name: "PARTNERS"
+    type: "LDAP"
+    description: "Partner Access Directory"
+    server: "ldap.partners.enterprise.com"
+    port: 636
+    use_ssl: true
+    admin_account: "cn=wallix,ou=services,dc=partners,dc=enterprise,dc=com"
+    default_language: "en"
+    default_email_domain: "partners.enterprise.com"
+    state: present
+
+  # Cloud Identity (Azure AD / Entra ID)
+  - name: "AZURE"
+    type: "AzureAD"
+    description: "Azure Active Directory / Entra ID"
+    tenant_id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+    client_id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+    default_language: "en"
+    default_email_domain: "enterprise.onmicrosoft.com"
+    state: present
+
+# ============================================================================
+# LDAP/AD MAPPINGS - Group to Wallix mappings
+# ============================================================================
+
+wallix_ldap_mappings:
+  # Corporate AD group mappings
+  - domain: "CORP"
+    ldap_group: "CN=IT-Infrastructure,OU=Groups,DC=corp,DC=enterprise,DC=com"
+    user_group: "IT_Infrastructure"
+    state: present
+
+  - domain: "CORP"
+    ldap_group: "CN=IT-DBA,OU=Groups,DC=corp,DC=enterprise,DC=com"
+    user_group: "DBAs"
+    state: present
+
+  - domain: "CORP"
+    ldap_group: "CN=IT-Security,OU=Groups,DC=corp,DC=enterprise,DC=com"
+    user_group: "Security_Team"
+    state: present
+
+  - domain: "CORP"
+    ldap_group: "CN=IT-DevOps,OU=Groups,DC=corp,DC=enterprise,DC=com"
+    user_group: "DevOps"
+    state: present
+
+  - domain: "CORP"
+    ldap_group: "CN=IT-Network,OU=Groups,DC=corp,DC=enterprise,DC=com"
+    user_group: "Network_Admins"
+    state: present
+
+  - domain: "CORP"
+    ldap_group: "CN=Developers,OU=Groups,DC=corp,DC=enterprise,DC=com"
+    user_group: "Developers"
+    state: present
+
+  - domain: "CORP"
+    ldap_group: "CN=IT-Managers,OU=Groups,DC=corp,DC=enterprise,DC=com"
+    user_group: "Approvers"
+    state: present
+
+  # Partner mappings
+  - domain: "PARTNERS"
+    ldap_group: "CN=Contractors,OU=External,DC=partners,DC=enterprise,DC=com"
+    user_group: "External_Contractors"
+    state: present
+
+  - domain: "PARTNERS"
+    ldap_group: "CN=Vendors,OU=External,DC=partners,DC=enterprise,DC=com"
+    user_group: "Vendors"
+    state: present
+
+# ============================================================================
+# GLOBAL ACCOUNTS - Privileged accounts managed centrally
+# ============================================================================
+
+wallix_global_accounts:
+  # Domain service accounts
+  - name: "svc_backup"
+    domain: "CORP"
+    description: "Backup service account"
+    state: present
+
+  - name: "svc_monitoring"
+    domain: "CORP"
+    description: "Monitoring service account"
+    state: present
+
+  - name: "svc_deploy"
+    domain: "CORP"
+    description: "Deployment service account"
+    state: present
+
+  - name: "svc_ansible"
+    domain: "CORP"
+    description: "Ansible automation service account"
+    state: present
+
+  # Windows Domain Admin accounts
+  - name: "da_admin01"
+    domain: "CORP"
+    description: "Domain Admin - Primary"
+    state: present
+
+  - name: "da_admin02"
+    domain: "CORP"
+    description: "Domain Admin - Secondary"
+    state: present
+
+  # Emergency accounts
+  - name: "emergency_admin"
+    domain: "CORP"
+    description: "Break-glass emergency account"
+    state: present

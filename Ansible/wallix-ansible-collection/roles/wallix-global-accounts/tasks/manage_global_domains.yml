@@ -1,0 +1,78 @@
+---
+# Global domain management tasks
+
+- name: Get existing global domains
+  uri:
+    url: "{{ wallix_api.base_url }}/domains"
+    method: GET
+    headers:
+      Cookie: "{{ wallix_session_cookie }}"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl }}"
+    timeout: "{{ wallix_auth.connection.timeout }}"
+    status_code: [200]
+    return_content: yes
+  register: existing_domains
+  when: wallix_global_accounts_mode != 'dry_run'
+
+- name: Create global domains
+  uri:
+    url: "{{ wallix_api.base_url }}/domains"
+    method: POST
+    headers:
+      Cookie: "{{ wallix_session_cookie }}"
+      Content-Type: "application/json"
+    body_format: json
+    body:
+      domain_name: "{{ item.name }}"
+      domain_real_name: "{{ item.domain_real_name | default(item.name) }}"
+      description: "{{ item.description | default('') }}"
+      enable_password_change: "{{ item.enable_password_change | default(false) }}"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl }}"
+    timeout: "{{ wallix_auth.connection.timeout }}"
+    status_code: [200, 201, 204, 409]  # 409 = already exists
+    return_content: yes
+  loop: "{{ wallix_global_accounts.domains | default([]) }}"
+  when:
+    - item.state | default('present') == 'present'
+    - wallix_global_accounts_mode != 'dry_run'
+    - existing_domains.json is defined
+    - existing_domains.json | selectattr('domain_name', 'equalto', item.name) | list | length == 0
+  register: domain_creation_results
+  no_log: false
+
+- name: Debug domain creation results
+  debug:
+    msg:
+      - "Domain: {{ item.item.name }}"
+      - "Status: {{ item.status }}"
+      - "Result: {{ 'Created' if item.status in [200, 201, 204] else 'Already exists' if item.status == 409 else 'Error' }}"
+  loop: "{{ domain_creation_results.results | default([]) }}"
+  when: domain_creation_results.results is defined
+
+- name: Get existing global domains after creation
+  uri:
+    url: "{{ wallix_api.base_url }}/domains"
+    method: GET
+    headers:
+      Cookie: "{{ wallix_session_cookie }}"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl }}"
+    timeout: "{{ wallix_auth.connection.timeout }}"
+    status_code: [200]
+    return_content: yes
+  register: updated_domains
+  when: wallix_global_accounts_mode != 'dry_run'
+
+- name: Set global domains status
+  set_fact:
+    wallix_global_domains_created: "{{ domain_creation_results.results | selectattr('status', 'in', [200, 201, 204]) | list | length }}"
+    wallix_global_domains_existing: "{{ domain_creation_results.results | selectattr('status', 'equalto', 409) | list | length }}"
+    wallix_global_domains_status: "success"
+  when: domain_creation_results.results is defined
+
+- name: Display global domains creation summary
+  debug:
+    msg:
+      - "Global domains management completed successfully"
+      - "Created: {{ wallix_global_domains_created | default(0) }}"
+      - "Already existing: {{ wallix_global_domains_existing | default(0) }}"
+      - "Total domains in WALLIX: {{ updated_domains.json | length if updated_domains.json is defined else 'Unknown' }}"

@@ -1,0 +1,46 @@
+---
+# User Template - Copy and customize for each user
+# Usage: Include this file in your provisioning playbook
+# Example: make provision-user USER=john.doe
+
+# User definition
+user:
+  name: "username"                        # Required: Unique username
+  email: "user@company.com"               # Required: User email
+  profile: "user"                         # user, admin, auditor
+  state: present                          # present|absent
+
+  # Personal information
+  display_name: "User Full Name"          # Optional: Display name
+  preferred_language: "en"                # en, fr, de, es, etc.
+  description: "User description"
+
+  # Authentication methods
+  user_auths:                             # Authentication methods allowed
+    - "local_password"                    # Local password auth
+    # - "local_sshkey"                    # SSH key auth
+    # - "local_x509"                      # X.509 certificate auth
+    # - "ldap"                            # LDAP/AD auth
+
+  # Credentials (for local auth)
+  credentials:
+    local_password: "{{ vault_user_initial_password }}"
+    # local_sshkey: "ssh-rsa AAAA..."
+    # local_x509: "CN=User Name,OU=Department,O=Company,C=FR"
+
+  # Security settings
+  force_change_password: true             # Force password change on first login
+  is_disabled: false                      # Account disabled status
+
+  # Group memberships
+  groups:                                 # User groups (must exist)
+    - "AllUsers"
+    # - "Administrators"
+    # - "Developers"
+
+  # Access restrictions (optional)
+  ip_source_restrictions: []              # IP/CIDR list: ["10.0.0.0/8"]
+  time_restrictions: []                   # Timeframe names
+
+  # Certificate settings (for X.509 auth)
+  # certificate_dn: "CN=User,O=Company"

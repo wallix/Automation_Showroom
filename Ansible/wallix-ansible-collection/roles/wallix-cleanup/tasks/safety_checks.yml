@@ -1,0 +1,66 @@
+---
+# WALLIX Cleanup - Safety Checks
+
+- name: "Cleanup | Safety | Check required confirmation"
+  assert:
+    that:
+      - confirm_deletion is defined
+      - confirm_deletion | string == wallix_cleanup_safety.confirmation_phrase | default('DELETE_CONFIRMED')
+    fail_msg: "Cleanup requires explicit confirmation. Set confirm_deletion='{{ wallix_cleanup_safety.confirmation_phrase | default('DELETE_CONFIRMED') }}'"
+    success_msg: "Cleanup confirmation received"
+  when: wallix_cleanup_safety.require_explicit_confirmation | default(true)
+
+- name: "Cleanup | Safety | Validate API connectivity"
+  uri:
+    url: "{{ wallix_api_base_url }}/api/system/status"
+    method: GET
+    headers:
+      Cookie: "{{ wallix_api_session_cookie | default('') }}"
+      Authorization: "Bearer {{ wallix_api_token | default('') }}"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(true) }}"
+    timeout: "{{ wallix_auth.connection.timeout | default(30) }}"
+    status_code: [200]
+  register: cleanup_api_check
+  changed_when: false
+
+- name: "Cleanup | Safety | Get current object counts"
+  uri:
+    url: "{{ wallix_api_base_url }}/api/{{ item }}/count"
+    method: GET
+    headers:
+      Cookie: "{{ wallix_api_session_cookie | default('') }}"
+      Authorization: "Bearer {{ wallix_api_token | default('') }}"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(true) }}"
+    timeout: "{{ wallix_auth.connection.timeout | default(30) }}"
+    status_code: [200, 404]
+  register: object_counts
+  loop:
+    - "authorizations"
+    - "policies"
+    - "applications"
+    - "devices"
+    - "users"
+    - "authdomains"
+  failed_when: false
+  changed_when: false
+
+- name: "Cleanup | Safety | Calculate total objects to clean"
+  set_fact:
+    total_objects: "{{ object_counts.results | map(attribute='json.count') | map('default', 0) | sum }}"
+    max_allowed_deletions: "{{ (object_counts.results | map(attribute='json.count') | map('default', 0) | sum * (wallix_cleanup_safety.max_deletion_percentage | default(50)) / 100) | int }}"
+
+- name: "Cleanup | Safety | Warning for large deletion"
+  debug:
+    msg:
+      - "WARNING: Large cleanup operation detected"
+      - "Total objects in system: {{ total_objects }}"
+      - "Maximum allowed deletions: {{ max_allowed_deletions }}"
+      - "Please verify this is intentional"
+  when: total_objects | int > 50
+
+- name: "Cleanup | Safety | Set safety approval"
+  set_fact:
+    wallix_cleanup_confirmed: true
+    wallix_cleanup_safety_checks_passed: true
+    wallix_cleanup_max_deletions: "{{ max_allowed_deletions }}"
+    wallix_cleanup_confirmation_time: "{{ ansible_date_time.iso8601 }}"

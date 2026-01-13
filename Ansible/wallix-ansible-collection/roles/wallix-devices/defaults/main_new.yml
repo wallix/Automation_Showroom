@@ -1,0 +1,65 @@
+---
+# Default variables for wallix-devices role
+
+# Example devices configuration
+wallix_devices:
+  - name: "web-server-01"
+    host: "10.0.1.100"
+    description: "Production web server"
+    type: "server"
+    state: "present"
+
+  - name: "db-server-01"
+    host: "10.0.1.200"
+    description: "Database server"
+    type: "server"
+    state: "present"
+
+# Example device services configuration
+wallix_device_services:
+  - name: "web-ssh"
+    device_name: "web-server-01"
+    protocol: "SSH"
+    port: 22
+    connection_policy: "default"
+    state: "present"
+
+  - name: "web-http"
+    device_name: "web-server-01"
+    protocol: "HTTP"
+    port: 80
+    connection_policy: "default"
+    state: "present"
+
+  - name: "db-ssh"
+    device_name: "db-server-01"
+    protocol: "SSH"
+    port: 22
+    connection_policy: "default"
+    state: "present"
+
+# Example device accounts configuration
+wallix_device_accounts:
+  - name: "web-admin"
+    device_name: "web-server-01"
+    login: "admin"
+    description: "Web server admin account"
+    auto_change_password: false
+    state: "present"
+
+  - name: "db-admin"
+    device_name: "db-server-01"
+    login: "postgres"
+    description: "Database admin account"
+    auto_change_password: false
+    state: "present"
+
+# Device management settings
+wallix_devices_mode: "{{ operation_mode | default('normal') }}"  # normal|dry_run|validate_only
+wallix_devices_validate_config: true
+wallix_devices_validate: true
+
+# Debug settings for devices
+wallix_devices_debug:
+  enabled: "{{ wallix_debug.enabled | default(false) }}"
+  level: "{{ wallix_debug.level | default('info') }}"

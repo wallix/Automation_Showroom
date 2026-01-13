@@ -1,0 +1,45 @@
+---
+# Simplified default variables for wallix-config role
+# Focus on core access management settings only
+
+# Basic WALLIX system configuration
+wallix_config:
+  # System identification
+  system:
+    name: "{{ wallix_bastion_name | default(inventory_hostname) }}"
+    description: "{{ wallix_bastion_description | default('WALLIX Bastion managed by Ansible') }}"
+
+  # Session management basics
+  sessions:
+    default_timeout: 3600      # 1 hour
+    max_concurrent: 100        # Max concurrent sessions
+    idle_timeout: 1800         # 30 minutes idle timeout
+
+  # Basic security settings
+  security:
+    enable_password_policy: true
+    min_password_length: 8
+    password_complexity: true
+    session_recording: true
+    audit_enabled: true
+
+  # API configuration
+  api:
+    timeout: 30
+    retry_attempts: 3
+    retry_delay: 5
+
+# Configuration operation mode
+wallix_config_mode: "{{ operation_mode | default('normal') }}"  # normal|dry_run
+
+# Configuration validation
+wallix_config_validation:
+  check_api_access: true
+  validate_basic_settings: true
+  test_session_config: true
+
+# Debug settings
+wallix_config_debug:
+  enabled: "{{ wallix_debug.enabled | default(false) }}"
+  level: "{{ wallix_debug.level | default('info') }}"
+  log_api_calls: false

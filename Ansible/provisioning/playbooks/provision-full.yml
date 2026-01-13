@@ -1,0 +1,150 @@
+---
+# playbooks/provision-full.yml - Complete infrastructure provisioning
+#
+# Usage:
+#   ansible-playbook playbooks/provision-full.yml -i inventories/dev/hosts.ini \
+#     -e wallix_bastion_host=10.10.122.15 --vault-password-file <(printf "vault_password")
+#
+# With demo data:
+#   ansible-playbook playbooks/provision-full.yml -i inventories/dev/hosts.ini \
+#     -e wallix_bastion_host=10.10.122.15 \
+#     -e @vars/data/demo/infrastructure.yml \
+#     -e @vars/data/demo/users.yml \
+#     --vault-password-file <(printf "vault_password")
+
+- name: WALLIX Bastion - Full Provisioning
+  hosts: localhost
+  gather_facts: false
+  connection: local
+
+  pre_tasks:
+    - name: Set connection defaults
+      set_fact:
+        wallix_api_protocol: "{{ wallix_api.protocol | default('https') }}"
+        wallix_api_port: "{{ wallix_api.port | default(443) }}"
+
+    - name: Build API base URL
+      set_fact:
+        wallix_api: "{{ wallix_api | combine({'base_url': wallix_api_protocol ~ '://' ~ wallix_bastion_host ~ ':' ~ wallix_api_port ~ '/api'}) }}"
+
+    - name: Display provisioning target
+      debug:
+        msg:
+          - "WALLIX Bastion Full Provisioning"
+          - "Target: {{ wallix_api.base_url }}"
+          - "Mode: {{ 'DRY RUN' if (wallix_provisioning.dry_run | default(false)) else 'EXECUTE' }}"
+
+  tasks:
+    # =========================================================================
+    # STEP 1: Authentication
+    # =========================================================================
+    - name: "Step 1: Authenticate to Bastion"
+      include_role:
+        name: wallix-auth
+      tags: [auth, always]
+
+    - name: Verify authentication
+      assert:
+        that:
+          - wallix_session_cookie is defined
+          - wallix_session_cookie | length > 0
+        fail_msg: "Authentication failed - no session cookie"
+        success_msg: "✅ Authentication successful"
+      tags: [auth]
+
+    # =========================================================================
+    # STEP 2: Global Domains (must be created before global accounts)
+    # =========================================================================
+    - name: "Step 2: Create Global Domains"
+      include_role:
+        name: wallix-global-domains
+      when: wallix_global_domains is defined and wallix_global_domains | length > 0
+      tags: [domains, global-domains]
+
+    # =========================================================================
+    # STEP 3: Global Accounts (depend on domains)
+    # =========================================================================
+    - name: "Step 3: Create Global Accounts"
+      include_role:
+        name: wallix-global-accounts
+      when: wallix_global_accounts is defined
+      tags: [accounts, global-accounts]
+
+    # =========================================================================
+    # STEP 4: Devices, Services, and Local Accounts
+    # =========================================================================
+    - name: "Step 4: Create Devices and Services"
+      include_role:
+        name: wallix-devices
+      when: wallix_devices is defined and wallix_devices | length > 0
+      tags: [devices]
+
+    # =========================================================================
+    # STEP 5: User Groups
+    # =========================================================================
+    - name: "Step 5a: Create User Groups"
+      include_role:
+        name: wallix-users
+        tasks_from: create_user_groups.yml
+      when: wallix_user_groups is defined and wallix_user_groups | length > 0
+      tags: [users, groups]
+
+    # =========================================================================
+    # STEP 6: Users
+    # =========================================================================
+    - name: "Step 5b: Create Users"
+      include_role:
+        name: wallix-users
+      when: wallix_users is defined and wallix_users | length > 0
+      tags: [users]
+
+    # =========================================================================
+    # STEP 7: Target Groups (for authorizations)
+    # =========================================================================
+    - name: "Step 6a: Create Target Groups"
+      include_role:
+        name: wallix-authorizations
+        tasks_from: create_target_groups.yml
+      when: wallix_target_groups is defined and wallix_target_groups | length > 0
+      tags: [authorizations, target-groups]
+
+    # =========================================================================
+    # STEP 8: Authorizations
+    # =========================================================================
+    - name: "Step 6b: Create Authorizations"
+      include_role:
+        name: wallix-authorizations
+      when: wallix_authorizations is defined and wallix_authorizations | length > 0
+      tags: [authorizations]
+
+    # =========================================================================
+    # STEP 9: Timeframes (optional)
+    # =========================================================================
+    - name: "Step 7: Create Timeframes"
+      include_role:
+        name: wallix-timeframes
+      when: wallix_timeframes is defined and wallix_timeframes | length > 0
+      tags: [timeframes]
+
+    # =========================================================================
+    # SUMMARY
+    # =========================================================================
+    - name: Display provisioning summary
+      debug:
+        msg:
+          - "PROVISIONING COMPLETE"
+          - "======================================"
+          - "Bastion: {{ wallix_bastion_host }}"
+          - "API: {{ wallix_api.base_url }}"
+          - ""
+          - "Resources created:"
+          - "  📁 Global Domains: {{ wallix_global_domains_created | default(0) }}"
+          - "  🔑 Global Accounts: {{ wallix_global_accounts_created | default(0) }}"
+          - "  🖥️  Devices: {{ wallix_devices_created | default(0) }}"
+          - "  ⚙️  Services: {{ wallix_services_configured | default(0) }}"
+          - "  👥 User Groups: {{ wallix_user_groups_created | default(0) }}"
+          - "  👤 Users: {{ wallix_users_created | default(0) }}"
+          - "  🎯 Target Groups: {{ wallix_target_groups_created | default(0) }}"
+          - "  🔐 Authorizations: {{ wallix_authorizations_created | default(0) }}"
+          - "  ⏰ Timeframes: {{ wallix_timeframes_created | default(0) }}"
+      tags: [always]

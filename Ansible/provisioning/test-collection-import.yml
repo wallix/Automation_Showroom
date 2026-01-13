@@ -1,0 +1,19 @@
+---
+- name: Test Collection Roles Import
+  hosts: localhost
+  gather_facts: false
+  vars:
+    wallix_bastion_host: "10.10.122.12"
+
+  tasks:
+    - name: Test collection namespace resolution
+      debug:
+        msg: "Testing wallix.pam collection"
+
+    - name: Include auth role from collection
+      include_role:
+        name: wallix.pam.wallix-auth
+
+    - name: Verify collection import successful
+      debug:
+        msg: "Auth role imported successfully"

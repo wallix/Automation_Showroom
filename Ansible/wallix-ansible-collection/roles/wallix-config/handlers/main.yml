@@ -1,0 +1,70 @@
+---
+# WALLIX Config - Handlers
+
+- name: "Restart WALLIX services"
+  uri:
+    url: "{{ wallix_api_base_url }}/api/system/restart"
+    method: POST
+    headers:
+      Cookie: "{{ wallix_api_session_cookie | default('') }}"
+      Authorization: "Bearer {{ wallix_api_token | default('') }}"
+      Content-Type: "application/json"
+    body: '{"force": false, "wait": true}'
+    body_format: json
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(true) }}"
+    timeout: 120
+    status_code: [200, 202]
+  register: restart_result
+  listen: "Restart WALLIX services"
+
+- name: "Wait for WALLIX services to restart"
+  uri:
+    url: "{{ wallix_api_base_url }}/api/system/status"
+    method: GET
+    headers:
+      Cookie: "{{ wallix_api_session_cookie | default('') }}"
+      Authorization: "Bearer {{ wallix_api_token | default('') }}"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(true) }}"
+    timeout: 30
+    status_code: [200]
+  register: status_check
+  retries: 12
+  delay: 10
+  until: status_check.status == 200
+  listen: "Restart WALLIX services"
+
+- name: "Generate configuration report"
+  template:
+    src: "config_report.json.j2"
+    dest: "/tmp/wallix_config_report_{{ inventory_hostname }}_{{ ansible_date_time.epoch }}.json"
+    mode: '0644'
+  delegate_to: localhost
+  listen: "Generate configuration report"
+
+- name: "Notify configuration changes"
+  debug:
+    msg:
+      - "Configuration has been updated on {{ inventory_hostname }}"
+      - "Backup file: {{ wallix_config_backup_file | default('N/A') }}"
+      - "Applied at: {{ ansible_date_time.iso8601 }}"
+  listen: "Generate configuration report"
+
+- name: "Reload WALLIX configuration cache"
+  uri:
+    url: "{{ wallix_api_base_url }}/api/system/config/reload"
+    method: POST
+    headers:
+      Cookie: "{{ wallix_api_session_cookie | default('') }}"
+      Authorization: "Bearer {{ wallix_api_token | default('') }}"
+      Content-Type: "application/json"
+    body: '{}'
+    body_format: json
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(true) }}"
+    timeout: "{{ wallix_auth.connection.timeout | default(30) }}"
+    status_code: [200, 204]
+  listen: "Reload configuration cache"
+
+- name: "Update configuration timestamp"
+  set_fact:
+    wallix_config_last_update: "{{ ansible_date_time.iso8601 }}"
+  listen: "Generate configuration report"

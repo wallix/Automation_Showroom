@@ -1,0 +1,15 @@
+---
+# Validation tasks for WALLIX domains
+
+- name: "Domains | Validate | Check required variables"
+  assert:
+    that:
+      - wallix_session_cookie is defined
+    fail_msg: "Session cookie must be established before managing domains"
+    success_msg: "Domain validation passed"
+  when: wallix_domains.validate_before_apply | default(true)
+
+- name: "Domains | Validate | Set validation status"
+  set_fact:
+    wallix_domains_validated: true
+  when: wallix_domains.validate_before_apply | default(true)

@@ -1,0 +1,24 @@
+---
+# Main tasks for WALLIX global domains management
+
+- name: Display global domains management start
+  debug:
+    msg:
+      - "🌐 Starting WALLIX global domains management"
+      - "Mode: {{ wallix_global_domains_mode | default('normal') }}"
+      - "Domains to manage: {{ wallix_global_domains | default([]) | length }}"
+
+- name: Include global domain creation tasks
+  include_tasks: create_global_domains.yml
+  when: wallix_global_domains is defined and wallix_global_domains | length > 0
+
+- name: Set global domains management status
+  set_fact:
+    wallix_global_domains_created: "{{ domain_creation_count | default(0) }}"
+    wallix_global_domains_status: "success"
+
+- name: Display global domains management summary
+  debug:
+    msg:
+      - "✅ Global domains management completed"
+      - "Domains created: {{ wallix_global_domains_created }}"

@@ -1,0 +1,81 @@
+---
+# cleanup_local_accounts.yml - Clean up local accounts from devices
+# This task file handles the cleanup of local accounts associated with devices
+# It must be run before device cleanup to avoid constraint violations
+
+- name: "🔍 Cleanup | Get all devices with local accounts"
+  uri:
+    url: "{{ wallix_api.base_url }}/devices"
+    method: GET
+    headers:
+      Cookie: "{{ wallix_session_cookie }}"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(false) }}"
+    timeout: 30
+    status_code: [200]
+    return_content: yes
+  register: all_devices_with_accounts_result
+
+- name: "🗑️ Cleanup | Initialize local accounts to delete list"
+  set_fact:
+    local_accounts_to_delete: []
+
+- name: "🔍 Cleanup | Discover local accounts for each device"
+  include_tasks: discover_device_accounts.yml
+  loop: "{{ all_devices_with_accounts_result.json | default([]) }}"
+  loop_control:
+    loop_var: device_item
+  when:
+    - all_devices_with_accounts_result.json is defined
+    - device_item.device_name is match(include_regex)
+    - not (device_item.device_name is match(exclude_regex))
+  vars:
+    include_regex: "{{ wallix_cleanup_filters.include_patterns | map('replace', '*', '.*') | map('replace', '?', '.') | join('|') }}"
+    exclude_regex: "{{ wallix_cleanup_filters.exclude_patterns | map('replace', '*', '.*') | map('replace', '?', '.') | join('|') }}"
+
+- name: "📊 Cleanup | Display local accounts to delete"
+  debug:
+    msg:
+      - "Found {{ local_accounts_to_delete | length }} local accounts to delete"
+      - "Accounts: {{ local_accounts_to_delete | map(attribute='account_identifier') | list }}"
+
+- name: "🗑️ Cleanup | Delete local account"
+  uri:
+    url: "{{ wallix_api.base_url }}/devices/{{ item.device_id }}/localdomains/{{ item.domain_id }}/accounts/{{ item.account_id }}"
+    method: DELETE
+    headers:
+      Cookie: "{{ wallix_session_cookie }}"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(false) }}"
+    timeout: 30
+    status_code: [200, 204, 404]
+    return_content: yes
+  loop: "{{ local_accounts_to_delete }}"
+  register: delete_local_account_result
+  failed_when: false  # Continue on errors but track them
+  when:
+    - wallix_cleanup.operation_mode == 'execute'
+
+- name: "📈 Cleanup | Update local account deletion stats (dry run)"
+  set_fact:
+    wallix_cleanup_stats: "{{ wallix_cleanup_stats | default({}) | combine({
+        'local_accounts_processed': local_accounts_to_delete | length,
+        'local_accounts_deleted': 0,
+        'local_accounts_errors': 0
+      }) }}"
+  when: wallix_cleanup.operation_mode == 'dry_run'
+
+- name: "📈 Cleanup | Update local account deletion stats (real run)"
+  set_fact:
+    wallix_cleanup_stats: "{{ wallix_cleanup_stats | default({}) | combine({
+        'local_accounts_processed': local_accounts_to_delete | length,
+        'local_accounts_deleted': (delete_local_account_result.results | default([]) | selectattr('status', 'defined') | selectattr('status', 'in', [200, 204]) | list | length),
+        'local_accounts_errors': (delete_local_account_result.results | default([]) | selectattr('status', 'defined') | rejectattr('status', 'in', [200, 204, 404]) | list | length)
+      }) }}"
+  when: wallix_cleanup.operation_mode == 'execute'
+
+- name: "✅ Cleanup | Local account cleanup summary"
+  debug:
+    msg:
+      - "Local account cleanup completed"
+      - "Processed: {{ wallix_cleanup_stats.local_accounts_processed | default(0) }}"
+      - "Deleted: {{ wallix_cleanup_stats.local_accounts_deleted | default(0) }}"
+      - "Errors: {{ wallix_cleanup_stats.local_accounts_errors | default(0) }}"

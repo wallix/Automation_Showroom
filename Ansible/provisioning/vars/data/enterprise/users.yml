@@ -1,0 +1,530 @@
+---
+# Enterprise Users & Groups Configuration
+#
+# User structure for a large enterprise with:
+# - Department-based teams
+# - Role-based access groups
+# - Approval workflows
+#
+# Usage:
+#   Include with: -e @vars/data/enterprise/users.yml
+
+# ============================================================================
+# USER GROUPS - Organized by function and department
+# ============================================================================
+
+wallix_user_groups:
+  # -------------------------------------------------------------------------
+  # IT Operations Teams
+  # -------------------------------------------------------------------------
+  - name: "IT_Infrastructure"
+    description: "IT Infrastructure Team - System Administrators"
+    profile: "user"
+    state: present
+
+  - name: "DBAs"
+    description: "Database Administrators"
+    profile: "user"
+    state: present
+
+  - name: "Network_Admins"
+    description: "Network Administrators"
+    profile: "user"
+    state: present
+
+  - name: "Security_Team"
+    description: "Information Security Team"
+    profile: "auditor"
+    state: present
+
+  - name: "SOC_Analysts"
+    description: "Security Operations Center Analysts"
+    profile: "auditor"
+    state: present
+
+  # -------------------------------------------------------------------------
+  # Development & DevOps Teams
+  # -------------------------------------------------------------------------
+  - name: "DevOps"
+    description: "DevOps Engineering Team"
+    profile: "user"
+    state: present
+
+  - name: "SRE"
+    description: "Site Reliability Engineering"
+    profile: "user"
+    state: present
+
+  - name: "Developers"
+    description: "Software Development Team"
+    profile: "user"
+    state: present
+
+  - name: "Developers_Senior"
+    description: "Senior Developers with elevated access"
+    profile: "user"
+    state: present
+
+  - name: "QA_Team"
+    description: "Quality Assurance Team"
+    profile: "user"
+    state: present
+
+  # -------------------------------------------------------------------------
+  # Management & Approval
+  # -------------------------------------------------------------------------
+  - name: "IT_Managers"
+    description: "IT Management Team"
+    profile: "user"
+    state: present
+
+  - name: "Approvers"
+    description: "Access Request Approvers"
+    profile: "user"
+    state: present
+
+  - name: "Approvers_Emergency"
+    description: "Emergency Access Approvers (24/7)"
+    profile: "user"
+    state: present
+
+  # -------------------------------------------------------------------------
+  # External & Contractor Access
+  # -------------------------------------------------------------------------
+  - name: "External_Contractors"
+    description: "External IT Contractors"
+    profile: "user"
+    state: present
+
+  - name: "Vendors"
+    description: "Vendor Support Access"
+    profile: "user"
+    state: present
+
+  - name: "Auditors_External"
+    description: "External Auditors (read-only)"
+    profile: "auditor"
+    state: present
+
+  # -------------------------------------------------------------------------
+  # Special Access Groups
+  # -------------------------------------------------------------------------
+  - name: "Emergency_Access"
+    description: "Break-glass Emergency Access Group"
+    profile: "user"
+    state: present
+
+  - name: "PAM_Admins"
+    description: "WALLIX PAM Administrators"
+    profile: "product_administrator"
+    state: present
+
+# ============================================================================
+# USERS - Local users (non-AD)
+# ============================================================================
+
+wallix_users:
+  # -------------------------------------------------------------------------
+  # PAM Administrators
+  # -------------------------------------------------------------------------
+  - name: "pam_admin1"
+    display_name: "PAM Administrator 1"
+    email: "pam.admin1@enterprise.com"
+    profile: "product_administrator"
+    groups:
+      - "PAM_Admins"
+    password: "{{ enterprise_default_password | default('EnterpriseDemo123!') }}"
+    state: present
+
+  - name: "pam_admin2"
+    display_name: "PAM Administrator 2"
+    email: "pam.admin2@enterprise.com"
+    profile: "product_administrator"
+    groups:
+      - "PAM_Admins"
+    password: "{{ enterprise_default_password | default('EnterpriseDemo123!') }}"
+    state: present
+
+  # -------------------------------------------------------------------------
+  # IT Infrastructure Team
+  # -------------------------------------------------------------------------
+  - name: "sysadmin1"
+    display_name: "John Smith - Senior SysAdmin"
+    email: "john.smith@enterprise.com"
+    profile: "user"
+    groups:
+      - "IT_Infrastructure"
+      - "Approvers"
+    password: "{{ enterprise_default_password | default('EnterpriseDemo123!') }}"
+    state: present
+
+  - name: "sysadmin2"
+    display_name: "Jane Doe - SysAdmin"
+    email: "jane.doe@enterprise.com"
+    profile: "user"
+    groups:
+      - "IT_Infrastructure"
+    password: "{{ enterprise_default_password | default('EnterpriseDemo123!') }}"
+    state: present
+
+  - name: "sysadmin3"
+    display_name: "Bob Wilson - SysAdmin"
+    email: "bob.wilson@enterprise.com"
+    profile: "user"
+    groups:
+      - "IT_Infrastructure"
+    password: "{{ enterprise_default_password | default('EnterpriseDemo123!') }}"
+    state: present
+
+  - name: "sysadmin4"
+    display_name: "Alice Brown - SysAdmin"
+    email: "alice.brown@enterprise.com"
+    profile: "user"
+    groups:
+      - "IT_Infrastructure"
+    password: "{{ enterprise_default_password | default('EnterpriseDemo123!') }}"
+    state: present
+
+  # -------------------------------------------------------------------------
+  # Database Administrators
+  # -------------------------------------------------------------------------
+  - name: "dba1"
+    display_name: "Michael Chen - Lead DBA"
+    email: "michael.chen@enterprise.com"
+    profile: "user"
+    groups:
+      - "DBAs"
+      - "Approvers"
+    password: "{{ enterprise_default_password | default('EnterpriseDemo123!') }}"
+    state: present
+
+  - name: "dba2"
+    display_name: "Sarah Lee - PostgreSQL DBA"
+    email: "sarah.lee@enterprise.com"
+    profile: "user"
+    groups:
+      - "DBAs"
+    password: "{{ enterprise_default_password | default('EnterpriseDemo123!') }}"
+    state: present
+
+  - name: "dba3"
+    display_name: "David Kim - MySQL DBA"
+    email: "david.kim@enterprise.com"
+    profile: "user"
+    groups:
+      - "DBAs"
+    password: "{{ enterprise_default_password | default('EnterpriseDemo123!') }}"
+    state: present
+
+  - name: "dba4"
+    display_name: "Emma Davis - SQL Server DBA"
+    email: "emma.davis@enterprise.com"
+    profile: "user"
+    groups:
+      - "DBAs"
+    password: "{{ enterprise_default_password | default('EnterpriseDemo123!') }}"
+    state: present
+
+  # -------------------------------------------------------------------------
+  # Network Team
+  # -------------------------------------------------------------------------
+  - name: "netadmin1"
+    display_name: "Tom Anderson - Senior Network Engineer"
+    email: "tom.anderson@enterprise.com"
+    profile: "user"
+    groups:
+      - "Network_Admins"
+      - "Approvers"
+    password: "{{ enterprise_default_password | default('EnterpriseDemo123!') }}"
+    state: present
+
+  - name: "netadmin2"
+    display_name: "Lisa Wang - Network Engineer"
+    email: "lisa.wang@enterprise.com"
+    profile: "user"
+    groups:
+      - "Network_Admins"
+    password: "{{ enterprise_default_password | default('EnterpriseDemo123!') }}"
+    state: present
+
+  # -------------------------------------------------------------------------
+  # Security Team
+  # -------------------------------------------------------------------------
+  - name: "seceng1"
+    display_name: "Chris Martin - Security Manager"
+    email: "chris.martin@enterprise.com"
+    profile: "auditor"
+    groups:
+      - "Security_Team"
+      - "Approvers"
+      - "Approvers_Emergency"
+    password: "{{ enterprise_default_password | default('EnterpriseDemo123!') }}"
+    state: present
+
+  - name: "seceng2"
+    display_name: "Rachel Green - Security Analyst"
+    email: "rachel.green@enterprise.com"
+    profile: "auditor"
+    groups:
+      - "Security_Team"
+    password: "{{ enterprise_default_password | default('EnterpriseDemo123!') }}"
+    state: present
+
+  - name: "seceng3"
+    display_name: "Mark Johnson - Penetration Tester"
+    email: "mark.johnson@enterprise.com"
+    profile: "auditor"
+    groups:
+      - "Security_Team"
+    password: "{{ enterprise_default_password | default('EnterpriseDemo123!') }}"
+    state: present
+
+  - name: "soc1"
+    display_name: "Amy White - SOC Analyst L1"
+    email: "amy.white@enterprise.com"
+    profile: "auditor"
+    groups:
+      - "SOC_Analysts"
+    password: "{{ enterprise_default_password | default('EnterpriseDemo123!') }}"
+    state: present
+
+  - name: "soc2"
+    display_name: "Kevin Black - SOC Analyst L2"
+    email: "kevin.black@enterprise.com"
+    profile: "auditor"
+    groups:
+      - "SOC_Analysts"
+    password: "{{ enterprise_default_password | default('EnterpriseDemo123!') }}"
+    state: present
+
+  # -------------------------------------------------------------------------
+  # DevOps Team
+  # -------------------------------------------------------------------------
+  - name: "devops1"
+    display_name: "Alex Thompson - DevOps Lead"
+    email: "alex.thompson@enterprise.com"
+    profile: "user"
+    groups:
+      - "DevOps"
+      - "Approvers"
+    password: "{{ enterprise_default_password | default('EnterpriseDemo123!') }}"
+    state: present
+
+  - name: "devops2"
+    display_name: "Julia Roberts - DevOps Engineer"
+    email: "julia.roberts@enterprise.com"
+    profile: "user"
+    groups:
+      - "DevOps"
+    password: "{{ enterprise_default_password | default('EnterpriseDemo123!') }}"
+    state: present
+
+  - name: "devops3"
+    display_name: "Ryan Garcia - DevOps Engineer"
+    email: "ryan.garcia@enterprise.com"
+    profile: "user"
+    groups:
+      - "DevOps"
+    password: "{{ enterprise_default_password | default('EnterpriseDemo123!') }}"
+    state: present
+
+  - name: "sre1"
+    display_name: "Patrick Miller - SRE Lead"
+    email: "patrick.miller@enterprise.com"
+    profile: "user"
+    groups:
+      - "SRE"
+      - "DevOps"
+      - "Approvers"
+    password: "{{ enterprise_default_password | default('EnterpriseDemo123!') }}"
+    state: present
+
+  - name: "sre2"
+    display_name: "Nancy Taylor - SRE Engineer"
+    email: "nancy.taylor@enterprise.com"
+    profile: "user"
+    groups:
+      - "SRE"
+    password: "{{ enterprise_default_password | default('EnterpriseDemo123!') }}"
+    state: present
+
+  # -------------------------------------------------------------------------
+  # Developers
+  # -------------------------------------------------------------------------
+  - name: "dev_lead1"
+    display_name: "Steve Rogers - Dev Team Lead"
+    email: "steve.rogers@enterprise.com"
+    profile: "user"
+    groups:
+      - "Developers_Senior"
+      - "Approvers"
+    password: "{{ enterprise_default_password | default('EnterpriseDemo123!') }}"
+    state: present
+
+  - name: "dev_senior1"
+    display_name: "Tony Stark - Senior Developer"
+    email: "tony.stark@enterprise.com"
+    profile: "user"
+    groups:
+      - "Developers_Senior"
+    password: "{{ enterprise_default_password | default('EnterpriseDemo123!') }}"
+    state: present
+
+  - name: "dev_senior2"
+    display_name: "Bruce Banner - Senior Developer"
+    email: "bruce.banner@enterprise.com"
+    profile: "user"
+    groups:
+      - "Developers_Senior"
+    password: "{{ enterprise_default_password | default('EnterpriseDemo123!') }}"
+    state: present
+
+  - name: "dev1"
+    display_name: "Peter Parker - Developer"
+    email: "peter.parker@enterprise.com"
+    profile: "user"
+    groups:
+      - "Developers"
+    password: "{{ enterprise_default_password | default('EnterpriseDemo123!') }}"
+    state: present
+
+  - name: "dev2"
+    display_name: "Natasha Romanoff - Developer"
+    email: "natasha.romanoff@enterprise.com"
+    profile: "user"
+    groups:
+      - "Developers"
+    password: "{{ enterprise_default_password | default('EnterpriseDemo123!') }}"
+    state: present
+
+  - name: "dev3"
+    display_name: "Clint Barton - Developer"
+    email: "clint.barton@enterprise.com"
+    profile: "user"
+    groups:
+      - "Developers"
+    password: "{{ enterprise_default_password | default('EnterpriseDemo123!') }}"
+    state: present
+
+  - name: "dev4"
+    display_name: "Wanda Maximoff - Developer"
+    email: "wanda.maximoff@enterprise.com"
+    profile: "user"
+    groups:
+      - "Developers"
+    password: "{{ enterprise_default_password | default('EnterpriseDemo123!') }}"
+    state: present
+
+  # -------------------------------------------------------------------------
+  # QA Team
+  # -------------------------------------------------------------------------
+  - name: "qa_lead"
+    display_name: "Scott Lang - QA Lead"
+    email: "scott.lang@enterprise.com"
+    profile: "user"
+    groups:
+      - "QA_Team"
+    password: "{{ enterprise_default_password | default('EnterpriseDemo123!') }}"
+    state: present
+
+  - name: "qa1"
+    display_name: "Hope Van Dyne - QA Engineer"
+    email: "hope.vandyne@enterprise.com"
+    profile: "user"
+    groups:
+      - "QA_Team"
+    password: "{{ enterprise_default_password | default('EnterpriseDemo123!') }}"
+    state: present
+
+  - name: "qa2"
+    display_name: "Sam Wilson - QA Engineer"
+    email: "sam.wilson@enterprise.com"
+    profile: "user"
+    groups:
+      - "QA_Team"
+    password: "{{ enterprise_default_password | default('EnterpriseDemo123!') }}"
+    state: present
+
+  # -------------------------------------------------------------------------
+  # IT Management
+  # -------------------------------------------------------------------------
+  - name: "it_director"
+    display_name: "Nick Fury - IT Director"
+    email: "nick.fury@enterprise.com"
+    profile: "user"
+    groups:
+      - "IT_Managers"
+      - "Approvers"
+      - "Approvers_Emergency"
+    password: "{{ enterprise_default_password | default('EnterpriseDemo123!') }}"
+    state: present
+
+  - name: "it_manager1"
+    display_name: "Maria Hill - IT Manager"
+    email: "maria.hill@enterprise.com"
+    profile: "user"
+    groups:
+      - "IT_Managers"
+      - "Approvers"
+    password: "{{ enterprise_default_password | default('EnterpriseDemo123!') }}"
+    state: present
+
+  # -------------------------------------------------------------------------
+  # External / Contractor Access
+  # -------------------------------------------------------------------------
+  - name: "contractor1"
+    display_name: "External Contractor - ABC Corp"
+    email: "contractor1@abc-corp.com"
+    profile: "user"
+    groups:
+      - "External_Contractors"
+    password: "{{ enterprise_default_password | default('EnterpriseDemo123!') }}"
+    state: present
+
+  - name: "contractor2"
+    display_name: "External Contractor - XYZ Services"
+    email: "contractor2@xyz-services.com"
+    profile: "user"
+    groups:
+      - "External_Contractors"
+    password: "{{ enterprise_default_password | default('EnterpriseDemo123!') }}"
+    state: present
+
+  - name: "vendor_oracle"
+    display_name: "Oracle Support"
+    email: "support@oracle.com"
+    profile: "user"
+    groups:
+      - "Vendors"
+    password: "{{ enterprise_default_password | default('EnterpriseDemo123!') }}"
+    state: present
+
+  - name: "vendor_microsoft"
+    display_name: "Microsoft Support"
+    email: "support@microsoft.com"
+    profile: "user"
+    groups:
+      - "Vendors"
+    password: "{{ enterprise_default_password | default('EnterpriseDemo123!') }}"
+    state: present
+
+  # -------------------------------------------------------------------------
+  # Emergency Access
+  # -------------------------------------------------------------------------
+  - name: "emergency1"
+    display_name: "Emergency Access User 1"
+    email: "emergency1@enterprise.com"
+    profile: "user"
+    groups:
+      - "Emergency_Access"
+    password: "{{ enterprise_default_password | default('EnterpriseDemo123!') }}"
+    state: present
+
+  - name: "emergency2"
+    display_name: "Emergency Access User 2"
+    email: "emergency2@enterprise.com"
+    profile: "user"
+    groups:
+      - "Emergency_Access"
+    password: "{{ enterprise_default_password | default('EnterpriseDemo123!') }}"
+    state: present

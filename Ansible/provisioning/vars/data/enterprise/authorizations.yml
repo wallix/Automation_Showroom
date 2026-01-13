@@ -1,0 +1,612 @@
+wallix_timeframes:
+- timeframe_name: TF_BUSINESS_HOURS
+  description: Standard business hours (Mon-Fri 8AM-6PM)
+  is_overtimable: false
+  periods:
+  - start_date: '2024-01-01'
+    end_date: '2099-12-31'
+    start_time: 08:00
+    end_time: '18:00'
+    week_days:
+    - monday
+    - tuesday
+    - wednesday
+    - thursday
+    - friday
+- timeframe_name: TF_EXTENDED_HOURS
+  description: Extended hours (Mon-Sat 6AM-10PM)
+  is_overtimable: false
+  periods:
+  - start_date: '2024-01-01'
+    end_date: '2099-12-31'
+    start_time: 06:00
+    end_time: '22:00'
+    week_days:
+    - monday
+    - tuesday
+    - wednesday
+    - thursday
+    - friday
+    - saturday
+- timeframe_name: TF_ALWAYS
+  description: 24/7 Access
+  is_overtimable: true
+  periods:
+  - start_date: '2024-01-01'
+    end_date: '2099-12-31'
+    start_time: 00:00
+    end_time: '23:59'
+    week_days:
+    - monday
+    - tuesday
+    - wednesday
+    - thursday
+    - friday
+    - saturday
+    - sunday
+- timeframe_name: TF_MAINTENANCE_WINDOW
+  description: Maintenance window (Sat-Sun 2AM-6AM)
+  is_overtimable: false
+  periods:
+  - start_date: '2024-01-01'
+    end_date: '2099-12-31'
+    start_time: 02:00
+    end_time: 06:00
+    week_days:
+    - saturday
+    - sunday
+- timeframe_name: TF_NIGHT_SHIFT
+  description: Night shift (10PM-8AM)
+  is_overtimable: true
+  periods:
+  - start_date: '2024-01-01'
+    end_date: '2099-12-31'
+    start_time: '22:00'
+    end_time: '23:59'
+    week_days:
+    - monday
+    - tuesday
+    - wednesday
+    - thursday
+    - friday
+    - saturday
+    - sunday
+  - start_date: '2024-01-01'
+    end_date: '2099-12-31'
+    start_time: 00:00
+    end_time: 08:00
+    week_days:
+    - monday
+    - tuesday
+    - wednesday
+    - thursday
+    - friday
+    - saturday
+    - sunday
+- timeframe_name: TF_CONTRACTOR
+  description: Contractor access (Mon-Fri 9AM-5PM)
+  is_overtimable: false
+  periods:
+  - start_date: '2024-01-01'
+    end_date: '2099-12-31'
+    start_time: 09:00
+    end_time: '17:00'
+    week_days:
+    - monday
+    - tuesday
+    - wednesday
+    - thursday
+    - friday
+wallix_authorizations:
+- name: AUTH_INFRA_PROD_ALL
+  description: IT Infrastructure - Full Production Access
+  user_group: IT_Infrastructure
+  target_group: TG_PROD_ALL
+  is_critical: true
+  is_recorded: true
+  approval_required: false
+  timeframes:
+  - TF_ALWAYS
+  state: present
+  subprotocols:
+  - SSH_SHELL_SESSION
+  - SSH_SCP_UP
+  - SSH_SCP_DOWN
+  - SFTP_SESSION
+  - RDP
+- name: AUTH_INFRA_STG_ALL
+  description: IT Infrastructure - Staging Access
+  user_group: IT_Infrastructure
+  target_group: TG_STG_ALL
+  is_critical: false
+  is_recorded: true
+  approval_required: false
+  timeframes:
+  - TF_EXTENDED_HOURS
+  state: present
+  subprotocols:
+  - SSH_SHELL_SESSION
+  - SSH_SCP_UP
+  - SSH_SCP_DOWN
+  - SFTP_SESSION
+  - RDP
+- name: AUTH_INFRA_DEV_ALL
+  description: IT Infrastructure - Development Access
+  user_group: IT_Infrastructure
+  target_group: TG_DEV_ALL
+  is_critical: false
+  is_recorded: true
+  approval_required: false
+  timeframes:
+  - TF_ALWAYS
+  state: present
+  subprotocols:
+  - SSH_SHELL_SESSION
+  - SSH_SCP_UP
+  - SSH_SCP_DOWN
+  - SFTP_SESSION
+  - RDP
+- name: AUTH_INFRA_CICD
+  description: IT Infrastructure - CI/CD Access
+  user_group: IT_Infrastructure
+  target_group: TG_CICD_ALL
+  is_critical: false
+  is_recorded: true
+  approval_required: false
+  timeframes:
+  - TF_EXTENDED_HOURS
+  state: present
+  subprotocols:
+  - SSH_SHELL_SESSION
+  - SSH_SCP_UP
+  - SSH_SCP_DOWN
+  - SFTP_SESSION
+  - RDP
+- name: AUTH_DBA_ALL_DATABASES
+  description: DBA - All Database Access
+  user_group: DBAs
+  target_group: TG_DBA_ACCESS
+  is_critical: true
+  is_recorded: true
+  approval_required: false
+  timeframes:
+  - TF_ALWAYS
+  state: present
+  subprotocols:
+  - SSH_SHELL_SESSION
+  - SSH_SCP_UP
+  - SSH_SCP_DOWN
+  - SFTP_SESSION
+  - RDP
+- name: AUTH_DBA_PROD_DB
+  description: DBA - Production Database Tier
+  user_group: DBAs
+  target_group: TG_PROD_DB
+  is_critical: true
+  is_recorded: true
+  approval_required: false
+  timeframes:
+  - TF_ALWAYS
+  state: present
+  subprotocols:
+  - SSH_SHELL_SESSION
+  - SSH_SCP_UP
+  - SSH_SCP_DOWN
+  - SFTP_SESSION
+  - RDP
+- name: AUTH_DBA_POSTGRESQL
+  description: DBA - PostgreSQL Servers
+  user_group: DBAs
+  target_group: TG_TECH_POSTGRESQL
+  is_critical: false
+  is_recorded: true
+  approval_required: false
+  timeframes:
+  - TF_ALWAYS
+  state: present
+  subprotocols:
+  - SSH_SHELL_SESSION
+  - SSH_SCP_UP
+  - SSH_SCP_DOWN
+  - SFTP_SESSION
+  - RDP
+- name: AUTH_DBA_MYSQL
+  description: DBA - MySQL Servers
+  user_group: DBAs
+  target_group: TG_TECH_MYSQL
+  is_critical: false
+  is_recorded: true
+  approval_required: false
+  timeframes:
+  - TF_ALWAYS
+  state: present
+  subprotocols:
+  - SSH_SHELL_SESSION
+  - SSH_SCP_UP
+  - SSH_SCP_DOWN
+  - SFTP_SESSION
+  - RDP
+- name: AUTH_NETADMIN_ALL
+  description: Network Admins - All Network Devices
+  user_group: Network_Admins
+  target_group: TG_NET_ALL
+  is_critical: true
+  is_recorded: true
+  approval_required: false
+  timeframes:
+  - TF_ALWAYS
+  state: present
+  subprotocols:
+  - SSH_SHELL_SESSION
+  - SSH_SCP_UP
+  - SSH_SCP_DOWN
+  - SFTP_SESSION
+  - RDP
+- name: AUTH_NETADMIN_FIREWALL
+  description: Network Admins - Firewall Access
+  user_group: Network_Admins
+  target_group: TG_NET_FIREWALL
+  is_critical: true
+  is_recorded: true
+  approval_required: false
+  timeframes:
+  - TF_EXTENDED_HOURS
+  state: present
+  subprotocols:
+  - SSH_SHELL_SESSION
+  - SSH_SCP_UP
+  - SSH_SCP_DOWN
+  - SFTP_SESSION
+  - RDP
+- name: AUTH_SECURITY_PROD
+  description: Security Team - Production Audit Access
+  user_group: Security_Team
+  target_group: TG_PROD_ALL
+  is_critical: false
+  is_recorded: true
+  approval_required: false
+  timeframes:
+  - TF_BUSINESS_HOURS
+  state: present
+  subprotocols:
+  - SSH_SHELL_SESSION
+  - SSH_SCP_UP
+  - SSH_SCP_DOWN
+  - SFTP_SESSION
+  - RDP
+- name: AUTH_SECURITY_SIEM
+  description: Security Team - SIEM Access
+  user_group: Security_Team
+  target_group: TG_SEC_ALL
+  is_critical: false
+  is_recorded: true
+  approval_required: false
+  timeframes:
+  - TF_ALWAYS
+  state: present
+  subprotocols:
+  - SSH_SHELL_SESSION
+  - SSH_SCP_UP
+  - SSH_SCP_DOWN
+  - SFTP_SESSION
+  - RDP
+- name: AUTH_SOC_SECURITY
+  description: SOC - Security Infrastructure
+  user_group: SOC_Analysts
+  target_group: TG_SEC_ALL
+  is_critical: false
+  is_recorded: true
+  approval_required: false
+  timeframes:
+  - TF_ALWAYS
+  state: present
+  subprotocols:
+  - SSH_SHELL_SESSION
+  - SSH_SCP_UP
+  - SSH_SCP_DOWN
+  - SFTP_SESSION
+  - RDP
+- name: AUTH_DEVOPS_CICD
+  description: DevOps - CI/CD Infrastructure
+  user_group: DevOps
+  target_group: TG_CICD_ALL
+  is_critical: false
+  is_recorded: true
+  approval_required: false
+  timeframes:
+  - TF_ALWAYS
+  state: present
+  subprotocols:
+  - SSH_SHELL_SESSION
+  - SSH_SCP_UP
+  - SSH_SCP_DOWN
+  - SFTP_SESSION
+  - RDP
+- name: AUTH_DEVOPS_JENKINS
+  description: DevOps - Jenkins Access
+  user_group: DevOps
+  target_group: TG_CICD_JENKINS
+  is_critical: false
+  is_recorded: true
+  approval_required: false
+  timeframes:
+  - TF_ALWAYS
+  state: present
+  subprotocols:
+  - SSH_SHELL_SESSION
+  - SSH_SCP_UP
+  - SSH_SCP_DOWN
+  - SFTP_SESSION
+  - RDP
+- name: AUTH_DEVOPS_DEV
+  description: DevOps - Development Environment
+  user_group: DevOps
+  target_group: TG_DEV_ALL
+  is_critical: false
+  is_recorded: true
+  approval_required: false
+  timeframes:
+  - TF_ALWAYS
+  state: present
+  subprotocols:
+  - SSH_SHELL_SESSION
+  - SSH_SCP_UP
+  - SSH_SCP_DOWN
+  - SFTP_SESSION
+  - RDP
+- name: AUTH_DEVOPS_STG
+  description: DevOps - Staging Environment
+  user_group: DevOps
+  target_group: TG_STG_ALL
+  is_critical: false
+  is_recorded: true
+  approval_required: false
+  timeframes:
+  - TF_EXTENDED_HOURS
+  state: present
+  subprotocols:
+  - SSH_SHELL_SESSION
+  - SSH_SCP_UP
+  - SSH_SCP_DOWN
+  - SFTP_SESSION
+  - RDP
+- name: AUTH_DEVOPS_ACCESS
+  description: DevOps - Full DevOps Access Set
+  user_group: DevOps
+  target_group: TG_DEVOPS_ACCESS
+  is_critical: false
+  is_recorded: true
+  approval_required: false
+  timeframes:
+  - TF_ALWAYS
+  state: present
+  subprotocols:
+  - SSH_SHELL_SESSION
+  - SSH_SCP_UP
+  - SSH_SCP_DOWN
+  - SFTP_SESSION
+  - RDP
+- name: AUTH_SRE_PROD_INFRA
+  description: SRE - Production Infrastructure
+  user_group: SRE
+  target_group: TG_PROD_INFRA
+  is_critical: true
+  is_recorded: true
+  approval_required: false
+  timeframes:
+  - TF_ALWAYS
+  state: present
+  subprotocols:
+  - SSH_SHELL_SESSION
+  - SSH_SCP_UP
+  - SSH_SCP_DOWN
+  - SFTP_SESSION
+  - RDP
+- name: AUTH_SRE_PROD_APP
+  description: SRE - Production Application Tier
+  user_group: SRE
+  target_group: TG_PROD_APP
+  is_critical: true
+  is_recorded: true
+  approval_required: false
+  timeframes:
+  - TF_ALWAYS
+  state: present
+  subprotocols:
+  - SSH_SHELL_SESSION
+  - SSH_SCP_UP
+  - SSH_SCP_DOWN
+  - SFTP_SESSION
+  - RDP
+- name: AUTH_SRE_PROD_WEB
+  description: SRE - Production Web Tier
+  user_group: SRE
+  target_group: TG_PROD_WEB
+  is_critical: true
+  is_recorded: true
+  approval_required: false
+  timeframes:
+  - TF_ALWAYS
+  state: present
+  subprotocols:
+  - SSH_SHELL_SESSION
+  - SSH_SCP_UP
+  - SSH_SCP_DOWN
+  - SFTP_SESSION
+  - RDP
+- name: AUTH_DEV_DEVELOPMENT
+  description: Developers - Development Environment
+  user_group: Developers
+  target_group: TG_DEV_ALL
+  is_critical: false
+  is_recorded: true
+  approval_required: false
+  timeframes:
+  - TF_EXTENDED_HOURS
+  state: present
+  subprotocols:
+  - SSH_SHELL_SESSION
+  - SSH_SCP_UP
+  - SSH_SCP_DOWN
+  - SFTP_SESSION
+  - RDP
+- name: AUTH_DEV_SANDBOX
+  description: Developers - Sandbox (unrestricted)
+  user_group: Developers
+  target_group: TG_DEV_SANDBOX
+  is_critical: false
+  is_recorded: true
+  approval_required: false
+  timeframes:
+  - TF_ALWAYS
+  state: present
+  subprotocols:
+  - SSH_SHELL_SESSION
+  - SSH_SCP_UP
+  - SSH_SCP_DOWN
+  - SFTP_SESSION
+  - RDP
+- name: AUTH_DEV_SENIOR_STAGING
+  description: Senior Developers - Staging Access
+  user_group: Developers_Senior
+  target_group: TG_STG_ALL
+  is_critical: false
+  is_recorded: true
+  approval_required: false
+  timeframes:
+  - TF_BUSINESS_HOURS
+  state: present
+  subprotocols:
+  - SSH_SHELL_SESSION
+  - SSH_SCP_UP
+  - SSH_SCP_DOWN
+  - SFTP_SESSION
+  - RDP
+- name: AUTH_DEV_ACCESS
+  description: Developers - Developer Access Set
+  user_group: Developers
+  target_group: TG_DEVELOPER_ACCESS
+  is_critical: false
+  is_recorded: true
+  approval_required: false
+  timeframes:
+  - TF_EXTENDED_HOURS
+  state: present
+  subprotocols:
+  - SSH_SHELL_SESSION
+  - SSH_SCP_UP
+  - SSH_SCP_DOWN
+  - SFTP_SESSION
+  - RDP
+- name: AUTH_QA_STAGING
+  description: QA Team - Staging Environment
+  user_group: QA_Team
+  target_group: TG_STG_ALL
+  is_critical: false
+  is_recorded: true
+  approval_required: false
+  timeframes:
+  - TF_EXTENDED_HOURS
+  state: present
+  subprotocols:
+  - SSH_SHELL_SESSION
+  - SSH_SCP_UP
+  - SSH_SCP_DOWN
+  - SFTP_SESSION
+  - RDP
+- name: AUTH_QA_DEVELOPMENT
+  description: QA Team - Development Environment
+  user_group: QA_Team
+  target_group: TG_DEV_ALL
+  is_critical: false
+  is_recorded: true
+  approval_required: false
+  timeframes:
+  - TF_EXTENDED_HOURS
+  state: present
+  subprotocols:
+  - SSH_SHELL_SESSION
+  - SSH_SCP_UP
+  - SSH_SCP_DOWN
+  - SFTP_SESSION
+  - RDP
+- name: AUTH_CONTRACTOR_DEV
+  description: External Contractors - Development Only
+  user_group: External_Contractors
+  target_group: TG_DEV_ALL
+  is_critical: false
+  is_recorded: true
+  approval_required: false
+  timeframes:
+  - TF_CONTRACTOR
+  state: present
+  subprotocols:
+  - SSH_SHELL_SESSION
+  - SSH_SCP_UP
+  - SSH_SCP_DOWN
+  - SFTP_SESSION
+  - RDP
+- name: AUTH_VENDOR_SPECIFIC
+  description: Vendors - Specific Systems (approval required)
+  user_group: Vendors
+  target_group: TG_PROD_DB
+  is_critical: true
+  is_recorded: true
+  approval_required: false
+  timeframes:
+  - TF_BUSINESS_HOURS
+  state: present
+  subprotocols:
+  - SSH_SHELL_SESSION
+  - SSH_SCP_UP
+  - SSH_SCP_DOWN
+  - SFTP_SESSION
+  - RDP
+- name: AUTH_EMERGENCY_PROD
+  description: Emergency Access - Production (approval required)
+  user_group: Emergency_Access
+  target_group: TG_EMERGENCY_PROD
+  is_critical: true
+  is_recorded: true
+  approval_required: false
+  timeframes:
+  - TF_ALWAYS
+  state: present
+  subprotocols:
+  - SSH_SHELL_SESSION
+  - SSH_SCP_UP
+  - SSH_SCP_DOWN
+  - SFTP_SESSION
+  - RDP
+- name: AUTH_EMERGENCY_ALL
+  description: Emergency Access - All Systems (approval required)
+  user_group: Emergency_Access
+  target_group: TG_EMERGENCY_ALL
+  is_critical: true
+  is_recorded: true
+  approval_required: false
+  timeframes:
+  - TF_ALWAYS
+  state: present
+  subprotocols:
+  - SSH_SHELL_SESSION
+  - SSH_SCP_UP
+  - SSH_SCP_DOWN
+  - SFTP_SESSION
+  - RDP
+- name: AUTH_MGMT_ALL_READONLY
+  description: IT Managers - Read-Only All Systems
+  user_group: IT_Managers
+  target_group: TG_READONLY_ALL
+  is_critical: false
+  is_recorded: true
+  approval_required: false
+  timeframes:
+  - TF_BUSINESS_HOURS
+  state: present
+  subprotocols:
+  - SSH_SHELL_SESSION
+  - SSH_SCP_UP
+  - SSH_SCP_DOWN
+  - SFTP_SESSION
+  - RDP
