@@ -1,7 +1,7 @@
 <!-- markdownlint-disable MD033 -->
 # CLOUD-INIT MODULE
 
-Simple module to generate WALLIX cloud init data to be use with wallix Access Manager or Session Manager.
+Simple module to generate WALLIX cloud init data to be use with WALLIX Access Manager or Session Manager.
 
 ## Usage
 

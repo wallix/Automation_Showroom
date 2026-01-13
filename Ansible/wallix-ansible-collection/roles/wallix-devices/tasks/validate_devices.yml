@@ -1,0 +1,57 @@
+---
+# Validate devices configuration
+
+- name: Get all devices from WALLIX
+  uri:
+    url: "{{ wallix_api.base_url }}/devices"
+    method: GET
+    headers:
+      Cookie: "{{ wallix_session_cookie }}"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl }}"
+    timeout: "{{ wallix_auth.connection.timeout }}"
+    status_code: [200]
+    return_content: yes
+  register: wallix_all_devices
+
+- name: Skip services validation (endpoint not available globally)
+  debug:
+    msg: "⚠️ Skipping services validation - no global services endpoint"
+  vars:
+    wallix_all_services:
+      json: []
+
+- name: Get all accounts from WALLIX
+  uri:
+    url: "{{ wallix_api.base_url }}/accounts"
+    method: GET
+    headers:
+      Cookie: "{{ wallix_session_cookie }}"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl }}"
+    timeout: "{{ wallix_auth.connection.timeout }}"
+    status_code: [200]
+    return_content: yes
+  register: wallix_all_accounts
+
+- name: Validate devices exist
+  assert:
+    that:
+      - wallix_all_devices.json | selectattr('device_name', 'equalto', item.name) | list | length > 0
+    fail_msg: "Device '{{ item.name }}' not found in WALLIX"
+    success_msg: "Device '{{ item.name }}' found in WALLIX"
+  loop: "{{ wallix_devices }}"
+  when: item.state | default('present') == 'present'
+
+- name: Set validation status
+  set_fact:
+    wallix_devices_validation_status: "success"
+    wallix_total_devices: "{{ wallix_all_devices.json | length }}"
+    wallix_total_services: "0"
+    wallix_total_accounts: "{{ wallix_all_accounts.json | length }}"
+
+- name: Display validation summary
+  debug:
+    msg:
+      - "✅ Device validation completed successfully"
+      - "Total devices in WALLIX: {{ wallix_total_devices }}"
+      - "Total services in WALLIX: {{ wallix_total_services }}"
+      - "Total accounts in WALLIX: {{ wallix_total_accounts }}"

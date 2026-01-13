@@ -1,0 +1,15 @@
+---
+# WALLIX Group Membership Management
+# This file manages user group membership operations
+
+- name: Display group membership management
+  debug:
+    msg:
+      - "👥 Group membership management"
+      - "Note: Group membership is handled during user creation"
+      - "Users are already assigned to groups via the groups parameter"
+
+- name: Set group membership status
+  set_fact:
+    wallix_group_membership_status: "success"
+    wallix_group_membership_message: "Group membership handled during user creation"

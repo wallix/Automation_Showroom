@@ -1,0 +1,289 @@
+---
+# playbooks/operational/cleanup.yml - Resource cleanup with safety features
+#
+# Safely removes WALLIX resources with:
+# - Pattern-based filtering (include/exclude)
+# - Confirmation prompts
+# - Backup before delete
+# - Dry-run mode
+# - Detailed logging
+#
+# Usage:
+#   make cleanup                 # Interactive cleanup
+#   make cleanup-demo            # Clean demo resources only
+#   make cleanup-dry-run         # Preview what would be deleted
+#
+# Or directly:
+#   ansible-playbook playbooks/operational/cleanup.yml -i inventories/dev/hosts.ini \
+#     -e wallix_bastion_host=10.10.122.15 \
+#     -e wallix_cleanup_mode=dry-run \
+#     --vault-password-file <(printf "vault_password")
+
+- name: WALLIX Bastion - Resource Cleanup
+  hosts: localhost
+  gather_facts: true  # Need for timestamps
+  connection: local
+
+  vars:
+    # Standard HTTP status codes
+    wallix_api_success_codes: [200, 201, 204, 409]
+
+    # Cleanup mode: dry-run | execute
+    wallix_cleanup_mode: "{{ cleanup_mode | default('dry-run') }}"
+
+    # Cleanup configuration
+    wallix_cleanup:
+      operation_mode: "{{ wallix_cleanup_mode }}"
+      require_confirmation: true
+      backup_before_delete: true
+      detailed_logging: true
+      log_api_requests: true
+      api_success_codes: "{{ wallix_api_success_codes }}"
+
+    # Components to clean (enable/disable each)
+    wallix_cleanup_components:
+      authorizations:
+        enabled: true
+        order: 1  # Clean first (depends on groups)
+      target_groups:
+        enabled: true
+        order: 2
+      user_groups:
+        enabled: true
+        order: 3
+      global_accounts:
+        enabled: true
+        order: 4
+      global_domains:
+        enabled: true
+        order: 5
+      devices:
+        enabled: true
+        order: 6
+      users:
+        enabled: true
+        order: 7
+      timeframes:
+        enabled: true
+        order: 8
+      connection_policies:
+        enabled: false  # Disabled - usually system-managed
+        order: 9
+      domains:
+        enabled: false  # Disabled by default for safety
+        order: 10
+
+    # Pattern-based filters
+    wallix_cleanup_filters:
+      include_patterns:
+        - "demo*"        # Demo resources
+        - "Demo_*"       # Demo groups
+        - "demo-*"       # Demo devices/users
+        - "test*"        # Test resources
+        - "Test*"        # Test groups
+        - "test-*"       # Test devices
+      exclude_patterns:
+        - "admin*"       # Never touch admin
+        - "Admin*"
+        - "root*"
+        - "system*"
+        - "wab*"         # WAB system resources
+        - "bastion*"
+        - "default*"     # Default policies
+
+    # Backup configuration
+    wallix_cleanup_backup:
+      enabled: true
+      destination: "/tmp/wallix_backup_{{ ansible_date_time.iso8601_basic_short }}"
+      format: "json"
+      include_metadata: true
+      compress: true
+
+    # Safety settings
+    wallix_cleanup_safety:
+      require_explicit_confirmation: true
+      max_deletions_per_run: 50
+      verify_before_delete: true
+      abort_on_protected_resource: true
+
+    # Error handling
+    wallix_cleanup_error_handling:
+      continue_on_error: true
+      max_errors: 10
+      log_errors: true
+
+    # Reporting
+    wallix_cleanup_reporting:
+      enabled: true
+      destination: "/tmp/wallix_cleanup_report_{{ ansible_date_time.iso8601_basic_short }}.json"
+      include_stats: true
+      include_errors: true
+
+    # Debug
+    wallix_cleanup_debug:
+      enabled: "{{ wallix_debug.enabled | default(false) }}"
+      log_deletions: true
+      log_api_calls: true
+      verbose_output: false
+
+  pre_tasks:
+    - name: Set connection defaults
+      set_fact:
+        wallix_api_protocol: "{{ wallix_api.protocol | default('https') }}"
+        wallix_api_port: "{{ wallix_api.port | default(443) }}"
+
+    - name: Build API base URL
+      set_fact:
+        wallix_api: "{{ wallix_api | combine({'base_url': wallix_api_protocol ~ '://' ~ wallix_bastion_host ~ ':' ~ wallix_api_port ~ '/api'}) }}"
+
+    - name: Display cleanup configuration
+      debug:
+        msg:
+          - "╔══════════════════════════════════════════════════════════╗"
+          - "║              WALLIX BASTION - CLEANUP                    ║"
+          - "╠══════════════════════════════════════════════════════════╣"
+          - "║  Target: {{ wallix_api.base_url | truncate(42) }}"
+          - "║  Mode:   {{ wallix_cleanup_mode | upper }}"
+          - "║                                                          ║"
+          - "║  Components to clean:                                    ║"
+          - "║    • Authorizations:     {{ '✅' if wallix_cleanup_components.authorizations.enabled else '❌' }}                        ║"
+          - "║    • Target Groups:      {{ '✅' if wallix_cleanup_components.target_groups.enabled else '❌' }}                        ║"
+          - "║    • User Groups:        {{ '✅' if wallix_cleanup_components.user_groups.enabled else '❌' }}                        ║"
+          - "║    • Global Accounts:    {{ '✅' if wallix_cleanup_components.global_accounts.enabled else '❌' }}                        ║"
+          - "║    • Global Domains:     {{ '✅' if wallix_cleanup_components.global_domains.enabled else '❌' }}                        ║"
+          - "║    • Devices:            {{ '✅' if wallix_cleanup_components.devices.enabled else '❌' }}                        ║"
+          - "║    • Users:              {{ '✅' if wallix_cleanup_components.users.enabled else '❌' }}                        ║"
+          - "║    • Timeframes:         {{ '✅' if wallix_cleanup_components.timeframes.enabled else '❌' }}                        ║"
+          - "║    • Connection Policies: {{ '✅' if wallix_cleanup_components.connection_policies.enabled else '❌' }}                        ║"
+          - "║    • Domains:            {{ '✅' if wallix_cleanup_components.domains.enabled else '❌' }} (disabled for safety)  ║"
+          - "║                                                          ║"
+          - "║  Include patterns: {{ wallix_cleanup_filters.include_patterns | join(', ') | truncate(30) }}"
+          - "║  Exclude patterns: {{ wallix_cleanup_filters.exclude_patterns | join(', ') | truncate(30) }}"
+          - "║                                                          ║"
+          - "║  Backup: {{ wallix_cleanup_backup.destination | truncate(40) }}"
+          - "╚══════════════════════════════════════════════════════════╝"
+
+    - name: DRY RUN WARNING
+      debug:
+        msg:
+          - ""
+          - "  ⚠️  DRY RUN MODE - No changes will be made"
+          - "  Run with -e cleanup_mode=execute to perform actual cleanup"
+          - ""
+      when: wallix_cleanup_mode == "dry-run"
+
+    - name: EXECUTE WARNING
+      pause:
+        prompt: |
+
+          ⚠️  WARNING: EXECUTE MODE
+          This will permanently delete matching resources!
+
+          Include patterns: {{ wallix_cleanup_filters.include_patterns | join(', ') }}
+          Exclude patterns: {{ wallix_cleanup_filters.exclude_patterns | join(', ') }}
+
+          Type 'yes' to proceed with cleanup
+      register: cleanup_confirmation
+      when:
+        - wallix_cleanup_mode == "execute"
+        - wallix_cleanup.require_confirmation | default(true)
+
+    - name: Check confirmation
+      fail:
+        msg: "Cleanup cancelled by user"
+      when:
+        - wallix_cleanup_mode == "execute"
+        - wallix_cleanup.require_confirmation | default(true)
+        - cleanup_confirmation.user_input != "yes"
+
+  tasks:
+    # =========================================================================
+    # AUTHENTICATION
+    # =========================================================================
+    - name: "🔐 Authenticate to Bastion"
+      include_role:
+        name: wallix-auth
+      tags: [auth]
+
+    # =========================================================================
+    # BACKUP (before cleanup)
+    # =========================================================================
+    - name: "💾 Create backup before cleanup"
+      block:
+        - name: Create backup directory
+          file:
+            path: "{{ wallix_cleanup_backup.destination }}"
+            state: directory
+            mode: '0755'
+
+        - name: Backup message
+          debug:
+            msg: "Backup location: {{ wallix_cleanup_backup.destination }}"
+      when: wallix_cleanup_backup.enabled | default(true)
+      tags: [backup]
+
+    # =========================================================================
+    # CLEANUP OPERATIONS
+    # =========================================================================
+    - name: "🧹 Execute cleanup operations"
+      include_role:
+        name: wallix-cleanup
+      tags: [cleanup]
+
+    # =========================================================================
+    # SUMMARY
+    # =========================================================================
+    - name: Initialize cleanup stats if not defined
+      set_fact:
+        wallix_cleanup_stats:
+          total_processed: 0
+          total_deleted: 0
+          total_errors: 0
+          authorizations_deleted: 0
+          target_groups_deleted: 0
+          user_groups_deleted: 0
+          global_accounts_deleted: 0
+          global_domains_deleted: 0
+          devices_deleted: 0
+          users_deleted: 0
+          timeframes_deleted: 0
+      when: wallix_cleanup_stats is not defined
+
+    - name: Cleanup Summary
+      debug:
+        msg:
+          - ""
+          - "╔══════════════════════════════════════════════════════════╗"
+          - "║              🧹 CLEANUP {{ 'COMPLETE' if wallix_cleanup_mode == 'execute' else 'DRY RUN COMPLETE' }}                 ║"
+          - "╠══════════════════════════════════════════════════════════╣"
+          - "║  Mode: {{ wallix_cleanup_mode | upper }}"
+          - "║                                                          ║"
+          - "║  Statistics:                                             ║"
+          - "║    • Total processed:  {{ '%4d' | format(wallix_cleanup_stats.total_processed | default(0)) }}                       ║"
+          - "║    • Total deleted:    {{ '%4d' | format(wallix_cleanup_stats.total_deleted | default(0)) }}                       ║"
+          - "║    • Errors:           {{ '%4d' | format(wallix_cleanup_stats.total_errors | default(0)) }}                       ║"
+          - "║                                                          ║"
+          - "║  By component:                                           ║"
+          - "║    • Authorizations:   {{ '%4d' | format(wallix_cleanup_stats.authorizations_deleted | default(0)) }}                       ║"
+          - "║    • Target Groups:    {{ '%4d' | format(wallix_cleanup_stats.target_groups_deleted | default(0)) }}                       ║"
+          - "║    • User Groups:      {{ '%4d' | format(wallix_cleanup_stats.user_groups_deleted | default(0)) }}                       ║"
+          - "║    • Global Accounts:  {{ '%4d' | format(wallix_cleanup_stats.global_accounts_deleted | default(0)) }}                       ║"
+          - "║    • Global Domains:   {{ '%4d' | format(wallix_cleanup_stats.global_domains_deleted | default(0)) }}                       ║"
+          - "║    • Devices:          {{ '%4d' | format(wallix_cleanup_stats.devices_deleted | default(0)) }}                       ║"
+          - "║    • Users:            {{ '%4d' | format(wallix_cleanup_stats.users_deleted | default(0)) }}                       ║"
+          - "║    • Timeframes:       {{ '%4d' | format(wallix_cleanup_stats.timeframes_deleted | default(0)) }}                       ║"
+          - "║                                                          ║"
+          - "║  Backup: {{ wallix_cleanup_backup.destination | truncate(40) }}"
+          - "║  Report: {{ wallix_cleanup_reporting.destination | truncate(40) }}"
+          - "╚══════════════════════════════════════════════════════════╝"
+      tags: [always]
+
+    - name: Dry run reminder
+      debug:
+        msg:
+          - ""
+          - "  ℹ️  This was a DRY RUN - no changes were made"
+          - "  To execute cleanup, run with: -e cleanup_mode=execute"
+          - ""
+      when: wallix_cleanup_mode == "dry-run"
+      tags: [always]

@@ -1,0 +1,36 @@
+---
+# Cleanup patterns for Demo dataset
+#
+# These patterns are used by the cleanup playbook to identify
+# resources to delete. Uses glob-style patterns (* = any chars, ? = single char)
+#
+# Usage:
+#   make cleanup-demo
+#   # or manually:
+#   ansible-playbook playbooks/operational/cleanup.yml -e @vars/data/demo/cleanup_patterns.yml
+
+wallix_cleanup_filters:
+  include_patterns:
+    # Demo prefixes
+    - "demo*"
+    - "Demo_*"
+    - "demo-*"
+    - "DEMO_*"
+    # Demo target groups
+    - "TG_Demo*"
+    # Demo authorizations
+    - "AUTH_Demo*"
+    # Demo timeframes
+    - "TF_Demo*"
+    # Demo users
+    - "demo_user*"
+    - "test_user*"
+
+  exclude_patterns:
+    # System accounts - never delete
+    - "admin*"
+    - "Admin*"
+    - "root*"
+    - "system*"
+    - "wab*"
+    - "local"

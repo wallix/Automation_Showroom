@@ -1,0 +1,74 @@
+---
+# WALLIX Cleanup Role - Default Variables
+
+# Cleanup operation mode
+wallix_cleanup:
+  operation_mode: "dry_run"  # dry_run, apply
+  require_confirmation: true
+  backup_before_delete: true
+  detailed_logging: true
+  log_api_requests: true
+
+# What to cleanup
+wallix_cleanup_components:
+  authorizations:
+    enabled: false
+  target_groups:
+    enabled: false
+  devices:
+    enabled: false
+  users:
+    enabled: false
+  domains:
+    enabled: false
+
+# Safety filters
+wallix_cleanup_filters:
+  # Only delete items matching these patterns
+  include_patterns: []
+  # Never delete items matching these patterns
+  exclude_patterns:
+    - "admin*"
+    - "root*"
+    - "system*"
+    - "default*"
+    - "wab*"
+  # Minimum age before deletion (hours)
+  minimum_age_hours: 0
+  # Maximum items to delete in one run
+  max_deletion_count: 50
+
+# Backup before deletion
+wallix_cleanup_backup:
+  enabled: true
+  format: "json"  # json, yaml
+  destination: "/tmp/wallix_backup_{{ ansible_date_time.epoch }}"
+  include_metadata: true
+
+# Debug and logging
+wallix_cleanup_debug:
+  enabled: false
+  log_deletions: true
+  log_skipped: false
+  dry_run_details: true
+
+# Report generation
+wallix_cleanup_reporting:
+  enabled: true
+  format: "json"
+  destination: "/tmp/wallix_cleanup_report_{{ ansible_date_time.epoch }}.json"
+  include_errors: true
+  include_skipped: true
+
+# Error handling
+wallix_cleanup_error_handling:
+  continue_on_error: false
+  max_errors: 5
+  retry_count: 2
+  retry_delay: 5  # seconds
+
+# Safety checks
+wallix_cleanup_safety:
+  require_explicit_confirmation: true
+  confirmation_phrase: "DELETE_CONFIRMED"
+  max_deletions_per_run: 100

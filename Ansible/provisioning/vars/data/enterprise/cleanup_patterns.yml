@@ -1,0 +1,115 @@
+---
+# Cleanup patterns for Enterprise dataset
+#
+# These patterns are used by the cleanup playbook to identify
+# resources to delete. Uses glob-style patterns (* = any chars, ? = single char)
+#
+# Usage:
+#   make cleanup-enterprise
+#   # or manually:
+#   ansible-playbook playbooks/operational/cleanup.yml -e @vars/data/enterprise/cleanup_patterns.yml
+
+wallix_cleanup_filters:
+  include_patterns:
+    # =========================================================================
+    # DEVICES - Infrastructure naming convention
+    # =========================================================================
+    - "prod-*"
+    - "stg-*"
+    - "dev-*"
+    - "cicd-*"
+    - "sec-*"
+    - "net-*"
+
+    # =========================================================================
+    # TARGET GROUPS
+    # =========================================================================
+    - "TG_*"
+
+    # =========================================================================
+    # AUTHORIZATIONS
+    # =========================================================================
+    - "AUTH_*"
+
+    # =========================================================================
+    # TIMEFRAMES
+    # =========================================================================
+    - "TF_*"
+
+    # =========================================================================
+    # USER GROUPS - Department-based
+    # =========================================================================
+    - "IT_*"
+    - "DBAs"
+    - "Network_*"
+    - "Security_*"
+    - "SOC_*"
+    - "DevOps"
+    - "SRE"
+    - "Developers*"
+    - "QA_*"
+    - "Approvers*"
+    - "External_*"
+    - "Vendors"
+    - "Auditors"
+    - "Emergency_*"
+    - "PAM_*"
+
+    # =========================================================================
+    # GLOBAL DOMAINS
+    # =========================================================================
+    - "CORP*"
+    - "PARTNERS"
+    - "LOCAL_SVC"
+    - "AZURE"
+    - "DEMO_*"
+
+    # =========================================================================
+    # GLOBAL ACCOUNTS - Service accounts
+    # =========================================================================
+    - "svc_*"
+    - "sa_*"
+    - "pam_*"
+
+    # =========================================================================
+    # USERS - By role prefix
+    # =========================================================================
+    # System administrators
+    - "sysadmin*"
+    # Database administrators
+    - "dba*"
+    # Network administrators
+    - "netadmin*"
+    # Security engineers
+    - "seceng*"
+    # SOC analysts
+    - "soc*"
+    # DevOps engineers
+    - "devops*"
+    # SRE engineers
+    - "sre*"
+    # Developers
+    - "dev*"
+    - "dev_*"
+    # QA engineers
+    - "qa*"
+    - "qa_*"
+    # IT management
+    - "it_*"
+    # Emergency access
+    - "emergency*"
+    # Vendors
+    - "vendor_*"
+    # Contractors
+    - "contractor*"
+
+  exclude_patterns:
+    # =========================================================================
+    # SYSTEM ACCOUNTS - Never delete these
+    # =========================================================================
+    - "admin*"
+    - "Admin*"
+    - "root*"
+    - "system*"
+    - "wab*"
+    - "local"

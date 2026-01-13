@@ -1,0 +1,443 @@
+---
+# Enterprise Infrastructure Data - Large Scale Company
+#
+# This dataset represents a realistic enterprise with:
+# - 3 environments (Production, Staging, Development)
+# - Multiple data centers (DC1-Paris, DC2-London)
+# - Different server types across departments
+#
+# Usage:
+#   ansible-playbook playbooks/provision-full.yml \
+#     -e @vars/data/enterprise/infrastructure.yml \
+#     -e @vars/data/enterprise/users.yml \
+#     -e @vars/data/enterprise/domains.yml \
+#     -e wallix_bastion_host=10.10.122.15 \
+#     --vault-password-file /tmp/.vault_pass
+
+# ============================================================================
+# DEVICES - Production Environment (DC1 - Paris)
+# ============================================================================
+
+wallix_devices:
+  # -------------------------------------------------------------------------
+  # PRODUCTION - Web Tier (DMZ)
+  # -------------------------------------------------------------------------
+  - name: "prod-web-01"
+    host: "10.1.1.10"
+    description: "Production Web Server - Primary (Apache)"
+    state: present
+
+  - name: "prod-web-02"
+    host: "10.1.1.11"
+    description: "Production Web Server - Secondary (Apache)"
+    state: present
+
+  - name: "prod-web-03"
+    host: "10.1.1.12"
+    description: "Production Web Server - Tertiary (Nginx)"
+    state: present
+
+  - name: "prod-lb-01"
+    host: "10.1.1.5"
+    description: "Production Load Balancer - HAProxy Primary"
+    state: present
+
+  - name: "prod-lb-02"
+    host: "10.1.1.6"
+    description: "Production Load Balancer - HAProxy Secondary"
+    state: present
+
+  # -------------------------------------------------------------------------
+  # PRODUCTION - Application Tier
+  # -------------------------------------------------------------------------
+  - name: "prod-app-01"
+    host: "10.1.2.10"
+    description: "Production App Server - Java/Tomcat Primary"
+    state: present
+
+  - name: "prod-app-02"
+    host: "10.1.2.11"
+    description: "Production App Server - Java/Tomcat Secondary"
+    state: present
+
+  - name: "prod-app-03"
+    host: "10.1.2.12"
+    description: "Production App Server - Node.js API Gateway"
+    state: present
+
+  - name: "prod-app-04"
+    host: "10.1.2.13"
+    description: "Production App Server - Python/Django Backend"
+    state: present
+
+  # -------------------------------------------------------------------------
+  # PRODUCTION - Database Tier
+  # -------------------------------------------------------------------------
+  - name: "prod-db-01"
+    host: "10.1.3.10"
+    description: "Production Database - PostgreSQL Primary"
+    state: present
+
+  - name: "prod-db-02"
+    host: "10.1.3.11"
+    description: "Production Database - PostgreSQL Replica"
+    state: present
+
+  - name: "prod-db-03"
+    host: "10.1.3.20"
+    description: "Production Database - MySQL Primary"
+    state: present
+
+  - name: "prod-db-04"
+    host: "10.1.3.21"
+    description: "Production Database - MySQL Replica"
+    state: present
+
+  - name: "prod-redis-01"
+    host: "10.1.3.30"
+    description: "Production Cache - Redis Primary"
+    state: present
+
+  - name: "prod-redis-02"
+    host: "10.1.3.31"
+    description: "Production Cache - Redis Replica"
+    state: present
+
+  - name: "prod-elastic-01"
+    host: "10.1.3.40"
+    description: "Production Search - Elasticsearch Master"
+    state: present
+
+  # -------------------------------------------------------------------------
+  # PRODUCTION - Windows Servers
+  # -------------------------------------------------------------------------
+  - name: "prod-win-dc-01"
+    host: "10.1.4.10"
+    description: "Production Domain Controller - Primary"
+    state: present
+
+  - name: "prod-win-dc-02"
+    host: "10.1.4.11"
+    description: "Production Domain Controller - Secondary"
+    state: present
+
+  - name: "prod-win-file-01"
+    host: "10.1.4.20"
+    description: "Production File Server"
+    state: present
+
+  - name: "prod-win-sql-01"
+    host: "10.1.4.30"
+    description: "Production SQL Server - Primary"
+    state: present
+
+  - name: "prod-win-sql-02"
+    host: "10.1.4.31"
+    description: "Production SQL Server - AlwaysOn Replica"
+    state: present
+
+  # -------------------------------------------------------------------------
+  # PRODUCTION - Infrastructure Services
+  # -------------------------------------------------------------------------
+  - name: "prod-monitor-01"
+    host: "10.1.5.10"
+    description: "Production Monitoring - Prometheus/Grafana"
+    state: present
+
+  - name: "prod-log-01"
+    host: "10.1.5.20"
+    description: "Production Logging - ELK Stack"
+    state: present
+
+  - name: "prod-vault-01"
+    host: "10.1.5.30"
+    description: "Production Secrets - HashiCorp Vault"
+    state: present
+
+  - name: "prod-ansible-01"
+    host: "10.1.5.40"
+    description: "Production Automation - Ansible Tower"
+    state: present
+
+  # -------------------------------------------------------------------------
+  # STAGING Environment (DC1 - Paris)
+  # -------------------------------------------------------------------------
+  - name: "stg-web-01"
+    host: "10.2.1.10"
+    description: "Staging Web Server"
+    state: present
+
+  - name: "stg-app-01"
+    host: "10.2.2.10"
+    description: "Staging App Server"
+    state: present
+
+  - name: "stg-db-01"
+    host: "10.2.3.10"
+    description: "Staging Database - PostgreSQL"
+    state: present
+
+  - name: "stg-db-02"
+    host: "10.2.3.20"
+    description: "Staging Database - MySQL"
+    state: present
+
+  - name: "stg-win-01"
+    host: "10.2.4.10"
+    description: "Staging Windows Server"
+    state: present
+
+  # -------------------------------------------------------------------------
+  # DEVELOPMENT Environment (DC2 - London)
+  # -------------------------------------------------------------------------
+  - name: "dev-web-01"
+    host: "10.3.1.10"
+    description: "Development Web Server"
+    state: present
+
+  - name: "dev-app-01"
+    host: "10.3.2.10"
+    description: "Development App Server"
+    state: present
+
+  - name: "dev-app-02"
+    host: "10.3.2.11"
+    description: "Development App Server - Sandbox"
+    state: present
+
+  - name: "dev-db-01"
+    host: "10.3.3.10"
+    description: "Development Database - Shared PostgreSQL"
+    state: present
+
+  - name: "dev-db-02"
+    host: "10.3.3.20"
+    description: "Development Database - Shared MySQL"
+    state: present
+
+  # -------------------------------------------------------------------------
+  # CI/CD Infrastructure
+  # -------------------------------------------------------------------------
+  - name: "cicd-jenkins-01"
+    host: "10.4.1.10"
+    description: "CI/CD - Jenkins Master"
+    state: present
+
+  - name: "cicd-jenkins-agent-01"
+    host: "10.4.1.20"
+    description: "CI/CD - Jenkins Agent Linux"
+    state: present
+
+  - name: "cicd-jenkins-agent-02"
+    host: "10.4.1.21"
+    description: "CI/CD - Jenkins Agent Windows"
+    state: present
+
+  - name: "cicd-gitlab-01"
+    host: "10.4.1.30"
+    description: "CI/CD - GitLab Server"
+    state: present
+
+  - name: "cicd-registry-01"
+    host: "10.4.1.40"
+    description: "CI/CD - Docker Registry"
+    state: present
+
+  - name: "cicd-sonar-01"
+    host: "10.4.1.50"
+    description: "CI/CD - SonarQube Code Analysis"
+    state: present
+
+  - name: "cicd-artifactory-01"
+    host: "10.4.1.60"
+    description: "CI/CD - JFrog Artifactory"
+    state: present
+
+  # -------------------------------------------------------------------------
+  # Security Infrastructure
+  # -------------------------------------------------------------------------
+  - name: "sec-siem-01"
+    host: "10.5.1.10"
+    description: "Security - SIEM Primary"
+    state: present
+
+  - name: "sec-scanner-01"
+    host: "10.5.1.20"
+    description: "Security - Vulnerability Scanner"
+    state: present
+
+  - name: "sec-av-01"
+    host: "10.5.1.30"
+    description: "Security - Antivirus Management Server"
+    state: present
+
+  # -------------------------------------------------------------------------
+  # Network Devices
+  # -------------------------------------------------------------------------
+  - name: "net-fw-01"
+    host: "10.0.0.1"
+    description: "Network - Firewall Primary"
+    state: present
+
+  - name: "net-fw-02"
+    host: "10.0.0.2"
+    description: "Network - Firewall Secondary"
+    state: present
+
+  - name: "net-switch-core-01"
+    host: "10.0.0.10"
+    description: "Network - Core Switch DC1"
+    state: present
+
+  - name: "net-switch-core-02"
+    host: "10.0.0.11"
+    description: "Network - Core Switch DC2"
+    state: present
+
+# ============================================================================
+# SERVICES - Protocol definitions for devices
+# ============================================================================
+
+wallix_device_services:
+  # Production Linux - SSH
+  - { name: "ssh", device_name: "prod-web-01", protocol: "SSH", port: 22, connection_policy: "SSH", subprotocols: ["SSH_SHELL_SESSION", "SSH_SCP_UP", "SSH_SCP_DOWN"], state: present }
+  - { name: "ssh", device_name: "prod-web-02", protocol: "SSH", port: 22, connection_policy: "SSH", subprotocols: ["SSH_SHELL_SESSION", "SSH_SCP_UP", "SSH_SCP_DOWN"], state: present }
+  - { name: "ssh", device_name: "prod-web-03", protocol: "SSH", port: 22, connection_policy: "SSH", subprotocols: ["SSH_SHELL_SESSION", "SSH_SCP_UP", "SSH_SCP_DOWN"], state: present }
+  - { name: "ssh", device_name: "prod-lb-01", protocol: "SSH", port: 22, connection_policy: "SSH", subprotocols: ["SSH_SHELL_SESSION"], state: present }
+  - { name: "ssh", device_name: "prod-lb-02", protocol: "SSH", port: 22, connection_policy: "SSH", subprotocols: ["SSH_SHELL_SESSION"], state: present }
+  - { name: "ssh", device_name: "prod-app-01", protocol: "SSH", port: 22, connection_policy: "SSH", subprotocols: ["SSH_SHELL_SESSION", "SSH_SCP_UP", "SSH_SCP_DOWN"], state: present }
+  - { name: "ssh", device_name: "prod-app-02", protocol: "SSH", port: 22, connection_policy: "SSH", subprotocols: ["SSH_SHELL_SESSION", "SSH_SCP_UP", "SSH_SCP_DOWN"], state: present }
+  - { name: "ssh", device_name: "prod-app-03", protocol: "SSH", port: 22, connection_policy: "SSH", subprotocols: ["SSH_SHELL_SESSION", "SSH_SCP_UP", "SSH_SCP_DOWN"], state: present }
+  - { name: "ssh", device_name: "prod-app-04", protocol: "SSH", port: 22, connection_policy: "SSH", subprotocols: ["SSH_SHELL_SESSION", "SSH_SCP_UP", "SSH_SCP_DOWN"], state: present }
+  - { name: "ssh", device_name: "prod-db-01", protocol: "SSH", port: 22, connection_policy: "SSH", subprotocols: ["SSH_SHELL_SESSION"], state: present }
+  - { name: "ssh", device_name: "prod-db-02", protocol: "SSH", port: 22, connection_policy: "SSH", subprotocols: ["SSH_SHELL_SESSION"], state: present }
+  - { name: "ssh", device_name: "prod-db-03", protocol: "SSH", port: 22, connection_policy: "SSH", subprotocols: ["SSH_SHELL_SESSION"], state: present }
+  - { name: "ssh", device_name: "prod-db-04", protocol: "SSH", port: 22, connection_policy: "SSH", subprotocols: ["SSH_SHELL_SESSION"], state: present }
+  - { name: "ssh", device_name: "prod-redis-01", protocol: "SSH", port: 22, connection_policy: "SSH", subprotocols: ["SSH_SHELL_SESSION"], state: present }
+  - { name: "ssh", device_name: "prod-redis-02", protocol: "SSH", port: 22, connection_policy: "SSH", subprotocols: ["SSH_SHELL_SESSION"], state: present }
+  - { name: "ssh", device_name: "prod-elastic-01", protocol: "SSH", port: 22, connection_policy: "SSH", subprotocols: ["SSH_SHELL_SESSION"], state: present }
+  - { name: "ssh", device_name: "prod-monitor-01", protocol: "SSH", port: 22, connection_policy: "SSH", subprotocols: ["SSH_SHELL_SESSION", "SSH_SCP_UP", "SSH_SCP_DOWN"], state: present }
+  - { name: "ssh", device_name: "prod-log-01", protocol: "SSH", port: 22, connection_policy: "SSH", subprotocols: ["SSH_SHELL_SESSION"], state: present }
+  - { name: "ssh", device_name: "prod-vault-01", protocol: "SSH", port: 22, connection_policy: "SSH", subprotocols: ["SSH_SHELL_SESSION"], state: present }
+  - { name: "ssh", device_name: "prod-ansible-01", protocol: "SSH", port: 22, connection_policy: "SSH", subprotocols: ["SSH_SHELL_SESSION", "SSH_SCP_UP", "SSH_SCP_DOWN"], state: present }
+
+  # Staging Linux - SSH
+  - { name: "ssh", device_name: "stg-web-01", protocol: "SSH", port: 22, connection_policy: "SSH", subprotocols: ["SSH_SHELL_SESSION", "SSH_SCP_UP", "SSH_SCP_DOWN"], state: present }
+  - { name: "ssh", device_name: "stg-app-01", protocol: "SSH", port: 22, connection_policy: "SSH", subprotocols: ["SSH_SHELL_SESSION", "SSH_SCP_UP", "SSH_SCP_DOWN"], state: present }
+  - { name: "ssh", device_name: "stg-db-01", protocol: "SSH", port: 22, connection_policy: "SSH", subprotocols: ["SSH_SHELL_SESSION"], state: present }
+  - { name: "ssh", device_name: "stg-db-02", protocol: "SSH", port: 22, connection_policy: "SSH", subprotocols: ["SSH_SHELL_SESSION"], state: present }
+
+  # Development Linux - SSH
+  - { name: "ssh", device_name: "dev-web-01", protocol: "SSH", port: 22, connection_policy: "SSH", subprotocols: ["SSH_SHELL_SESSION", "SSH_SCP_UP", "SSH_SCP_DOWN", "SSH_X11"], state: present }
+  - { name: "ssh", device_name: "dev-app-01", protocol: "SSH", port: 22, connection_policy: "SSH", subprotocols: ["SSH_SHELL_SESSION", "SSH_SCP_UP", "SSH_SCP_DOWN", "SSH_X11"], state: present }
+  - { name: "ssh", device_name: "dev-app-02", protocol: "SSH", port: 22, connection_policy: "SSH", subprotocols: ["SSH_SHELL_SESSION", "SSH_SCP_UP", "SSH_SCP_DOWN", "SSH_X11"], state: present }
+  - { name: "ssh", device_name: "dev-db-01", protocol: "SSH", port: 22, connection_policy: "SSH", subprotocols: ["SSH_SHELL_SESSION", "SSH_SCP_UP", "SSH_SCP_DOWN"], state: present }
+  - { name: "ssh", device_name: "dev-db-02", protocol: "SSH", port: 22, connection_policy: "SSH", subprotocols: ["SSH_SHELL_SESSION", "SSH_SCP_UP", "SSH_SCP_DOWN"], state: present }
+
+  # CI/CD Linux - SSH
+  - { name: "ssh", device_name: "cicd-jenkins-01", protocol: "SSH", port: 22, connection_policy: "SSH", subprotocols: ["SSH_SHELL_SESSION", "SSH_SCP_UP", "SSH_SCP_DOWN"], state: present }
+  - { name: "ssh", device_name: "cicd-jenkins-agent-01", protocol: "SSH", port: 22, connection_policy: "SSH", subprotocols: ["SSH_SHELL_SESSION", "SSH_SCP_UP", "SSH_SCP_DOWN"], state: present }
+  - { name: "ssh", device_name: "cicd-gitlab-01", protocol: "SSH", port: 22, connection_policy: "SSH", subprotocols: ["SSH_SHELL_SESSION", "SSH_SCP_UP", "SSH_SCP_DOWN"], state: present }
+  - { name: "ssh", device_name: "cicd-registry-01", protocol: "SSH", port: 22, connection_policy: "SSH", subprotocols: ["SSH_SHELL_SESSION"], state: present }
+  - { name: "ssh", device_name: "cicd-sonar-01", protocol: "SSH", port: 22, connection_policy: "SSH", subprotocols: ["SSH_SHELL_SESSION"], state: present }
+  - { name: "ssh", device_name: "cicd-artifactory-01", protocol: "SSH", port: 22, connection_policy: "SSH", subprotocols: ["SSH_SHELL_SESSION"], state: present }
+
+  # Security Linux - SSH
+  - { name: "ssh", device_name: "sec-siem-01", protocol: "SSH", port: 22, connection_policy: "SSH", subprotocols: ["SSH_SHELL_SESSION"], state: present }
+  - { name: "ssh", device_name: "sec-scanner-01", protocol: "SSH", port: 22, connection_policy: "SSH", subprotocols: ["SSH_SHELL_SESSION"], state: present }
+  - { name: "ssh", device_name: "sec-av-01", protocol: "SSH", port: 22, connection_policy: "SSH", subprotocols: ["SSH_SHELL_SESSION"], state: present }
+
+  # Network Devices - SSH
+  - { name: "ssh", device_name: "net-fw-01", protocol: "SSH", port: 22, connection_policy: "SSH", subprotocols: ["SSH_SHELL_SESSION"], state: present }
+  - { name: "ssh", device_name: "net-fw-02", protocol: "SSH", port: 22, connection_policy: "SSH", subprotocols: ["SSH_SHELL_SESSION"], state: present }
+  - { name: "ssh", device_name: "net-switch-core-01", protocol: "SSH", port: 22, connection_policy: "SSH", subprotocols: ["SSH_SHELL_SESSION"], state: present }
+  - { name: "ssh", device_name: "net-switch-core-02", protocol: "SSH", port: 22, connection_policy: "SSH", subprotocols: ["SSH_SHELL_SESSION"], state: present }
+
+  # Windows - RDP
+  - { name: "rdp", device_name: "prod-win-dc-01", protocol: "RDP", port: 3389, connection_policy: "RDP", subprotocols: ["RDP_CLIPBOARD_UP", "RDP_CLIPBOARD_DOWN", "RDP_PRINTER"], state: present }
+  - { name: "rdp", device_name: "prod-win-dc-02", protocol: "RDP", port: 3389, connection_policy: "RDP", subprotocols: ["RDP_CLIPBOARD_UP", "RDP_CLIPBOARD_DOWN", "RDP_PRINTER"], state: present }
+  - { name: "rdp", device_name: "prod-win-file-01", protocol: "RDP", port: 3389, connection_policy: "RDP", subprotocols: ["RDP_CLIPBOARD_UP", "RDP_CLIPBOARD_DOWN", "RDP_PRINTER", "RDP_DRIVE"], state: present }
+  - { name: "rdp", device_name: "prod-win-sql-01", protocol: "RDP", port: 3389, connection_policy: "RDP", subprotocols: ["RDP_CLIPBOARD_UP", "RDP_CLIPBOARD_DOWN"], state: present }
+  - { name: "rdp", device_name: "prod-win-sql-02", protocol: "RDP", port: 3389, connection_policy: "RDP", subprotocols: ["RDP_CLIPBOARD_UP", "RDP_CLIPBOARD_DOWN"], state: present }
+  - { name: "rdp", device_name: "stg-win-01", protocol: "RDP", port: 3389, connection_policy: "RDP", subprotocols: ["RDP_CLIPBOARD_UP", "RDP_CLIPBOARD_DOWN", "RDP_PRINTER", "RDP_DRIVE"], state: present }
+  - { name: "rdp", device_name: "cicd-jenkins-agent-02", protocol: "RDP", port: 3389, connection_policy: "RDP", subprotocols: ["RDP_CLIPBOARD_UP", "RDP_CLIPBOARD_DOWN"], state: present }
+
+  # Database direct access - RAWTCPIP (no subprotocols)
+  - { name: "pgsql", device_name: "prod-db-01", protocol: "RAWTCPIP", port: 5432, connection_policy: "RAWTCPIP", state: present }
+  - { name: "pgsql", device_name: "prod-db-02", protocol: "RAWTCPIP", port: 5432, connection_policy: "RAWTCPIP", state: present }
+  - { name: "mysql", device_name: "prod-db-03", protocol: "RAWTCPIP", port: 3306, connection_policy: "RAWTCPIP", state: present }
+  - { name: "mysql", device_name: "prod-db-04", protocol: "RAWTCPIP", port: 3306, connection_policy: "RAWTCPIP", state: present }
+  - { name: "redis", device_name: "prod-redis-01", protocol: "RAWTCPIP", port: 6379, connection_policy: "RAWTCPIP", state: present }
+  - { name: "elastic", device_name: "prod-elastic-01", protocol: "RAWTCPIP", port: 9200, connection_policy: "RAWTCPIP", state: present }
+  - { name: "pgsql", device_name: "stg-db-01", protocol: "RAWTCPIP", port: 5432, connection_policy: "RAWTCPIP", state: present }
+  - { name: "mysql", device_name: "stg-db-02", protocol: "RAWTCPIP", port: 3306, connection_policy: "RAWTCPIP", state: present }
+  - { name: "pgsql", device_name: "dev-db-01", protocol: "RAWTCPIP", port: 5432, connection_policy: "RAWTCPIP", state: present }
+  - { name: "mysql", device_name: "dev-db-02", protocol: "RAWTCPIP", port: 3306, connection_policy: "RAWTCPIP", state: present }
+
+# ============================================================================
+# ACCOUNTS - Local accounts on devices
+# ============================================================================
+
+wallix_accounts:
+  # Production Linux accounts
+  - { device_name: "prod-web-01", account_name: "root", account_login: "root", description: "Root administrator", state: present }
+  - { device_name: "prod-web-01", account_name: "www-data", account_login: "www-data", description: "Web server user", state: present }
+  - { device_name: "prod-web-02", account_name: "root", account_login: "root", description: "Root administrator", state: present }
+  - { device_name: "prod-web-03", account_name: "root", account_login: "root", description: "Root administrator", state: present }
+  - { device_name: "prod-lb-01", account_name: "root", account_login: "root", description: "Root administrator", state: present }
+  - { device_name: "prod-lb-02", account_name: "root", account_login: "root", description: "Root administrator", state: present }
+  - { device_name: "prod-app-01", account_name: "root", account_login: "root", description: "Root administrator", state: present }
+  - { device_name: "prod-app-01", account_name: "tomcat", account_login: "tomcat", description: "Tomcat service account", state: present }
+  - { device_name: "prod-app-02", account_name: "root", account_login: "root", description: "Root administrator", state: present }
+  - { device_name: "prod-app-03", account_name: "root", account_login: "root", description: "Root administrator", state: present }
+  - { device_name: "prod-app-03", account_name: "node", account_login: "node", description: "Node.js service account", state: present }
+  - { device_name: "prod-app-04", account_name: "root", account_login: "root", description: "Root administrator", state: present }
+  - { device_name: "prod-app-04", account_name: "django", account_login: "django", description: "Django service account", state: present }
+  - { device_name: "prod-db-01", account_name: "postgres", account_login: "postgres", description: "PostgreSQL superuser", state: present }
+  - { device_name: "prod-db-02", account_name: "postgres", account_login: "postgres", description: "PostgreSQL superuser", state: present }
+  - { device_name: "prod-db-03", account_name: "mysql", account_login: "root", description: "MySQL root", state: present }
+  - { device_name: "prod-db-04", account_name: "mysql", account_login: "root", description: "MySQL root", state: present }
+  - { device_name: "prod-redis-01", account_name: "redis", account_login: "redis", description: "Redis admin", state: present }
+  - { device_name: "prod-redis-02", account_name: "redis", account_login: "redis", description: "Redis admin", state: present }
+  - { device_name: "prod-elastic-01", account_name: "elastic", account_login: "elastic", description: "Elasticsearch admin", state: present }
+  - { device_name: "prod-monitor-01", account_name: "root", account_login: "root", description: "Root administrator", state: present }
+  - { device_name: "prod-log-01", account_name: "root", account_login: "root", description: "Root administrator", state: present }
+  - { device_name: "prod-vault-01", account_name: "vault", account_login: "vault", description: "Vault service account", state: present }
+  - { device_name: "prod-ansible-01", account_name: "ansible", account_login: "ansible", description: "Ansible automation account", state: present }
+
+  # Windows accounts
+  - { device_name: "prod-win-dc-01", account_name: "Administrator", account_login: "Administrator", description: "Domain Administrator", state: present }
+  - { device_name: "prod-win-dc-02", account_name: "Administrator", account_login: "Administrator", description: "Domain Administrator", state: present }
+  - { device_name: "prod-win-file-01", account_name: "Administrator", account_login: "Administrator", description: "Local Administrator", state: present }
+  - { device_name: "prod-win-sql-01", account_name: "sa", account_login: "sa", description: "SQL Server SA account", state: present }
+  - { device_name: "prod-win-sql-02", account_name: "sa", account_login: "sa", description: "SQL Server SA account", state: present }
+
+  # Staging accounts
+  - { device_name: "stg-web-01", account_name: "root", account_login: "root", description: "Root administrator", state: present }
+  - { device_name: "stg-app-01", account_name: "root", account_login: "root", description: "Root administrator", state: present }
+  - { device_name: "stg-db-01", account_name: "postgres", account_login: "postgres", description: "PostgreSQL superuser", state: present }
+  - { device_name: "stg-db-02", account_name: "mysql", account_login: "root", description: "MySQL root", state: present }
+  - { device_name: "stg-win-01", account_name: "Administrator", account_login: "Administrator", description: "Local Administrator", state: present }
+
+  # Development accounts
+  - { device_name: "dev-web-01", account_name: "root", account_login: "root", description: "Root administrator", state: present }
+  - { device_name: "dev-app-01", account_name: "root", account_login: "root", description: "Root administrator", state: present }
+  - { device_name: "dev-app-02", account_name: "root", account_login: "root", description: "Root administrator", state: present }
+  - { device_name: "dev-db-01", account_name: "postgres", account_login: "postgres", description: "PostgreSQL superuser", state: present }
+  - { device_name: "dev-db-02", account_name: "mysql", account_login: "root", description: "MySQL root", state: present }
+
+  # CI/CD accounts
+  - { device_name: "cicd-jenkins-01", account_name: "jenkins", account_login: "jenkins", description: "Jenkins service account", state: present }
+  - { device_name: "cicd-jenkins-agent-01", account_name: "jenkins", account_login: "jenkins", description: "Jenkins agent account", state: present }
+  - { device_name: "cicd-gitlab-01", account_name: "git", account_login: "git", description: "GitLab service account", state: present }
+  - { device_name: "cicd-registry-01", account_name: "registry", account_login: "registry", description: "Docker registry account", state: present }
+
+  # Security accounts
+  - { device_name: "sec-siem-01", account_name: "siem", account_login: "siem", description: "SIEM service account", state: present }
+  - { device_name: "sec-scanner-01", account_name: "scanner", account_login: "scanner", description: "Vulnerability scanner account", state: present }
+
+  # Network accounts
+  - { device_name: "net-fw-01", account_name: "admin", account_login: "admin", description: "Firewall admin", state: present }
+  - { device_name: "net-fw-02", account_name: "admin", account_login: "admin", description: "Firewall admin", state: present }
+  - { device_name: "net-switch-core-01", account_name: "admin", account_login: "admin", description: "Switch admin", state: present }
+  - { device_name: "net-switch-core-02", account_name: "admin", account_login: "admin", description: "Switch admin", state: present }

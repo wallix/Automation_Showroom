@@ -1,0 +1,56 @@
+---
+# Device Template - Copy and customize for each device
+# Usage: Include this file in your provisioning playbook
+# Example: make provision-device DEVICE=web-server-01
+
+# Device definition
+device:
+  name: "device-name"                    # Required: Unique device identifier
+  host: "10.0.1.100"                     # Required: IP address or FQDN
+  description: "Device description"       # Optional: Human-readable description
+  state: present                          # present|absent
+
+  # Device classification (optional)
+  alias: ""                               # Alternative name
+
+  # Services exposed by this device
+  services:
+    - name: "ssh"                         # Service identifier
+      protocol: "SSH"                     # SSH, RDP, TELNET, RLOGIN, etc.
+      port: 22
+      connection_policy: "SSH"            # Must match an existing policy
+      subprotocols:                       # Protocol-specific subprotocols
+        - "SSH_SHELL_SESSION"
+        - "SSH_SCP_UP"
+        - "SSH_SCP_DOWN"
+      state: present
+
+    # RDP service example (uncomment if needed)
+    # - name: "rdp"
+    #   protocol: "RDP"
+    #   port: 3389
+    #   connection_policy: "RDP"
+    #   subprotocols:
+    #     - "RDP_CLIPBOARD_UP"
+    #     - "RDP_CLIPBOARD_DOWN"
+    #     - "RDP_PRINTER"
+    #   state: present
+
+  # Local accounts on this device
+  accounts:
+    - name: "admin"                       # Account name in WALLIX
+      login: "admin"                      # Actual login on device
+      description: "Administrator account"
+      credentials:
+        type: "password"                  # password, ssh_key, certificate
+        password: "{{ vault_device_admin_password }}"
+      state: present
+
+    # Service account example
+    # - name: "svc_backup"
+    #   login: "backup_svc"
+    #   description: "Backup service account"
+    #   credentials:
+    #     type: "ssh_key"
+    #     private_key: "{{ vault_backup_ssh_key }}"
+    #   state: present

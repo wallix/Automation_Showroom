@@ -1,0 +1,39 @@
+---
+# WALLIX Authorizations Management Main Task
+
+- name: Display authorization management start
+  debug:
+    msg:
+      - "🔐 Starting WALLIX authorization management"
+      - "Mode: {{ wallix_authorizations_mode }}"
+      - "Authorizations to manage: {{ wallix_authorizations | length }}"
+      - "Target groups to create: {{ wallix_target_groups | default([]) | length }}"
+
+# Create target groups first (required for authorizations)
+- name: Include target groups creation tasks
+  include_tasks: create_target_groups.yml
+  when:
+    - wallix_target_groups is defined
+    - wallix_target_groups | length > 0
+    - wallix_session_cookie is defined
+
+# Create authorizations
+- name: Include authorization creation tasks
+  include_tasks: create_authorizations.yml
+  when:
+    - wallix_authorizations | length > 0
+    - wallix_session_cookie is defined
+
+# Validate authorizations
+- name: Include authorization validation tasks
+  include_tasks: validate_authorizations.yml
+  when:
+    - wallix_authorizations | length > 0
+    - wallix_session_cookie is defined
+    - wallix_authorizations_mode != 'dry_run'
+
+- name: Display authorization management completion
+  debug:
+    msg:
+      - "✅ WALLIX authorization management completed"
+      - "Status: {{ wallix_authorizations_status | default('completed') }}"

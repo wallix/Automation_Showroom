@@ -1,4 +1,4 @@
-# Deploy WALLIX access manager and Bastion on AWS
+# Deploy WALLIX Access Manager and Bastion on AWS
 
 ## Requirements
 

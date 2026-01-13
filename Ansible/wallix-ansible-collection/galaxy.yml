@@ -1,12 +1,12 @@
 namespace: wallix
-name: pam_secret_action
+name: pam
 version: 1.0.1
 readme: README.md
 authors:
   - Wallix Integration Team
-description: Ansible Collection for Wallix Access Manager integration
+description: Ansible Collection for WALLIX PRIVILEGED ACCESS MANAGEMENT integration
 license:
-  - GPL-2.0-or-later
+  - MPL-2.0
 tags:
   - security
   - wallix
@@ -22,3 +22,140 @@ build_ignore:
   - tests/
   - "*.tar.gz"
   - "*.log"
+
+roles:
+  # Authentication & Session Management
+  wallix-auth:
+    description: "Authenticate with WALLIX Bastion root API, manage sessions, validate connectivity"
+    version: "1.0.0"
+    tags:
+      - auth
+      - api
+      - session
+      - connectivity
+
+  # Infrastructure Management
+  wallix-devices:
+    description: "Create, configure, and manage devices (servers, network equipment)"
+    version: "1.0.0"
+    tags:
+      - devices
+      - infrastructure
+      - services
+      - accounts
+
+  wallix-global-domains:
+    description: "Create and manage global (LDAP/AD) authentication domains"
+    version: "1.0.0"
+    tags:
+      - domains
+      - authentication
+      - ldap
+      - active-directory
+
+  wallix-global-accounts:
+    description: "Create and manage global accounts with credential management"
+    version: "1.0.0"
+    tags:
+      - accounts
+      - credentials
+      - global
+
+  # Users & Access Control
+  wallix-users:
+    description: "Create users, manage groups, multi-auth credentials (password, SSH, X.509)"
+    version: "1.0.0"
+    tags:
+      - users
+      - groups
+      - credentials
+      - authentication
+    dependencies:
+      - wallix-auth
+
+  wallix-authorizations:
+    description: "Create authorization rules and target groups for access control"
+    version: "1.0.0"
+    tags:
+      - authorizations
+      - access-control
+      - target-groups
+    dependencies:
+      - wallix-auth
+
+  wallix-domains:
+    description: "Create and configure domain-specific authentication and authorization"
+    version: "1.0.0"
+    tags:
+      - domains
+      - authentication
+      - authorization
+    dependencies:
+      - wallix-auth
+
+  # Connection & Policy Management
+  wallix-connection-policies:
+    description: "Create and manage connection policies for session control"
+    version: "1.0.0"
+    tags:
+      - connection-policies
+      - sessions
+      - policies
+    dependencies:
+      - wallix-auth
+
+  wallix-policies:
+    description: "Create and manage generic policies (access, compliance, audit)"
+    version: "1.0.0"
+    tags:
+      - policies
+      - compliance
+      - audit
+    dependencies:
+      - wallix-auth
+
+  wallix-timeframes:
+    description: "Create and manage timeframes for scheduled operations"
+    version: "1.0.0"
+    tags:
+      - timeframes
+      - scheduling
+      - time-based-access
+
+  # Applications & Integration
+  wallix-applications:
+    description: "Create and manage applications for integration points"
+    version: "1.0.0"
+    tags:
+      - applications
+      - integration
+      - api-clients
+    dependencies:
+      - wallix-auth
+
+  # Configuration & Maintenance
+  wallix-config:
+    description: "Configure system settings, clustering, licensing, certificates, SMTP, X.509"
+    version: "1.0.0"
+    tags:
+      - configuration
+      - system
+      - clustering
+      - licensing
+      - certificates
+      - smtp
+      - x509
+    dependencies:
+      - wallix-auth
+
+  wallix-cleanup:
+    description: "Cleanup and rollback infrastructure; generate reports and backups"
+    version: "1.0.0"
+    tags:
+      - cleanup
+      - rollback
+      - backup
+      - reporting
+      - maintenance
+    dependencies:
+      - wallix-auth

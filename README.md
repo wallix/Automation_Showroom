@@ -1,7 +1,7 @@
 # WALLIX Automation Showroom
 
 [![All Contributors](https://img.shields.io/badge/all_contributors-4-green.svg?style=flat-square)](#contributors-)
-[![Production Ready](https://img.shields.io/badge/status-production--ready-green)](Ansible/Provisioning/Advanced/)
+[![Production Ready](https://img.shields.io/badge/status-production--ready-green)](Ansible/provisioning/)
 [![WALLIX API](https://img.shields.io/badge/WALLIX%20API-v3.12-blue)](https://www.wallix.com/)
 
 Comprehensive automation examples and production-ready tools for WALLIX Bastion Host management across multiple cloud providers and deployment scenarios.
@@ -21,10 +21,16 @@ Enterprise-grade automation patterns for:
 
 ```text
 Automation_Showroom/
-├── Ansible/Provisioning/Advanced/    # Production-ready Ansible automation
-├── Terraform/                        # Infrastructure as Code templates for provisionning and deploying
-├── cloud-init/                       # Cloud-init configuration generator and instructions
-├── pulumi/                           # Modern IaC examples
+├── Ansible/                          # Complete Ansible automation suite
+│   ├── wallix-ansible-collection/    # WALLIX PAM Ansible Collection
+│   ├── provisioning/                 # Production provisioning examples
+│   ├── bastion-proxy/                # SSH proxy configuration
+│   ├── become-plugin/                # Privilege escalation plugin
+│   ├── cicd-integration/             # GitLab CI/CD integration
+│   └── examples/                     # Learning examples
+├── Terraform/                        # Infrastructure as Code templates
+├── Cloud-init/                       # Cloud-init configuration generator
+├── Pulumi/                           # Modern IaC examples
 └── Docker_k8s_openshift/             # Container and orchestration
 ```
 
@@ -33,12 +39,12 @@ Automation_Showroom/
 ### 1. Ansible Automation (Recommended)
 
 ```bash
-cd Ansible/Provisioning/Advanced
-./scripts/setup-vault.sh
-ansible-playbook -i inventory/test playbooks/test-connection.yml --ask-vault-pass
+cd Ansible/provisioning
+make deps
+make provision ENV=demo
 ```
 
-See [Ansible Advanced README](Ansible/Provisioning/Advanced/README.md) for complete guide.
+See [Ansible README](Ansible/README.md) for complete guide.
 
 ### 2. Infrastructure Deployment
 
@@ -47,30 +53,31 @@ See [Ansible Advanced README](Ansible/Provisioning/Advanced/README.md) for compl
 cd Terraform/Deploying/aws && terraform init && terraform apply
 
 # Pulumi
-cd pulumi/bastion4gcp && pulumi up
+cd Pulumi/bastion4gcp && pulumi up
 ```
 
 ### 3. Cloud Deployment
 
 ```bash
-cd cloud-init
+cd Cloud-init
 python3 wallix_cloud_init_generator.py
 ```
 
 ## Components
 
-### Ansible Advanced Automation
+### Ansible Automation Suite
 
-**Status**: Production Ready | **Last Tested**: October 3, 2025 | **WALLIX Version**: v12.0.15
+**Status**: Production Ready | **Last Updated**: 2025 | **WALLIX Version**: ≥ 10.0
 
 Complete WALLIX Bastion management with:
 
-- Automated setup and configuration
-- User, device, and authorization management
-- Multi-environment support (dev/staging/prod)
-- Advanced cleanup with safety mechanisms
+- **wallix-ansible-collection**: Reusable Ansible collection for WALLIX PAM
+- **provisioning**: Production-ready provisioning examples
+- **bastion-proxy**: SSH proxy configuration for agent-less connections
+- **become-plugin**: Privilege escalation via WALLIX Bastion
+- **cicd-integration**: GitLab CI/CD pipeline integration
 
-→ [Full Documentation](Ansible/Provisioning/Advanced/README.md)
+→ [Full Documentation](Ansible/README.md)
 
 ### Infrastructure as Code
 
@@ -78,7 +85,7 @@ Complete WALLIX Bastion management with:
 - **Pulumi**: Modern infrastructure automation
 - **Cloud-Init**: Automated WALLIX installation
 
-→ [Terraform Guide](Terraform/README.md) | [Cloud-Init Guide](cloud-init/README.md)
+→ [Terraform Guide](Terraform/README.md) | [Cloud-Init Guide](Cloud-init/README.md)
 
 ### Container & Orchestration
 
@@ -89,17 +96,23 @@ Complete WALLIX Bastion management with:
 
 ## Documentation
 
-- [CHANGELOG](CHANGELOG.md) - Release history and updates
-- [Advanced Ansible](Ansible/Provisioning/Advanced/README.md) - Complete automation guide
-- [Terraform](Terraform/README.md) - Infrastructure deployment
-- [Cloud-Init](cloud-init/README.md) - Cloud automation
+| Document                                                  | Description                       |
+| --------------------------------------------------------- | --------------------------------- |
+| [CHANGELOG](CHANGELOG.md)                                 | Release history and updates       |
+| [Ansible](Ansible/README.md)                              | Complete Ansible automation guide |
+| [Provisioning](Ansible/provisioning/README.md)            | Production provisioning examples  |
+| [Collection](Ansible/wallix-ansible-collection/README.md) | WALLIX PAM Ansible Collection     |
+| [Terraform](Terraform/README.md)                          | Infrastructure deployment         |
+| [Cloud-Init](Cloud-init/README.md)                        | Cloud automation                  |
 
 ## Requirements
 
-- **Ansible**: 2.9+ for configuration management
-- **Terraform**: 0.14+ for infrastructure
-- **Python**: 3.6+ for scripts and tools
-- **WALLIX Bastion**: API access for testing
+| Component      | Minimum Version | Purpose                   |
+| -------------- | --------------- | ------------------------- |
+| Ansible        | ≥ 2.15          | Configuration management  |
+| Python         | ≥ 3.9           | Scripts and tools         |
+| Terraform      | ≥ 1.0           | Infrastructure deployment |
+| WALLIX Bastion | ≥ 10.0          | Target PAM system         |
 
 ## Getting Started
 
@@ -111,9 +124,9 @@ Complete WALLIX Bastion management with:
    ```
 
 2. **Choose your path**
-   - **Ansible**: `cd Ansible/Provisioning/Advanced && ./scripts/setup-vault.sh`
+   - **Ansible**: `cd Ansible && cat README.md`
    - **Terraform**: `cd Terraform/Deploying/aws`
-   - **Cloud-Init**: `cd cloud-init`
+   - **Cloud-Init**: `cd Cloud-init`
 
 3. **Follow component-specific documentation**
 
@@ -135,7 +148,7 @@ Follow existing code structure and add documentation for new features.
 
 ## License
 
-This project is licensed under the MIT License. See [LICENSE](LICENSE) file for details.
+This project is licensed under the Mozilla Public License 2.0 (MPL-2.0). See [LICENSE](LICENSE) file for details.
 
 ## Contributors ✨
 

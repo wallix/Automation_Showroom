@@ -1,0 +1,67 @@
+---
+# Authentication tasks for WALLIX Bastion API
+
+- name: Perform initial authentication with credentials
+  block:
+    - name: Test connectivity with basic auth (optional)
+      uri:
+        url: "{{ wallix_api.base_url }}/version"
+        method: GET
+        user: "{{ wallix_auth.credentials.username }}"
+        password: "{{ wallix_auth.credentials.password }}"
+        force_basic_auth: true
+        headers: "{{ wallix_api.headers }}"
+        validate_certs: "{{ wallix_auth.connection.verify_ssl }}"
+        timeout: "{{ wallix_auth.connection.timeout }}"
+        status_code: [200]
+        return_content: yes
+      register: wallix_version_response
+      retries: "{{ wallix_auth.connection.retry_count }}"
+      delay: "{{ wallix_auth.connection.retry_delay }}"
+      failed_when: false
+      when: wallix_auth.test_version | default(false)
+
+    - name: Create session with POST to /api
+      uri:
+        url: "{{ wallix_api.base_url }}"
+        method: POST
+        user: "{{ wallix_auth.credentials.username }}"
+        password: "{{ wallix_auth.credentials.password }}"
+        force_basic_auth: true
+        validate_certs: "{{ wallix_auth.connection.verify_ssl }}"
+        timeout: "{{ wallix_auth.connection.timeout }}"
+        status_code: [204]
+        return_content: yes
+      register: wallix_auth_response
+      retries: "{{ wallix_auth.connection.retry_count }}"
+      delay: "{{ wallix_auth.connection.retry_delay }}"
+
+    - name: Extract session cookie from response
+      set_fact:
+        wallix_session_cookie: "{{ wallix_auth_response.cookies_string | default('') }}"
+        wallix_session_id: "{{ wallix_auth_response.cookies.wab_session_id | default('') }}"
+
+    - name: Set authentication status
+      set_fact:
+        wallix_auth_status: "success"
+        wallix_api_version: "{{ wallix_version_response.json.version | default('unknown') }}"
+        wallix_bastion_version: "{{ wallix_version_response.json.wab_complete_version | default('unknown') }}"
+      when: wallix_version_response is defined and wallix_version_response.json is defined
+
+    - name: Set authentication status (no version check)
+      set_fact:
+        wallix_auth_status: "success"
+        wallix_api_version: "unknown"
+        wallix_bastion_version: "unknown"
+      when: wallix_version_response is not defined or wallix_version_response.json is not defined
+
+  when: wallix_auth.initial_auth_method == 'credentials'
+
+- name: Authentication success notification
+  debug:
+    msg:
+      - "WALLIX Authentication successful!"
+      - "API Version: {{ wallix_api_version | default('unknown') }}"
+      - "Bastion Version: {{ wallix_bastion_version | default('unknown') }}"
+      - "Session Cookie: {{ 'Present' if wallix_session_cookie is defined and wallix_session_cookie != '' else 'Not available' }}"
+  when: wallix_auth_status is defined and wallix_auth_status == 'success'

@@ -650,7 +650,7 @@ kubectl create namespace eso-test
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the Mozilla Public License 2.0 (MPL-2.0) - see the LICENSE file for details.
 
 ## 📞 Support
 

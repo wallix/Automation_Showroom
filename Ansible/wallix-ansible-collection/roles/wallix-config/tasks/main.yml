@@ -1,0 +1,101 @@
+---
+# WALLIX Config Role - Main Tasks
+# Manages base system configuration for WALLIX Bastion
+
+- name: "Config | Validate configuration parameters"
+  include_tasks: validate_config.yml
+  when: wallix_config.validate_before_apply | default(true)
+  tags:
+    - config
+    - validate
+
+- name: "Config | Backup current configuration"
+  include_tasks: backup_config.yml
+  when: wallix_config.backup_before_change | default(true)
+  tags:
+    - config
+    - backup
+
+- name: "Config | Manage system configuration"
+  include_tasks: system_config.yml
+  when: wallix_config.manage_system_config | default(true)
+  tags:
+    - config
+    - system
+
+- name: "Config | Manage license configuration"
+  include_tasks: license_config.yml
+  when: wallix_config.manage_license | default(true)
+  tags:
+    - config
+    - license
+
+- name: "Config | Manage enhanced license configuration"
+  include_tasks: config_license_enhanced.yml
+  when: wallix_config.manage_license_enhanced | default(false)
+  tags:
+    - config
+    - license
+    - enhanced
+
+- name: "Config | Manage X509 certificate configuration"
+  include_tasks: config_x509.yml
+  when: wallix_config.manage_x509 | default(false)
+  tags:
+    - config
+    - x509
+    - certificates
+
+- name: "Config | Manage cluster target configuration"
+  include_tasks: config_clusters.yml
+  when: wallix_config.manage_clusters | default(false)
+  tags:
+    - config
+    - clusters
+    - targets
+
+- name: "Config | Manage certificate configuration"
+  include_tasks: certificate_config.yml
+  when: wallix_config.manage_certificates | default(true)
+  tags:
+    - config
+    - certificates
+
+- name: "Config | Manage time configuration"
+  include_tasks: time_config.yml
+  when: wallix_config.manage_time_settings | default(true)
+  tags:
+    - config
+    - time
+
+- name: "Config | Manage network configuration"
+  include_tasks: network_config.yml
+  when: wallix_config.manage_network_settings | default(false)
+  tags:
+    - config
+    - network
+
+- name: "Config | Import SMTP configuration"
+  include_tasks: config_smtp.yml
+  when: wallix_config.manage_smtp | default(false)
+
+- name: "Config | Import NTP configuration"
+  include_tasks: config_ntp.yml
+  when: wallix_config.manage_ntp | default(false)
+
+# Note: Kerberos domain configuration is managed by wallix-domains role via /api/authdomains
+# Not by wallix-config role. Use wallix-domains with use_kerberos: true instead.
+
+- name: "Config | Manage backup configuration"
+  include_tasks: backup_settings.yml
+  when: wallix_config.manage_backup_settings | default(true)
+  tags:
+    - config
+    - backup
+
+- name: "Config | Generate configuration report"
+  include_tasks: generate_report.yml
+  when: wallix_config.detailed_logging | default(true)
+  tags:
+    - config
+    - report

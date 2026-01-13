@@ -1,0 +1,30 @@
+---
+# vars/data/devices/example-server.yml
+# Template for device creation; copy to environment-specific file and customize
+
+name: "example-server-01"
+host: "10.0.1.100"
+description: "Example managed server"
+state: present
+
+# Device services (SSH, RDP, etc.)
+services:
+  - name: "SSH"
+    protocol: "SSH"
+    port: 22
+    subprotocols: ["SSH_SHELL_SESSION"]
+    state: present
+  # - name: "RDP"
+  #   protocol: "RDP"
+  #   port: 3389
+  #   subprotocols: ["RDP_NATIVE"]
+
+# Device local accounts
+accounts:
+  - login: "admin"
+    domain: "local"
+    description: "Local admin account"
+    state: present
+  # - login: "svc_backup"
+  #   domain: "local"
+  #   description: "Backup service account"

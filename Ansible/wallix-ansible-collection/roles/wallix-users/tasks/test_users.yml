@@ -1,0 +1,15 @@
+---
+# User functionality testing tasks
+
+- name: Skip user functionality testing
+  debug:
+    msg:
+      - "⚠️ User functionality testing skipped"
+      - "Reason: Test mode not enabled"
+      - "Enable with wallix_test_user_functionality: true"
+  when: not (wallix_test_user_functionality | default(false))
+
+- name: Set user testing status
+  set_fact:
+    wallix_user_testing_status: "skipped"
+    wallix_user_testing_reason: "test_mode_disabled"

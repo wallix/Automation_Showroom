@@ -1,0 +1,119 @@
+---
+# WALLIX User Management
+# Default variables for the wallix-users role
+
+# User Management Settings
+wallix_users_mode: "normal"  # normal, dry_run, validate_only
+wallix_users_manage_credentials: true
+wallix_users_manage_preferences: false
+wallix_manage_group_membership: false
+
+wallix_users: []
+  # Example user with different credential types:
+  # - name: "admin.user"
+  #   display_name: "Admin User"
+  #   email: "admin.user@company.com"
+  #   profile: "administrator"
+  #   groups: ["administrators"]
+  #   password: "{{ vault_admin_password }}"
+  #   credentials:
+  #     authentication_methods: ["local_password", "certificate", "ssh_key"]
+  #     ssh_public_key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQ... admin@company.com"
+  #     certificate_dn: "CN=admin.user,OU=IT,O=Company,C=US"
+  #     certificate_file: "/path/to/admin.user.crt"
+  #     gpg_public_key: "-----BEGIN PGP PUBLIC KEY BLOCK-----..."
+
+# User Groups Configuration
+wallix_user_groups: []
+  # Example:
+  # - name: "administrators"
+  #   description: "System administrators"
+  #   permissions:
+  #     - "system_admin"
+  #     - "user_management"
+  #     - "device_management"
+  #   members: []
+  # - name: "users"
+  #   description: "Standard users"
+  #   permissions:
+  #     - "session_access"
+  #   members: []
+
+# User Profiles Configuration
+wallix_user_profiles:
+  # Profile list
+  profiles: []
+  # Example:
+  # - name: "admin_profile"
+  #   description: "Administrator profile"
+  #   permissions:
+  #     system: ["read", "write", "delete"]
+  #     users: ["read", "write", "delete"]
+  #     devices: ["read", "write", "delete"]
+  #     sessions: ["read", "write", "terminate"]
+  #   restrictions:
+  #     time_restrictions: []
+  #     ip_restrictions: []
+  #   settings:
+  #     session_timeout: 3600
+  #     max_concurrent_sessions: 5
+
+# Default User Settings
+wallix_user_defaults:
+  # Password settings
+  password:
+    min_length: 8
+    require_uppercase: true
+    require_lowercase: true
+    require_numbers: true
+    require_special_chars: true
+    max_age_days: 90
+
+  # Session settings
+  session:
+    timeout: 3600
+    max_concurrent: 3
+    idle_timeout: 1800
+
+  # Preferences
+  preferences:
+    language: "en"
+    timezone: "UTC"
+    theme: "default"
+    email_notifications: true
+
+# User Templates
+wallix_user_templates:
+  user_config: "user_config.json.j2"
+  group_config: "group_config.json.j2"
+  profile_config: "profile_config.json.j2"
+  bulk_import: "bulk_import.csv.j2"
+
+# Password Generation Settings
+wallix_password_generation:
+  # Password generation
+  enabled: true
+  length: 12
+  include_symbols: true
+  exclude_ambiguous: true
+
+  # Storage settings
+  store_generated: true
+  storage_location: "/tmp/wallix_generated_passwords.json"
+  encrypt_storage: true
+
+# Error Handling
+wallix_users_error_handling:
+  ignore_errors: false
+  rollback_on_failure: true
+  notify_on_changes: true
+  validation_strict: true
+  skip_existing_users: false
+
+# Debug and Development
+wallix_users_debug:
+  enabled: false
+  log_requests: false
+  log_responses: false
+  save_configs: false
+  test_user_creation: true

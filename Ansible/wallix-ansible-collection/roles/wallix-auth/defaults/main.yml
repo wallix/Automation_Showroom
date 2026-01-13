@@ -1,0 +1,59 @@
+---
+# Default variables for wallix-auth role
+
+# WALLIX Bastion connection settings
+wallix_bastion_host: "{{ inventory_hostname }}"
+wallix_bastion_port: 443
+wallix_bastion_protocol: "https"
+wallix_bastion_api_version: "api"
+
+# Authentication method
+# Supports multiple credential sources with fallback chain:
+# 1. Plain variables (wallix_username, wallix_password)
+# 2. Vault variables (vault_wallix_username, vault_wallix_password)
+# 3. Environment variables (WALLIX_API_USER, WALLIX_API_PASSWORD)
+# 4. Default values
+wallix_auth:
+  # Initial authentication method: credentials or api_key
+  initial_auth_method: "credentials"  # credentials|api_key
+
+  # Credentials authentication (default method)
+  credentials:
+    username: "{{ wallix_username | default(vault_wallix_username | default(lookup('env', 'WALLIX_API_USER') | default('admin'))) }}"
+    password: "{{ wallix_password | default(vault_wallix_password | default(lookup('env', 'WALLIX_API_PASSWORD') | default(''))) }}"
+
+  # API key authentication (alternative method)
+  api_key:
+    key: "{{ wallix_api_key | default(vault_api_key | default(lookup('env', 'WALLIX_API_KEY') | default(''))) }}"
+    secret: "{{ wallix_api_secret | default(vault_api_secret | default(lookup('env', 'WALLIX_API_SECRET') | default(''))) }}"
+
+  # Session management
+  session:
+    use_cookie: true              # Always use cookie after initial auth
+    cookie_file: "/tmp/.wallix_session_localhost_cookie"
+    auto_renew: true
+    renewal_threshold: 300        # Renew 5 minutes before expiration
+    max_session_duration: 3600    # 1 hour
+    cleanup_on_exit: true
+
+  # Connection settings
+  connection:
+    verify_ssl: true
+    timeout: 30
+    retry_count: 3
+    retry_delay: 5
+    force_basic_auth: false
+
+# API settings
+wallix_api:
+  base_url: "{{ wallix_bastion_protocol }}://{{ wallix_bastion_host }}:{{ wallix_bastion_port }}/{{ wallix_bastion_api_version }}"
+  headers:
+    Content-Type: "application/json"
+    Accept: "application/json"
+
+# Debug settings
+wallix_debug:
+  enabled: false
+  log_requests: false
+  log_responses: false
+  save_cookies: true

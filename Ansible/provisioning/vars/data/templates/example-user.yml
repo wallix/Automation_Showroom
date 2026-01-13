@@ -1,0 +1,27 @@
+---
+# vars/data/users/example-user.yml
+# Template for user creation; copy to environment-specific file and customize
+
+name: "example_user"
+email: "user@example.com"
+profile: "user"
+preferred_language: "en"
+description: "Example user account"
+force_change_password: false
+state: present
+
+# Groups (must exist in wallix_user_groups)
+groups:
+  - "Default_Group"
+
+# Authentication methods available to this user
+user_auths:
+  - "local_password"
+  # - "local_sshkey"
+  # - "local_x509"
+
+# Credentials (matched to user_auths order)
+credentials:
+  local_password: "ChangeMe123!"
+  # local_sshkey: "ssh-rsa AAAA..."
+  # local_x509: "CN=User,OU=Unit,O=Org,C=CC"

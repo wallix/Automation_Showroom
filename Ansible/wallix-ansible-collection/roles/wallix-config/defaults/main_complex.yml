@@ -1,0 +1,166 @@
+---
+# WALLIX API Configuration Management
+# Default variables for the wallix-config role
+
+# Configuration Management Settings
+wallix_config:
+  # Management configuration
+  manage_system_config: true
+  manage_license: true
+  manage_certificates: true
+  manage_time_settings: true
+  manage_network_settings: false
+  manage_backup_settings: true
+
+  # Configuration validation
+  validate_before_apply: true
+  backup_before_change: true
+
+  # Operation modes
+  operation_mode: "apply"  # apply, dry_run, validate_only
+  continue_on_error: false
+
+  # Retry settings
+  retry_attempts: 3
+  retry_delay: 5
+
+  # Logging settings
+  detailed_logging: true
+  log_api_requests: false
+
+# System Configuration Settings
+wallix_system_config:
+  # Basic system settings
+  system_name: "{{ inventory_hostname | default('wallix-bastion') }}"
+  description: "WALLIX Bastion managed by Ansible"
+
+  # Time and locale settings
+  timezone: "UTC"
+  language: "en"
+
+  # Session settings
+  session_timeout: 3600
+  max_sessions: 100
+
+  # Security settings
+  password_policy:
+    min_length: 8
+    require_uppercase: true
+    require_lowercase: true
+    require_numbers: true
+    require_special_chars: true
+    max_age_days: 90
+
+  # Logging settings
+  audit_log_retention: 365
+  syslog_enabled: true
+  debug_mode: false
+
+# License Configuration
+wallix_license:
+  # License management
+  auto_install: false
+  license_file: ""
+  license_content: ""
+  validate_license: true
+
+  # License monitoring
+  check_expiration: true
+  alert_before_expiry_days: 30
+
+# Certificate Configuration
+wallix_certificates:
+  # SSL/TLS certificates
+  web_cert:
+    install: false
+    cert_file: ""
+    key_file: ""
+    ca_file: ""
+    auto_generate: false
+
+  # API certificates
+  api_cert:
+    install: false
+    cert_file: ""
+    key_file: ""
+    ca_file: ""
+
+  # Certificate validation
+  validate_certificates: true
+  auto_renewal: false
+
+# Network Configuration
+wallix_network:
+  # Network interfaces (when manage_network_settings: true)
+  interfaces: []
+  # Example:
+  # - name: eth0
+  #   ip: "192.168.1.100"
+  #   netmask: "255.255.255.0"
+  #   gateway: "192.168.1.1"
+  #   dns: ["8.8.8.8", "8.8.4.4"]
+
+  # Firewall settings
+  firewall:
+    enabled: true
+    default_policy: "drop"
+    allowed_ports: []
+    # Example:
+    # - port: 22
+    #   protocol: tcp
+    #   source: "0.0.0.0/0"
+    # - port: 443
+    #   protocol: tcp
+    #   source: "0.0.0.0/0"
+
+# Backup Configuration
+wallix_backup:
+  # Backup settings
+  auto_backup: true
+  backup_schedule: "daily"
+  backup_retention: 30
+  backup_location: "/var/backups/wallix"
+
+  # Backup components
+  include_config: true
+  include_logs: false
+  include_sessions: false
+
+  # Compression settings
+  compress_backups: true
+  encryption_enabled: false
+
+# Time Configuration
+wallix_time:
+  # NTP settings
+  ntp_enabled: true
+  ntp_servers:
+    - "pool.ntp.org"
+    - "time.nist.gov"
+
+  # Time sync settings
+  sync_frequency: 3600
+  timezone_auto_detect: false
+
+# Configuration Templates
+wallix_config_templates:
+  system_config: "system_config.json.j2"
+  license_config: "license_config.json.j2"
+  certificate_config: "certificate_config.json.j2"
+  backup_config: "backup_config.json.j2"
+  time_config: "time_config.json.j2"
+
+# Error Handling
+wallix_config_error_handling:
+  ignore_errors: false
+  rollback_on_failure: true
+  notify_on_changes: true
+  validation_strict: true
+
+# Debug and Development
+wallix_config_debug:
+  enabled: false
+  log_requests: false
+  log_responses: false
+  save_configs: false
+  config_backup_dir: "/tmp/wallix_configs"

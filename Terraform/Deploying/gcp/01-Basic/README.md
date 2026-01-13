@@ -1,4 +1,4 @@
-# Deploy WALLIX access manager and Bastion
+# Deploy WALLIX Access Manager and Bastion
 
 terraform init
 terraform apply -var-file=<VAR_FILE>

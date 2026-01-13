@@ -1,121 +1,266 @@
-# Integration Scenario: GitLab CI/CD + OpenShift + Wallix
+# Integration Scenario: GitLab CI/CD + OpenShift + WALLIX
 
-This document describes a secure CI/CD workflow where GitLab CI running on OpenShift uses Ansible Runner to deploy applications, securely retrieving credentials from Wallix Bastion just-in-time.
+This guide describes a secure CI/CD workflow where GitLab CI running on OpenShift uses Ansible to deploy applications, retrieving credentials from WALLIX Bastion just-in-time.
 
-## Architecture Overview
+## 🏗️ Architecture Overview
 
-1. **GitLab CI**: Orchestrates the pipeline.
-2. **OpenShift**: Hosts the GitLab Runner and executes the CI jobs.
-3. **Ansible Runner**: A containerized execution environment that runs the Ansible Playbooks.
-4. **Wallix Bastion (PAM)**: Securely stores and manages access credentials (SSH keys, passwords).
-5. **Target Server**: The destination for the deployment.
+```text
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│   GitLab CI     │────▶│   OpenShift     │────▶│  WALLIX Bastion │
+│   (Pipeline)    │     │   (Runner Pod)  │     │  (Credentials)  │
+└─────────────────┘     └─────────────────┘     └─────────────────┘
+                               │
+                               ▼
+                        ┌─────────────────┐
+                        │ Target Servers  │
+                        │ (Deployment)    │
+                        └─────────────────┘
+```
 
-## Workflow Steps
+### Components
+
+| Component          | Role                                               |
+| ------------------ | -------------------------------------------------- |
+| **GitLab CI**      | Orchestrates the pipeline, stores masked variables |
+| **OpenShift**      | Hosts GitLab Runner pods, executes CI jobs         |
+| **Ansible Runner** | Containerized execution environment for playbooks  |
+| **WALLIX Bastion** | Securely stores and manages credentials            |
+| **Target Servers** | Deployment destinations                            |
+
+## 📋 Workflow Steps
 
 ### 1. Pipeline Trigger
 
-A developer pushes code to the GitLab repository, triggering the CI/CD pipeline defined in `.gitlab-ci.yml`.
+Developer pushes code → GitLab CI pipeline starts
 
 ### 2. Environment Preparation
 
-The GitLab Runner on OpenShift starts a pod using the `ansible-runner` image.
-
-* **Secure Variables**: GitLab injects sensitive connection details (`WALLIX_URL`, `WALLIX_USER`, `WALLIX_PASSWORD`) as **Masked** and **Protected** environment variables. These are never stored in the repository.
+- GitLab Runner spawns pod on OpenShift
+- Injects `WALLIX_URL`, `WALLIX_USER`, `WALLIX_PASSWORD` as **masked** and **protected** variables
 
 ### 3. Secret Retrieval (Just-in-Time)
 
-The Ansible Playbook executes the `wallix.pam_secret_action` collection.
-
-* It connects to the Wallix Bastion API.
-* It requests a checkout of the specific credential needed for the target (e.g., an SSH key).
-* **Security**: The retrieved secret is registered with `no_log: true` to prevent it from appearing in job logs.
+- Ansible playbook calls `wallix.pam.secret` module
+- Credentials retrieved only for job duration
+- All operations logged with `no_log: true`
 
 ### 4. Deployment
 
-Ansible uses the retrieved SSH key to connect to the target server through the Wallix Bastion (or directly, depending on network topology) and performs the deployment tasks.
+- Ansible uses retrieved SSH key to connect to targets
+- Deployment tasks execute
+- Secrets never written to logs
 
 ### 5. Cleanup
 
-Using Ansible's `block/always` pattern, the temporary SSH key file is securely deleted from the runner container immediately after the playbook finishes, regardless of success or failure.
+- `always` block ensures temporary files are deleted
+- Credentials automatically expire if not checked in
 
-## Configuration Example
+## 🔧 Configuration Examples
 
-### .gitlab-ci.yml
+### GitLab CI Configuration
+
+**`.gitlab-ci.yml`:**
 
 ```yaml
-deploy_app:
+stages:
+  - deploy
+
+variables:
+  ANSIBLE_HOST_KEY_CHECKING: "False"
+  ANSIBLE_STDOUT_CALLBACK: yaml
+
+deploy_application:
   stage: deploy
   image: quay.io/ansible/ansible-runner:latest
-  variables:
-    ANSIBLE_HOST_KEY_CHECKING: "False"
+  
+  before_script:
+    - pip install --quiet requests
+    - ansible-galaxy collection install -r requirements.yml
+  
   script:
-    - ansible-galaxy collection install git+https://github.com/wallix/ansible-collection.git
-    - ansible-playbook playbook.yml
+    - ansible-playbook playbooks/deploy.yml
+  
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: always
+  
+  environment:
+    name: production
 ```
 
-### playbook.yml
+**`requirements.yml`:**
 
 ```yaml
-- hosts: localhost
+---
+collections:
+  - name: https://github.com/wallix/Automation_Showroom.git#/Ansible/wallix-ansible-collection
+    type: git
+    version: main
+```
+
+### Ansible Playbook
+
+**`playbooks/deploy.yml`:**
+
+```yaml
+---
+- name: Retrieve Credentials from WALLIX
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    ssh_key_path: "/tmp/deploy_key_{{ ansible_date_time.epoch }}"
+
   tasks:
-    - name: Retrieve SSH Key from Wallix
-      wallix.pam_secret_action.secret:
+    - name: Checkout SSH Key from WALLIX
+      wallix.pam.secret:
         wallix_url: "{{ lookup('env', 'WALLIX_URL') }}"
         username: "{{ lookup('env', 'WALLIX_USER') }}"
         password: "{{ lookup('env', 'WALLIX_PASSWORD') }}"
         account: "ansible"
         domain: "local"
-        device: "target-server"
+        device: "{{ target_server | default('production-server') }}"
         state: checkout
-        validate_certs: no
+        validate_certs: true
       register: wallix_secret
       no_log: true
 
-    - name: Save SSH Key to file
-      copy:
+    - name: Save SSH Key securely
+      ansible.builtin.copy:
         content: "{{ wallix_secret.ssh_key }}"
-        dest: "/tmp/ssh_key"
+        dest: "{{ ssh_key_path }}"
         mode: '0600'
       no_log: true
 
-- hosts: all
-  vars:
-    ansible_ssh_private_key_file: "/tmp/ssh_key"
+    - name: Set SSH key path for deployment
+      ansible.builtin.set_fact:
+        ansible_ssh_private_key_file: "{{ ssh_key_path }}"
+
+- name: Deploy Application
+  hosts: production
+  gather_facts: true
+
   tasks:
-    - name: Deploy Application
-      # ... deployment tasks ...
+    - name: Ensure application directory exists
+      ansible.builtin.file:
+        path: /opt/myapp
+        state: directory
+        mode: '0755'
+
+    - name: Deploy application files
+      ansible.builtin.copy:
+        src: ../dist/
+        dest: /opt/myapp/
+        mode: '0644'
+
+    - name: Restart application service
+      ansible.builtin.systemd:
+        name: myapp
+        state: restarted
+        enabled: true
+
+- name: Cleanup
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Remove temporary SSH key
+      ansible.builtin.file:
+        path: "{{ ssh_key_path }}"
+        state: absent
+      ignore_errors: true
+
+    - name: Checkin credentials
+      wallix.pam.secret:
+        wallix_url: "{{ lookup('env', 'WALLIX_URL') }}"
+        username: "{{ lookup('env', 'WALLIX_USER') }}"
+        password: "{{ lookup('env', 'WALLIX_PASSWORD') }}"
+        account: "ansible"
+        device: "{{ target_server | default('production-server') }}"
+        state: checkin
+        force: true
+        comment: "GitLab pipeline completed"
+      ignore_errors: true
 ```
 
-## Security Best Practices
+### GitLab Variables Configuration
 
-To ensure a production-grade secure implementation, follow these guidelines:
+In **Settings → CI/CD → Variables**, add:
 
-### 1. Identity & Access Management (IAM)
+| Variable          | Value                         | Protected | Masked |
+| ----------------- | ----------------------------- | --------- | ------ |
+| `WALLIX_URL`      | `https://bastion.example.com` | ✅        | ❌     |
+| `WALLIX_USER`     | `svc_gitlab_cicd`             | ✅        | ❌     |
+| `WALLIX_PASSWORD` | `(your-password)`             | ✅        | ✅     |
 
-* **Dedicated Service Account**: Create a specific API user in Wallix for the CI/CD pipeline (e.g., `svc_gitlab_cicd`).
-* **Least Privilege**: Grant this user *only* the "Checkout" permission on the specific target accounts required for the deployment. Do not grant "Connect" or administrative rights.
-* **IP Restriction**: If possible, configure Wallix to accept API requests for this user only from the OpenShift cluster's egress IP.
+## 🔒 Security Best Practices
 
-### 2. Pipeline Configuration
+### Identity & Access Management
 
-* **Protected Variables**: In GitLab, mark `WALLIX_PASSWORD` and `WALLIX_API_KEY` as **Protected**. This ensures they are only exposed to pipelines running on protected branches (like `main` or `production`).
-* **Masked Variables**: Always mark these variables as **Masked** to prevent accidental leakage in job logs.
-* **Environment Scoping**: Use GitLab Environments to scope variables. For example, the `production` environment might use a different Wallix user/password than `staging`.
+| Practice                      | Implementation                                        |
+| ----------------------------- | ----------------------------------------------------- |
+| **Dedicated Service Account** | Create `svc_gitlab_cicd` user in WALLIX               |
+| **Least Privilege**           | Grant only "Checkout" permission on required accounts |
+| **IP Restriction**            | Limit API access to OpenShift egress IPs              |
+| **Short Session Duration**    | Set minimal checkout duration                         |
 
-### 3. Playbook Hardening
+### Pipeline Security
 
-* **Mandatory `no_log`**: Ensure `no_log: true` is present on the `wallix.pam_secret_action.secret` task and any `copy` task handling the key.
-* **Guaranteed Cleanup**: Always use `block`, `rescue`, and `always` sections. The file deletion task must be in the `always` section to run even if the deployment fails.
-* **TLS Validation**: In production, set `validate_certs: yes`. You may need to add your internal CA certificate to the Ansible Runner image or mount it as a ConfigMap if needed.
+```yaml
+# ✅ Use protected branches
+rules:
+  - if: $CI_COMMIT_BRANCH == "main"
 
-### 4. Network Security
+# ✅ Use protected environments
+environment:
+  name: production
+```
 
-* **HTTPS Only**: Never use HTTP for the Wallix API endpoint.
-* **Network Policies**: Use OpenShift NetworkPolicies to restrict the GitLab Runner namespace so it can *only* communicate with the Wallix Bastion and the specific target subnets.
+### Playbook Hardening
 
-## Security Benefits
+```yaml
+# ✅ Mandatory no_log
+- name: Handle secret
+  wallix.pam.secret:
+    # ...
+  no_log: true
 
-* **Zero Hardcoded Secrets**: No credentials in git repositories.
-* **Ephemeral Access**: Credentials exist only for the duration of the job.
-* **Audit Trail**: Wallix logs exactly which CI job accessed which credential and when.
-* **Leak Prevention**: GitLab masking and Ansible `no_log` prevent accidental exposure in logs.
+# ✅ Guaranteed cleanup with block/always
+- block:
+    - name: Use secret
+      # ...
+  always:
+    - name: Cleanup
+      ansible.builtin.file:
+        path: /tmp/key
+        state: absent
+
+# ✅ SSL validation in production
+validate_certs: true
+```
+
+### Network Security
+
+| Control               | Description                      |
+| --------------------- | -------------------------------- |
+| **HTTPS Only**        | Never use HTTP for WALLIX API    |
+| **NetworkPolicies**   | Restrict Runner namespace egress |
+| **Private Endpoints** | Use internal DNS where possible  |
+
+## ✅ Security Benefits Summary
+
+| Benefit                    | Description                             |
+| -------------------------- | --------------------------------------- |
+| **Zero Hardcoded Secrets** | No credentials in git repositories      |
+| **Ephemeral Access**       | Credentials exist only for job duration |
+| **Complete Audit Trail**   | WALLIX logs all access with timestamps  |
+| **Leak Prevention**        | GitLab masking + Ansible `no_log`       |
+| **Automated Cleanup**      | Temporary files removed automatically   |
+
+## 📖 Related Documentation
+
+- [Installation Guide](installation.md)
+- [Examples](../examples/)
+- [WALLIX Bastion API Documentation](https://docs.wallix.com)

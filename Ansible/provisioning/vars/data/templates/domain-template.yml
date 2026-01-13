@@ -1,0 +1,48 @@
+---
+# Domain Template - Copy and customize for each global domain
+# Usage: Include this file in your provisioning playbook
+# Example: make provision-domain DOMAIN=PROD_AD
+
+# Global Domain definition
+global_domain:
+  name: "DOMAIN_NAME"                     # Required: Domain identifier (uppercase recommended)
+  domain_real_name: "domain.company.com"  # Required: Actual domain name (FQDN)
+  description: "Domain description"
+  state: present                          # present|absent
+
+  # Password management
+  enable_password_change: false           # Enable automatic password rotation
+  password_change_policy: "default"       # Password change policy name
+  password_change_plugin: "Windows"       # Windows, Linux, Oracle, etc.
+
+  # LDAP configuration (for AD/LDAP domains)
+  ldap_config:
+    enabled: false
+    servers:
+      - host: "dc1.domain.company.com"
+        port: 636
+        use_ssl: true
+      # - host: "dc2.domain.company.com"
+      #   port: 636
+      #   use_ssl: true
+    base_dn: "DC=domain,DC=company,DC=com"
+    bind_dn: "CN=Bastion Service,OU=ServiceAccounts,DC=domain,DC=company,DC=com"
+    bind_password: "{{ vault_ldap_bind_password }}"
+
+  # Global accounts in this domain
+  accounts:
+    - name: "svc_admin"                   # Account name
+      login: "svc_admin@domain.company.com"
+      description: "Domain service administrator"
+      credentials:
+        type: "password"
+        password: "{{ vault_domain_svc_password }}"
+      state: present
+
+    # - name: "backup_svc"
+    #   login: "backup@domain.company.com"
+    #   description: "Backup service account"
+    #   credentials:
+    #     type: "password"
+    #     password: "{{ vault_backup_password }}"
+    #   state: present

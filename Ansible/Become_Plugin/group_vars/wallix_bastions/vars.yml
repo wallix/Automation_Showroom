@@ -1,7 +1,0 @@
----
-# WALLIX Bastion Variables
-# References encrypted vault variables
-
-ansible_password: "{{ vault_wabadmin_password }}"
-ansible_become_password: "{{ vault_wabsuper_password }}"
-

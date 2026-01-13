@@ -1,0 +1,158 @@
+---
+# WALLIX Domain Management
+# Default variables for the wallix-domains role
+
+# Domain Management Settings
+wallix_domains:
+  # Management configuration
+  manage_auth_domains: true
+  manage_global_domains: true
+  manage_ldap_domains: true
+  manage_ad_domains: true
+  manage_radius_domains: true
+
+  # Operation settings
+  operation_mode: "apply"  # apply, dry_run, validate_only
+  validate_before_apply: true
+  continue_on_error: false
+
+  # Retry settings
+  retry_attempts: 3
+  retry_delay: 5
+
+  # Logging settings
+  detailed_logging: true
+  log_api_requests: false
+
+# Authentication Domains Configuration
+wallix_auth_domains:
+  # Local authentication domain (always present)
+  local:
+    name: "local"
+    description: "Local WALLIX authentication"
+    type: "local"
+    enabled: true
+    default_domain: true
+
+  # External authentication domains
+  external_domains: []
+  # Example:
+  # - name: "company_ldap"
+  #   description: "Company LDAP Directory"
+  #   type: "ldap"
+  #   enabled: true
+  #   default_domain: false
+  #   connection:
+  #     server: "ldap.company.com"
+  #     port: 389
+  #     use_ssl: false
+  #     base_dn: "dc=company,dc=com"
+  #     bind_dn: "cn=admin,dc=company,dc=com"
+  #     bind_password: "{{ vault_ldap_password }}"
+  #   attributes:
+  #     username: "uid"
+  #     email: "mail"
+  #     groups: "memberOf"
+
+# Global Domains Configuration
+wallix_global_domains:
+  # Domain management
+  auto_create: true
+  sync_with_auth_domains: true
+
+  # Global domains list
+  domains: []
+  # Example:
+  # - name: "internal"
+  #   description: "Internal network domain"
+  #   domain_type: "internal"
+  #   auth_domain: "company_ldap"
+  #   settings:
+  #     auto_user_creation: true
+  #     default_profile: "basic_user"
+  # - name: "external"
+  #   description: "External access domain"
+  #   domain_type: "external"
+  #   auth_domain: "local"
+
+# LDAP Configuration
+wallix_ldap_config:
+  # Default LDAP settings
+  default_port: 389
+  default_ssl_port: 636
+  connection_timeout: 30
+  search_timeout: 60
+
+  # Attribute mappings
+  default_attributes:
+    username: "uid"
+    email: "mail"
+    first_name: "givenName"
+    last_name: "sn"
+    groups: "memberOf"
+    display_name: "displayName"
+
+  # Search settings
+  user_search_base: "ou=users"
+  group_search_base: "ou=groups"
+
+  # Security settings
+  verify_ssl: true
+  use_start_tls: false
+
+# Active Directory Configuration
+wallix_ad_config:
+  # Default AD settings
+  default_port: 389
+  default_ssl_port: 636
+  global_catalog_port: 3268
+
+  # Attribute mappings
+  default_attributes:
+    username: "sAMAccountName"
+    email: "mail"
+    first_name: "givenName"
+    last_name: "sn"
+    groups: "memberOf"
+    display_name: "displayName"
+    user_principal_name: "userPrincipalName"
+
+  # Security settings
+  verify_ssl: true
+  use_kerberos: false
+
+# RADIUS Configuration
+wallix_radius_config:
+  # Default RADIUS settings
+  default_port: 1812
+  default_timeout: 5
+  default_retries: 3
+
+  # Authentication settings
+  shared_secret: "{{ vault_radius_secret | default('') }}"
+  nas_identifier: "wallix-bastion"
+
+  # Security settings
+  require_message_authenticator: true
+
+# Domain Templates
+wallix_domain_templates:
+  ldap_domain: "ldap_domain.json.j2"
+  ad_domain: "ad_domain.json.j2"
+  radius_domain: "radius_domain.json.j2"
+  global_domain: "global_domain.json.j2"
+
+# Error Handling
+wallix_domains_error_handling:
+  ignore_errors: false
+  rollback_on_failure: true
+  notify_on_changes: true
+  validation_strict: true
+
+# Debug and Development
+wallix_domains_debug:
+  enabled: false
+  log_requests: false
+  log_responses: false
+  save_configs: false
+  test_connections: true
