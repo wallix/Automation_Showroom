@@ -1,0 +1,85 @@
+---
+# WALLIX Cleanup - Backup Resources Tasks
+
+- name: "💾 Backup | Create backup directory"
+  file:
+    path: "{{ wallix_cleanup_backup.destination }}"
+    state: directory
+    mode: '0755'
+  delegate_to: localhost
+  when: wallix_cleanup_backup.enabled
+
+- name: "💾 Backup | Backup authorizations"
+  copy:
+    content: "{{ discovered_authorizations.json | default([]) | to_nice_json }}"
+    dest: "{{ wallix_cleanup_backup.destination }}/authorizations_backup.json"
+  delegate_to: localhost
+  when:
+    - wallix_cleanup_backup.enabled
+    - discovered_authorizations is defined
+    - wallix_cleanup_components.authorizations.enabled
+
+- name: "💾 Backup | Backup target groups"
+  copy:
+    content: "{{ discovered_target_groups.json | default([]) | to_nice_json }}"
+    dest: "{{ wallix_cleanup_backup.destination }}/target_groups_backup.json"
+  delegate_to: localhost
+  when:
+    - wallix_cleanup_backup.enabled
+    - discovered_target_groups is defined
+    - wallix_cleanup_components.target_groups.enabled
+
+- name: "💾 Backup | Backup user groups"
+  copy:
+    content: "{{ discovered_user_groups.json | default([]) | to_nice_json }}"
+    dest: "{{ wallix_cleanup_backup.destination }}/user_groups_backup.json"
+  delegate_to: localhost
+  when:
+    - wallix_cleanup_backup.enabled
+    - discovered_user_groups is defined
+    - wallix_cleanup_components.user_groups.enabled
+
+- name: "💾 Backup | Backup devices"
+  copy:
+    content: "{{ discovered_devices.json | default([]) | to_nice_json }}"
+    dest: "{{ wallix_cleanup_backup.destination }}/devices_backup.json"
+  delegate_to: localhost
+  when:
+    - wallix_cleanup_backup.enabled
+    - discovered_devices is defined
+    - wallix_cleanup_components.devices.enabled
+
+- name: "💾 Backup | Backup users"
+  copy:
+    content: "{{ discovered_users.json | default([]) | to_nice_json }}"
+    dest: "{{ wallix_cleanup_backup.destination }}/users_backup.json"
+  delegate_to: localhost
+  when:
+    - wallix_cleanup_backup.enabled
+    - discovered_users is defined
+    - wallix_cleanup_components.users.enabled
+
+- name: "💾 Backup | Backup domains"
+  copy:
+    content: "{{ discovered_domains.json | default([]) | to_nice_json }}"
+    dest: "{{ wallix_cleanup_backup.destination }}/domains_backup.json"
+  delegate_to: localhost
+  when:
+    - wallix_cleanup_backup.enabled
+    - discovered_domains is defined
+    - wallix_cleanup_components.domains.enabled
+
+- name: "💾 Backup | Create backup manifest"
+  template:
+    src: backup_manifest.json.j2
+    dest: "{{ wallix_cleanup_backup.destination }}/backup_manifest.json"
+  delegate_to: localhost
+  when: wallix_cleanup_backup.enabled
+
+- name: "✅ Backup | Backup completed"
+  debug:
+    msg:
+      - "Backup completed successfully"
+      - "Backup location: {{ wallix_cleanup_backup.destination }}"
+      - "Backup includes metadata: {{ wallix_cleanup_backup.include_metadata }}"
+  when: wallix_cleanup_backup.enabled

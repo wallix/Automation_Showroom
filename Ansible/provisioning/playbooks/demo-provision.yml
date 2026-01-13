@@ -1,0 +1,179 @@
+---
+# playbooks/demo-provision.yml - Quick demo provisioning
+#
+# Creates a complete demo environment with:
+# - Global domains and accounts
+# - Devices with SSH/RDP services
+# - Users and user groups
+# - Target groups and authorizations
+#
+# Usage:
+#   make demo                 # Interactive mode with confirmation
+#   make demo-quick           # No confirmation
+#
+# Or directly:
+#   ansible-playbook playbooks/demo-provision.yml -i inventories/dev/hosts.ini \
+#     -e wallix_bastion_host=10.10.122.15 \
+#     --vault-password-file <(printf "vault_password")
+
+- name: WALLIX Bastion - Demo Provisioning
+  hosts: localhost
+  gather_facts: false
+  connection: local
+
+  vars_files:
+    - ../vars/data/demo/infrastructure.yml
+    - ../vars/data/demo/users.yml
+
+  pre_tasks:
+    - name: Set connection defaults
+      set_fact:
+        wallix_api_protocol: "{{ wallix_api.protocol | default('https') }}"
+        wallix_api_port: "{{ wallix_api.port | default(443) }}"
+
+    - name: Build API base URL
+      set_fact:
+        wallix_api: "{{ wallix_api | combine({'base_url': wallix_api_protocol ~ '://' ~ wallix_bastion_host ~ ':' ~ wallix_api_port ~ '/api'}) }}"
+
+    - name: Display demo information
+      debug:
+        msg:
+          - "╔══════════════════════════════════════════════════════════╗"
+          - "║           WALLIX BASTION - DEMO PROVISIONING             ║"
+          - "╠══════════════════════════════════════════════════════════╣"
+          - "║  Target: {{ wallix_api.base_url | default('NOT SET') | truncate(40) }}"
+          - "║                                                          ║"
+          - "║  This will create:                                       ║"
+          - "║    • {{ wallix_global_domains | length | default(0) }} Global domains                               ║"
+          - "║    • {{ wallix_devices | length | default(0) }} Devices with services                        ║"
+          - "║    • {{ wallix_user_groups | length | default(0) }} User groups                                  ║"
+          - "║    • {{ wallix_users | length | default(0) }} Users                                          ║"
+          - "║    • {{ wallix_target_groups | length | default(0) }} Target groups                               ║"
+          - "║    • {{ wallix_authorizations | length | default(0) }} Authorizations                              ║"
+          - "║                                                          ║"
+          - "║  All resources will be prefixed with 'demo-' or 'Demo_'  ║"
+          - "╚══════════════════════════════════════════════════════════╝"
+
+    - name: Confirm demo provisioning
+      pause:
+        prompt: "Proceed with demo provisioning? [yes/no]"
+      register: confirm_demo
+      when: not (skip_confirmation | default(false) | bool)
+
+    - name: Check confirmation
+      fail:
+        msg: "Demo provisioning cancelled by user"
+      when:
+        - not (skip_confirmation | default(false) | bool)
+        - confirm_demo.user_input != "yes"
+
+  tasks:
+    # =========================================================================
+    # AUTHENTICATION
+    # =========================================================================
+    - name: "🔐 Authenticate to Bastion"
+      include_role:
+        name: wallix-auth
+      tags: [auth]
+
+    - name: Verify session
+      debug:
+        msg: "✅ Authenticated - Session cookie acquired"
+      when: wallix_session_cookie is defined
+
+    # =========================================================================
+    # INFRASTRUCTURE: Domains & Global Accounts
+    # =========================================================================
+    - name: "📁 Create Global Domains"
+      include_role:
+        name: wallix-global-domains
+      when: wallix_global_domains is defined
+      tags: [domains]
+
+    - name: "🔑 Create Global Accounts"
+      include_role:
+        name: wallix-global-accounts
+      when: wallix_global_accounts is defined
+      tags: [accounts]
+
+    # =========================================================================
+    # TARGETS: Devices & Services
+    # =========================================================================
+    - name: "🖥️ Create Devices and Services"
+      include_role:
+        name: wallix-devices
+      when: wallix_devices is defined
+      tags: [devices]
+
+    # =========================================================================
+    # ACCESS: Users & Groups
+    # =========================================================================
+    - name: "👥 Create User Groups"
+      include_role:
+        name: wallix-users
+        tasks_from: create_user_groups.yml
+      when: wallix_user_groups is defined
+      tags: [users]
+
+    - name: "👤 Create Users"
+      include_role:
+        name: wallix-users
+      when: wallix_users is defined
+      tags: [users]
+
+    # =========================================================================
+    # AUTHORIZATIONS: Target Groups & Mappings
+    # =========================================================================
+    - name: "🎯 Create Target Groups"
+      include_role:
+        name: wallix-authorizations
+        tasks_from: create_target_groups.yml
+      when: wallix_target_groups is defined
+      tags: [authorizations]
+
+    - name: "🔐 Create Authorizations"
+      include_role:
+        name: wallix-authorizations
+      when: wallix_authorizations is defined
+      tags: [authorizations]
+
+    # =========================================================================
+    # OPTIONAL: Timeframes
+    # =========================================================================
+    - name: "⏰ Create Timeframes"
+      include_role:
+        name: wallix-timeframes
+      when: wallix_timeframes is defined
+      tags: [timeframes]
+
+    # =========================================================================
+    # SUMMARY
+    # =========================================================================
+    - name: Demo Summary
+      debug:
+        msg:
+          - ""
+          - "╔══════════════════════════════════════════════════════════╗"
+          - "║              🎉 DEMO PROVISIONING COMPLETE 🎉            ║"
+          - "╠══════════════════════════════════════════════════════════╣"
+          - "║  Bastion: {{ wallix_bastion_host | default('unknown') }}"
+          - "║                                                          ║"
+          - "║  Created resources:                                      ║"
+          - "║    • Global Domains:  {{ wallix_global_domains_created | default(0) }}"
+          - "║    • Global Accounts: {{ wallix_global_accounts_created | default(0) }}"
+          - "║    • Devices:         {{ wallix_devices_created | default(0) }}"
+          - "║    • Services:        {{ wallix_services_configured | default(0) }}"
+          - "║    • User Groups:     {{ wallix_user_groups_created | default(0) }}"
+          - "║    • Users:           {{ wallix_users_created | default(0) }}"
+          - "║    • Target Groups:   {{ wallix_target_groups_created | default(0) }}"
+          - "║    • Authorizations:  {{ wallix_authorizations_created | default(0) }}"
+          - "║                                                          ║"
+          - "║  Demo users created:                                     ║"
+          - "║    • demo_admin (product_administrator profile)          ║"
+          - "║    • demo_operator1, demo_operator2                      ║"
+          - "║    • demo_dev1, demo_dev2                                ║"
+          - "║    • demo_dba                                            ║"
+          - "║    • demo_auditor (auditor profile)                      ║"
+          - "║                                                          ║"
+          - "║  To clean up: make cleanup-demo                          ║"
+          - "╚══════════════════════════════════════════════════════════╝"

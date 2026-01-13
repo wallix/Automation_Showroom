@@ -1,0 +1,562 @@
+---
+# Enterprise Target Groups - Organized by Environment, Tier, and Function
+#
+# Target groups provide logical groupings for authorization purposes.
+# Structure: Environment > Tier > Technology
+#
+# Usage:
+#   Include with: -e @vars/data/enterprise/target_groups.yml
+
+# ============================================================================
+# TARGET GROUPS - Environment-based
+# ============================================================================
+
+wallix_target_groups:
+  # -------------------------------------------------------------------------
+  # PRODUCTION Environment Groups
+  # -------------------------------------------------------------------------
+  - group_name: "TG_PROD_ALL"
+    description: "All Production servers - Full access"
+    state: present
+
+  - group_name: "TG_PROD_WEB"
+    description: "Production Web Tier (DMZ)"
+    state: present
+
+  - group_name: "TG_PROD_APP"
+    description: "Production Application Tier"
+    state: present
+
+  - group_name: "TG_PROD_DB"
+    description: "Production Database Tier"
+    state: present
+
+  - group_name: "TG_PROD_CACHE"
+    description: "Production Cache & Search (Redis, Elastic)"
+    state: present
+
+  - group_name: "TG_PROD_WINDOWS"
+    description: "Production Windows Servers"
+    state: present
+
+  - group_name: "TG_PROD_INFRA"
+    description: "Production Infrastructure Services"
+    state: present
+
+  - group_name: "TG_PROD_LB"
+    description: "Production Load Balancers"
+    state: present
+
+  # -------------------------------------------------------------------------
+  # STAGING Environment Groups
+  # -------------------------------------------------------------------------
+  - group_name: "TG_STG_ALL"
+    description: "All Staging servers"
+    state: present
+
+  - group_name: "TG_STG_LINUX"
+    description: "Staging Linux servers"
+    state: present
+
+  - group_name: "TG_STG_WINDOWS"
+    description: "Staging Windows servers"
+    state: present
+
+  # -------------------------------------------------------------------------
+  # DEVELOPMENT Environment Groups
+  # -------------------------------------------------------------------------
+  - group_name: "TG_DEV_ALL"
+    description: "All Development servers"
+    state: present
+
+  - group_name: "TG_DEV_SANDBOX"
+    description: "Development Sandbox (unrestricted)"
+    state: present
+
+  # -------------------------------------------------------------------------
+  # CI/CD Pipeline Groups
+  # -------------------------------------------------------------------------
+  - group_name: "TG_CICD_ALL"
+    description: "All CI/CD Infrastructure"
+    state: present
+
+  - group_name: "TG_CICD_JENKINS"
+    description: "Jenkins Master and Agents"
+    state: present
+
+  - group_name: "TG_CICD_GITLAB"
+    description: "GitLab and related services"
+    state: present
+
+  - group_name: "TG_CICD_REGISTRY"
+    description: "Container Registry and Artifactory"
+    state: present
+
+  # -------------------------------------------------------------------------
+  # Security Infrastructure Groups
+  # -------------------------------------------------------------------------
+  - group_name: "TG_SEC_ALL"
+    description: "All Security Infrastructure"
+    state: present
+
+  - group_name: "TG_SEC_SIEM"
+    description: "SIEM and Log aggregation"
+    state: present
+
+  # -------------------------------------------------------------------------
+  # Network Infrastructure Groups
+  # -------------------------------------------------------------------------
+  - group_name: "TG_NET_ALL"
+    description: "All Network Devices"
+    state: present
+
+  - group_name: "TG_NET_FIREWALL"
+    description: "Firewall devices"
+    state: present
+
+  - group_name: "TG_NET_SWITCH"
+    description: "Network switches"
+    state: present
+
+  # -------------------------------------------------------------------------
+  # Technology-based Groups (cross-environment)
+  # -------------------------------------------------------------------------
+  - group_name: "TG_TECH_POSTGRESQL"
+    description: "All PostgreSQL databases"
+    state: present
+
+  - group_name: "TG_TECH_MYSQL"
+    description: "All MySQL databases"
+    state: present
+
+  - group_name: "TG_TECH_SQLSERVER"
+    description: "All SQL Server databases"
+    state: present
+
+  - group_name: "TG_TECH_LINUX"
+    description: "All Linux servers"
+    state: present
+
+  - group_name: "TG_TECH_WINDOWS"
+    description: "All Windows servers"
+    state: present
+
+  # -------------------------------------------------------------------------
+  # Role-based Access Groups
+  # -------------------------------------------------------------------------
+  - group_name: "TG_DBA_ACCESS"
+    description: "Database Administrator access (all DBs)"
+    state: present
+
+  - group_name: "TG_SYSADMIN_ACCESS"
+    description: "System Administrator access"
+    state: present
+
+  - group_name: "TG_NETADMIN_ACCESS"
+    description: "Network Administrator access"
+    state: present
+
+  - group_name: "TG_DEVOPS_ACCESS"
+    description: "DevOps team access"
+    state: present
+
+  - group_name: "TG_DEVELOPER_ACCESS"
+    description: "Developer access (non-prod)"
+    state: present
+
+  - group_name: "TG_READONLY_ALL"
+    description: "Read-only access for auditing"
+    state: present
+
+  # -------------------------------------------------------------------------
+  # Emergency Access Groups
+  # -------------------------------------------------------------------------
+  - group_name: "TG_EMERGENCY_PROD"
+    description: "Emergency break-glass access to Production"
+    state: present
+
+  - group_name: "TG_EMERGENCY_ALL"
+    description: "Emergency break-glass access to All systems"
+    state: present
+
+# ============================================================================
+# TARGET GROUP MAPPINGS - Which accounts go into which groups
+# ============================================================================
+
+wallix_target_group_mappings:
+  # Production ALL
+  - target_group: "TG_PROD_ALL"
+    device: "prod-web-01"
+    account: "root"
+    service: "ssh"
+  - target_group: "TG_PROD_ALL"
+    device: "prod-web-02"
+    account: "root"
+    service: "ssh"
+  - target_group: "TG_PROD_ALL"
+    device: "prod-web-03"
+    account: "root"
+    service: "ssh"
+  - target_group: "TG_PROD_ALL"
+    device: "prod-app-01"
+    account: "root"
+    service: "ssh"
+  - target_group: "TG_PROD_ALL"
+    device: "prod-app-02"
+    account: "root"
+    service: "ssh"
+  - target_group: "TG_PROD_ALL"
+    device: "prod-db-01"
+    account: "postgres"
+    service: "ssh"
+  - target_group: "TG_PROD_ALL"
+    device: "prod-win-dc-01"
+    account: "Administrator"
+    service: "rdp"
+
+  # Production Web Tier
+  - target_group: "TG_PROD_WEB"
+    device: "prod-web-01"
+    account: "root"
+    service: "ssh"
+  - target_group: "TG_PROD_WEB"
+    device: "prod-web-01"
+    account: "www-data"
+    service: "ssh"
+  - target_group: "TG_PROD_WEB"
+    device: "prod-web-02"
+    account: "root"
+    service: "ssh"
+  - target_group: "TG_PROD_WEB"
+    device: "prod-web-03"
+    account: "root"
+    service: "ssh"
+  - target_group: "TG_PROD_WEB"
+    device: "prod-lb-01"
+    account: "root"
+    service: "ssh"
+  - target_group: "TG_PROD_WEB"
+    device: "prod-lb-02"
+    account: "root"
+    service: "ssh"
+
+  # Production App Tier
+  - target_group: "TG_PROD_APP"
+    device: "prod-app-01"
+    account: "root"
+    service: "ssh"
+  - target_group: "TG_PROD_APP"
+    device: "prod-app-01"
+    account: "tomcat"
+    service: "ssh"
+  - target_group: "TG_PROD_APP"
+    device: "prod-app-02"
+    account: "root"
+    service: "ssh"
+  - target_group: "TG_PROD_APP"
+    device: "prod-app-03"
+    account: "root"
+    service: "ssh"
+  - target_group: "TG_PROD_APP"
+    device: "prod-app-03"
+    account: "node"
+    service: "ssh"
+  - target_group: "TG_PROD_APP"
+    device: "prod-app-04"
+    account: "root"
+    service: "ssh"
+  - target_group: "TG_PROD_APP"
+    device: "prod-app-04"
+    account: "django"
+    service: "ssh"
+
+  # Production Database Tier
+  - target_group: "TG_PROD_DB"
+    device: "prod-db-01"
+    account: "postgres"
+    service: "ssh"
+  - target_group: "TG_PROD_DB"
+    device: "prod-db-01"
+    account: "postgres"
+    service: "pgsql"
+  - target_group: "TG_PROD_DB"
+    device: "prod-db-02"
+    account: "postgres"
+    service: "ssh"
+  - target_group: "TG_PROD_DB"
+    device: "prod-db-02"
+    account: "postgres"
+    service: "pgsql"
+  - target_group: "TG_PROD_DB"
+    device: "prod-db-03"
+    account: "mysql"
+    service: "ssh"
+  - target_group: "TG_PROD_DB"
+    device: "prod-db-03"
+    account: "mysql"
+    service: "mysql"
+  - target_group: "TG_PROD_DB"
+    device: "prod-db-04"
+    account: "mysql"
+    service: "ssh"
+  - target_group: "TG_PROD_DB"
+    device: "prod-db-04"
+    account: "mysql"
+    service: "mysql"
+
+  # Production Windows
+  - target_group: "TG_PROD_WINDOWS"
+    device: "prod-win-dc-01"
+    account: "Administrator"
+    service: "rdp"
+  - target_group: "TG_PROD_WINDOWS"
+    device: "prod-win-dc-02"
+    account: "Administrator"
+    service: "rdp"
+  - target_group: "TG_PROD_WINDOWS"
+    device: "prod-win-file-01"
+    account: "Administrator"
+    service: "rdp"
+  - target_group: "TG_PROD_WINDOWS"
+    device: "prod-win-sql-01"
+    account: "sa"
+    service: "rdp"
+  - target_group: "TG_PROD_WINDOWS"
+    device: "prod-win-sql-02"
+    account: "sa"
+    service: "rdp"
+
+  # Staging ALL
+  - target_group: "TG_STG_ALL"
+    device: "stg-web-01"
+    account: "root"
+    service: "ssh"
+  - target_group: "TG_STG_ALL"
+    device: "stg-app-01"
+    account: "root"
+    service: "ssh"
+  - target_group: "TG_STG_ALL"
+    device: "stg-db-01"
+    account: "postgres"
+    service: "ssh"
+  - target_group: "TG_STG_ALL"
+    device: "stg-db-02"
+    account: "mysql"
+    service: "ssh"
+  - target_group: "TG_STG_ALL"
+    device: "stg-win-01"
+    account: "Administrator"
+    service: "rdp"
+
+  # Development ALL
+  - target_group: "TG_DEV_ALL"
+    device: "dev-web-01"
+    account: "root"
+    service: "ssh"
+  - target_group: "TG_DEV_ALL"
+    device: "dev-app-01"
+    account: "root"
+    service: "ssh"
+  - target_group: "TG_DEV_ALL"
+    device: "dev-app-02"
+    account: "root"
+    service: "ssh"
+  - target_group: "TG_DEV_ALL"
+    device: "dev-db-01"
+    account: "postgres"
+    service: "ssh"
+  - target_group: "TG_DEV_ALL"
+    device: "dev-db-02"
+    account: "mysql"
+    service: "ssh"
+
+  # CI/CD
+  - target_group: "TG_CICD_ALL"
+    device: "cicd-jenkins-01"
+    account: "jenkins"
+    service: "ssh"
+  - target_group: "TG_CICD_ALL"
+    device: "cicd-jenkins-agent-01"
+    account: "jenkins"
+    service: "ssh"
+  - target_group: "TG_CICD_ALL"
+    device: "cicd-gitlab-01"
+    account: "git"
+    service: "ssh"
+  - target_group: "TG_CICD_ALL"
+    device: "cicd-registry-01"
+    account: "registry"
+    service: "ssh"
+  - target_group: "TG_CICD_JENKINS"
+    device: "cicd-jenkins-01"
+    account: "jenkins"
+    service: "ssh"
+  - target_group: "TG_CICD_JENKINS"
+    device: "cicd-jenkins-agent-01"
+    account: "jenkins"
+    service: "ssh"
+  - target_group: "TG_CICD_JENKINS"
+    device: "cicd-jenkins-agent-02"
+    account: "jenkins"
+    service: "rdp"
+
+  # Network
+  - target_group: "TG_NET_ALL"
+    device: "net-fw-01"
+    account: "admin"
+    service: "ssh"
+  - target_group: "TG_NET_ALL"
+    device: "net-fw-02"
+    account: "admin"
+    service: "ssh"
+  - target_group: "TG_NET_ALL"
+    device: "net-switch-core-01"
+    account: "admin"
+    service: "ssh"
+  - target_group: "TG_NET_ALL"
+    device: "net-switch-core-02"
+    account: "admin"
+    service: "ssh"
+  - target_group: "TG_NET_FIREWALL"
+    device: "net-fw-01"
+    account: "admin"
+    service: "ssh"
+  - target_group: "TG_NET_FIREWALL"
+    device: "net-fw-02"
+    account: "admin"
+    service: "ssh"
+
+  # Security
+  - target_group: "TG_SEC_ALL"
+    device: "sec-siem-01"
+    account: "siem"
+    service: "ssh"
+  - target_group: "TG_SEC_ALL"
+    device: "sec-scanner-01"
+    account: "scanner"
+    service: "ssh"
+  - target_group: "TG_SEC_ALL"
+    device: "sec-av-01"
+    account: "siem"
+    service: "ssh"
+
+  # Technology-based
+  - target_group: "TG_TECH_POSTGRESQL"
+    device: "prod-db-01"
+    account: "postgres"
+    service: "pgsql"
+  - target_group: "TG_TECH_POSTGRESQL"
+    device: "prod-db-02"
+    account: "postgres"
+    service: "pgsql"
+  - target_group: "TG_TECH_POSTGRESQL"
+    device: "stg-db-01"
+    account: "postgres"
+    service: "pgsql"
+  - target_group: "TG_TECH_POSTGRESQL"
+    device: "dev-db-01"
+    account: "postgres"
+    service: "pgsql"
+
+  - target_group: "TG_TECH_MYSQL"
+    device: "prod-db-03"
+    account: "mysql"
+    service: "mysql"
+  - target_group: "TG_TECH_MYSQL"
+    device: "prod-db-04"
+    account: "mysql"
+    service: "mysql"
+  - target_group: "TG_TECH_MYSQL"
+    device: "stg-db-02"
+    account: "mysql"
+    service: "mysql"
+  - target_group: "TG_TECH_MYSQL"
+    device: "dev-db-02"
+    account: "mysql"
+    service: "mysql"
+
+  # DBA Access (all databases)
+  - target_group: "TG_DBA_ACCESS"
+    device: "prod-db-01"
+    account: "postgres"
+    service: "ssh"
+  - target_group: "TG_DBA_ACCESS"
+    device: "prod-db-01"
+    account: "postgres"
+    service: "pgsql"
+  - target_group: "TG_DBA_ACCESS"
+    device: "prod-db-02"
+    account: "postgres"
+    service: "ssh"
+  - target_group: "TG_DBA_ACCESS"
+    device: "prod-db-03"
+    account: "mysql"
+    service: "ssh"
+  - target_group: "TG_DBA_ACCESS"
+    device: "prod-db-03"
+    account: "mysql"
+    service: "mysql"
+  - target_group: "TG_DBA_ACCESS"
+    device: "prod-db-04"
+    account: "mysql"
+    service: "ssh"
+  - target_group: "TG_DBA_ACCESS"
+    device: "prod-win-sql-01"
+    account: "sa"
+    service: "rdp"
+  - target_group: "TG_DBA_ACCESS"
+    device: "prod-win-sql-02"
+    account: "sa"
+    service: "rdp"
+
+  # DevOps Access
+  - target_group: "TG_DEVOPS_ACCESS"
+    device: "cicd-jenkins-01"
+    account: "jenkins"
+    service: "ssh"
+  - target_group: "TG_DEVOPS_ACCESS"
+    device: "cicd-gitlab-01"
+    account: "git"
+    service: "ssh"
+  - target_group: "TG_DEVOPS_ACCESS"
+    device: "cicd-registry-01"
+    account: "registry"
+    service: "ssh"
+  - target_group: "TG_DEVOPS_ACCESS"
+    device: "prod-monitor-01"
+    account: "root"
+    service: "ssh"
+  - target_group: "TG_DEVOPS_ACCESS"
+    device: "prod-log-01"
+    account: "root"
+    service: "ssh"
+
+  # Developer Access (non-prod only)
+  - target_group: "TG_DEVELOPER_ACCESS"
+    device: "dev-web-01"
+    account: "root"
+    service: "ssh"
+  - target_group: "TG_DEVELOPER_ACCESS"
+    device: "dev-app-01"
+    account: "root"
+    service: "ssh"
+  - target_group: "TG_DEVELOPER_ACCESS"
+    device: "dev-app-02"
+    account: "root"
+    service: "ssh"
+  - target_group: "TG_DEVELOPER_ACCESS"
+    device: "dev-db-01"
+    account: "postgres"
+    service: "ssh"
+  - target_group: "TG_DEVELOPER_ACCESS"
+    device: "dev-db-02"
+    account: "mysql"
+    service: "ssh"
+  - target_group: "TG_DEVELOPER_ACCESS"
+    device: "stg-web-01"
+    account: "root"
+    service: "ssh"
+  - target_group: "TG_DEVELOPER_ACCESS"
+    device: "stg-app-01"
+    account: "root"
+    service: "ssh"

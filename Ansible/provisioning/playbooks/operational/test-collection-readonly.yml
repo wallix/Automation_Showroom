@@ -1,0 +1,86 @@
+---
+- name: Read-only tests for Wallix PAM collection
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    wallix_test_mode: true
+
+  pre_tasks:
+    - name: Set defaults for bastion connection
+      set_fact:
+        wallix_bastion_protocol: "{{ wallix_bastion_protocol | default('https') }}"
+        wallix_bastion_port: "{{ wallix_bastion_port | default(443) }}"
+
+    - name: Build API base URL
+      set_fact:
+        wallix_api: "{{ wallix_api | default({}) | combine({'base_url': wallix_bastion_protocol ~ '://' ~ wallix_bastion_host ~ ':' ~ wallix_bastion_port ~ '/api'}) }}"
+
+    - name: Display target Bastion
+      debug:
+        msg: "Testing collection against {{ wallix_api.base_url }} (read-only)"
+
+  tasks:
+    - name: Authenticate to Bastion
+      include_role:
+        name: wallix-auth
+        tasks_from: main
+
+    - name: Validate API connectivity
+      include_role:
+        name: wallix-auth
+        tasks_from: validate_connectivity.yml
+
+    - name: Devices - validate
+      include_role:
+        name: wallix-devices
+        tasks_from: validate_devices.yml
+      tags: [devices]
+
+    - name: Users - tests
+      include_role:
+        name: wallix-users
+        tasks_from: test_users.yml
+      tags: [users]
+
+    - name: Domains - validate
+      include_role:
+        name: wallix-domains
+        tasks_from: validate_domains.yml
+      tags: [domains]
+
+    - name: Authorizations - validate
+      include_role:
+        name: wallix-authorizations
+        tasks_from: validate_authorizations.yml
+      tags: [authorizations]
+
+    - name: Connection Policies - list
+      include_role:
+        name: wallix-connection-policies
+        tasks_from: list_connection_policies.yml
+      tags: [connection_policies]
+
+    - name: Timeframes - list
+      include_role:
+        name: wallix-timeframes
+        tasks_from: list_timeframes.yml
+      tags: [timeframes]
+
+    - name: Config - generate report
+      include_role:
+        name: wallix-config
+        tasks_from: generate_report.yml
+      tags: [config]
+
+    - name: Cleanup - generate report
+      include_role:
+        name: wallix-cleanup
+        tasks_from: generate_report.yml
+      tags: [cleanup]
+
+  post_tasks:
+    - name: Completed read-only tests
+      debug:
+        msg: "All read-only tests completed. Review logs for details."

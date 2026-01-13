@@ -1,0 +1,31 @@
+---
+extends: default
+
+ignore: |
+  # Virtual environments and external dependencies
+  Ansible/archive/
+  **/venv/
+  **/.venv/
+  **/node_modules/
+
+rules:
+  line-length:
+    max: 160
+    level: warning
+  truthy:
+    allowed-values: ['true', 'false', 'yes', 'no']
+  comments:
+    min-spaces-from-content: 1
+  comments-indentation: disable
+  indentation:
+    spaces: 2
+    indent-sequences: consistent
+  document-start: disable
+  braces:
+    min-spaces-inside: 0
+    max-spaces-inside: 1
+  brackets:
+    min-spaces-inside: 0
+    max-spaces-inside: 1
+  empty-lines:
+    max: 1

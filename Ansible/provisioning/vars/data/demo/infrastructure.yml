@@ -1,0 +1,315 @@
+---
+# Demo Infrastructure Data
+# Realistic example of devices, services, and accounts for provisioning demos
+# Usage: Loaded automatically by demo playbooks or include with -e @vars/data/demo/infrastructure.yml
+
+# ============================================================================
+# DEVICES - Target systems managed by WALLIX Bastion
+# ============================================================================
+
+wallix_devices:
+  # Production Web Servers
+  - name: "demo-web-01"
+    host: "10.0.1.10"
+    description: "Demo web server - Apache/Nginx"
+    state: present
+
+  - name: "demo-web-02"
+    host: "10.0.1.11"
+    description: "Demo web server - Secondary"
+    state: present
+
+  # Database Servers
+  - name: "demo-db-01"
+    host: "10.0.2.10"
+    description: "Demo PostgreSQL database"
+    state: present
+
+  - name: "demo-db-02"
+    host: "10.0.2.11"
+    description: "Demo MySQL database"
+    state: present
+
+  # Application Servers
+  - name: "demo-app-01"
+    host: "10.0.3.10"
+    description: "Demo application server - Java"
+    state: present
+
+  # Windows Servers
+  - name: "demo-win-01"
+    host: "10.0.4.10"
+    description: "Demo Windows Server 2022"
+    state: present
+
+# ============================================================================
+# SERVICES - Protocols exposed by devices
+# ============================================================================
+
+wallix_device_services:
+  # SSH services for Linux servers
+  - name: "ssh"
+    device_name: "demo-web-01"
+    protocol: "SSH"
+    port: 22
+    connection_policy: "SSH"
+    subprotocols:
+      - "SSH_SHELL_SESSION"
+      - "SSH_SCP_UP"
+      - "SSH_SCP_DOWN"
+      - "SSH_X11"
+    state: present
+
+  - name: "ssh"
+    device_name: "demo-web-02"
+    protocol: "SSH"
+    port: 22
+    connection_policy: "SSH"
+    subprotocols:
+      - "SSH_SHELL_SESSION"
+      - "SSH_SCP_UP"
+      - "SSH_SCP_DOWN"
+    state: present
+
+  - name: "ssh"
+    device_name: "demo-db-01"
+    protocol: "SSH"
+    port: 22
+    connection_policy: "SSH"
+    subprotocols:
+      - "SSH_SHELL_SESSION"
+    state: present
+
+  - name: "ssh"
+    device_name: "demo-db-02"
+    protocol: "SSH"
+    port: 22
+    connection_policy: "SSH"
+    subprotocols:
+      - "SSH_SHELL_SESSION"
+    state: present
+
+  - name: "ssh"
+    device_name: "demo-app-01"
+    protocol: "SSH"
+    port: 22
+    connection_policy: "SSH"
+    subprotocols:
+      - "SSH_SHELL_SESSION"
+      - "SSH_SCP_UP"
+      - "SSH_SCP_DOWN"
+    state: present
+
+  # RDP service for Windows
+  - name: "rdp"
+    device_name: "demo-win-01"
+    protocol: "RDP"
+    port: 3389
+    connection_policy: "RDP"
+    subprotocols:
+      - "RDP_CLIPBOARD_UP"
+      - "RDP_CLIPBOARD_DOWN"
+      - "RDP_PRINTER"
+      - "RDP_COM_PORT"
+      - "RDP_DRIVE"
+      - "RDP_SMARTCARD"
+    state: present
+
+  # PostgreSQL direct access
+  - name: "pgsql"
+    device_name: "demo-db-01"
+    protocol: "RAWTCPIP"
+    port: 5432
+    connection_policy: "RAWTCPIP"
+    state: present
+
+  # MySQL direct access
+  - name: "mysql"
+    device_name: "demo-db-02"
+    protocol: "RAWTCPIP"
+    port: 3306
+    connection_policy: "RAWTCPIP"
+    state: present
+
+# ============================================================================
+# ACCOUNTS - Credentials on target devices
+# ============================================================================
+
+wallix_accounts:
+  # Root/admin accounts
+  - device_name: "demo-web-01"
+    account_name: "root"
+    account_login: "root"
+    description: "Root administrator"
+    state: present
+
+  - device_name: "demo-web-02"
+    account_name: "root"
+    account_login: "root"
+    description: "Root administrator"
+    state: present
+
+  - device_name: "demo-db-01"
+    account_name: "postgres"
+    account_login: "postgres"
+    description: "PostgreSQL superuser"
+    state: present
+
+  - device_name: "demo-db-02"
+    account_name: "mysql"
+    account_login: "root"
+    description: "MySQL root user"
+    state: present
+
+  - device_name: "demo-app-01"
+    account_name: "deploy"
+    account_login: "deploy"
+    description: "Application deployment account"
+    state: present
+
+  - device_name: "demo-win-01"
+    account_name: "Administrator"
+    account_login: "Administrator"
+    description: "Windows Administrator"
+    state: present
+
+  # Service accounts
+  - device_name: "demo-web-01"
+    account_name: "www-data"
+    account_login: "www-data"
+    description: "Web server service account"
+    state: present
+
+  - device_name: "demo-app-01"
+    account_name: "appuser"
+    account_login: "appuser"
+    description: "Application runtime user"
+    state: present
+
+# ============================================================================
+# TARGET GROUPS - Logical groupings for authorization
+# ============================================================================
+
+wallix_target_groups:
+  - group_name: "Demo_WebServers"
+    description: "Demo web servers target group"
+    session:
+      accounts:
+        - account: "root"
+          domain: "local"
+          domain_type: "local"
+          device: "demo-web-01"
+          service: "ssh"
+          application: null
+        - account: "root"
+          domain: "local"
+          domain_type: "local"
+          device: "demo-web-02"
+          service: "ssh"
+          application: null
+      account_mappings:
+        - device: "demo-web-01"
+          service: "ssh"
+          application: null
+        - device: "demo-web-02"
+          service: "ssh"
+          application: null
+      interactive_logins:
+        - device: "demo-web-01"
+          service: "ssh"
+          application: null
+        - device: "demo-web-02"
+          service: "ssh"
+          application: null
+    password_retrieval:
+      accounts:
+        - account: "root"
+          domain: "local"
+          domain_type: "local"
+          device: "demo-web-01"
+          application: null
+        - account: "root"
+          domain: "local"
+          domain_type: "local"
+          device: "demo-web-02"
+          application: null
+
+  - group_name: "Demo_Databases"
+    description: "Demo database servers target group"
+    session:
+      accounts:
+        - account: "postgres"
+          domain: "local"
+          domain_type: "local"
+          device: "demo-db-01"
+          service: "ssh"
+          application: null
+        - account: "mysql"
+          domain: "local"
+          domain_type: "local"
+          device: "demo-db-02"
+          service: "ssh"
+          application: null
+      account_mappings:
+        - device: "demo-db-01"
+          service: "ssh"
+          application: null
+        - device: "demo-db-02"
+          service: "ssh"
+          application: null
+      interactive_logins:
+        - device: "demo-db-01"
+          service: "ssh"
+          application: null
+        - device: "demo-db-02"
+          service: "ssh"
+          application: null
+    password_retrieval:
+      accounts: []
+
+  - group_name: "Demo_Applications"
+    description: "Demo application servers target group"
+    session:
+      accounts:
+        - account: "deploy"
+          domain: "local"
+          domain_type: "local"
+          device: "demo-app-01"
+          service: "ssh"
+          application: null
+      account_mappings:
+        - device: "demo-app-01"
+          service: "ssh"
+          application: null
+      interactive_logins:
+        - device: "demo-app-01"
+          service: "ssh"
+          application: null
+    password_retrieval:
+      accounts: []
+
+  - group_name: "Demo_Windows"
+    description: "Demo Windows servers target group"
+    session:
+      accounts:
+        - account: "Administrator"
+          domain: "local"
+          domain_type: "local"
+          device: "demo-win-01"
+          service: "rdp"
+          application: null
+      account_mappings:
+        - device: "demo-win-01"
+          service: "rdp"
+          application: null
+      interactive_logins:
+        - device: "demo-win-01"
+          service: "rdp"
+          application: null
+    password_retrieval:
+      accounts:
+        - account: "Administrator"
+          domain: "local"
+          domain_type: "local"
+          device: "demo-win-01"
+          application: null

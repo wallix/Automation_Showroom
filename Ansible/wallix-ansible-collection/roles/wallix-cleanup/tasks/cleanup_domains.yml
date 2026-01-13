@@ -1,0 +1,89 @@
+---
+# WALLIX Cleanup - Domains Cleanup Tasks
+
+- name: "🔍 Cleanup | Get all domains"
+  uri:
+    url: "{{ wallix_api.base_url }}/authdomains"
+    method: GET
+    headers:
+      Cookie: "{{ wallix_session_cookie }}"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(false) }}"
+    timeout: 30
+    status_code: [200]
+    return_content: yes
+  register: all_domains_result
+
+- name: "🗑️ Cleanup | Filter domains for deletion"
+  set_fact:
+    domains_to_delete: >-
+      {{
+        all_domains_result.json
+        | rejectattr('domain_name', 'in', ['local', 'global', 'system'])
+        | selectattr('domain_name', 'match', item) | list
+        if wallix_cleanup_filters.include_patterns | length > 0
+        else all_domains_result.json
+        | rejectattr('domain_name', 'in', ['local', 'global', 'system'])
+        | rejectattr('domain_name', 'match', item) | list
+      }}
+  vars:
+    item: "{{ wallix_cleanup_filters.exclude_patterns | join('|') }}"
+  when: all_domains_result.json is defined
+
+- name: "📊 Cleanup | Display domains to delete"
+  debug:
+    msg:
+      - "Found {{ domains_to_delete | length }} domains to delete"
+      - "Domains: {{ domains_to_delete | map(attribute='domain_name') | list }}"
+  when:
+    - domains_to_delete is defined
+    - wallix_cleanup_debug.enabled
+
+- name: "🗑️ Cleanup | Delete domain"
+  uri:
+    url: "{{ wallix_api.base_url }}/authdomains/{{ item.domain_name }}"
+    method: DELETE
+    headers:
+      Cookie: "{{ wallix_session_cookie }}"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(false) }}"
+    timeout: 30
+    status_code: [200, 204, 404]  # 404 = already deleted
+    return_content: yes
+  register: delete_domain_result
+  loop: "{{ domains_to_delete | default([]) }}"
+  when:
+    - wallix_cleanup.operation_mode != 'dry_run'
+    - wallix_cleanup_components.domains.enabled | default(true)
+    - item.domain_name not in ['local', 'global', 'system']  # Extra safety
+  ignore_errors: "{{ wallix_cleanup_error_handling.continue_on_error }}"
+
+- name: "📈 Cleanup | Update domain deletion stats (dry run)"
+  set_fact:
+    wallix_cleanup_stats: >-
+      {{
+        wallix_cleanup_stats | default({}) | combine({
+          'domains_processed': (domains_to_delete | default([]) | length),
+          'domains_deleted': 0,
+          'domains_errors': 0
+        })
+      }}
+  when: wallix_cleanup.operation_mode == 'dry_run'
+
+- name: "📈 Cleanup | Update domain deletion stats (real run)"
+  set_fact:
+    wallix_cleanup_stats: >-
+      {{
+        wallix_cleanup_stats | default({}) | combine({
+          'domains_processed': (domains_to_delete | default([]) | length),
+          'domains_deleted': (delete_domain_result.results | default([]) | selectattr('status', 'in', [200, 204]) | list | length),
+          'domains_errors': (delete_domain_result.results | default([]) | selectattr('status', 'ge', 400) | list | length)
+        })
+      }}
+  when: wallix_cleanup.operation_mode != 'dry_run'
+
+- name: "✅ Cleanup | Domain cleanup summary"
+  debug:
+    msg:
+      - "Domain cleanup completed"
+      - "Processed: {{ wallix_cleanup_stats.domains_processed | default(0) }}"
+      - "Deleted: {{ wallix_cleanup_stats.domains_deleted | default(0) }}"
+      - "Errors: {{ wallix_cleanup_stats.domains_errors | default(0) }}"

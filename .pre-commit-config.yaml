@@ -1,0 +1,24 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: '^Ansible|^Terraform|^Cloud-init'
+      - id: end-of-file-fixer
+        exclude: '^Ansible|^Terraform|^Cloud-init'
+
+  - repo: https://github.com/ansible/ansible-lint.git
+    rev: v24.1.0
+    hooks:
+      - id: ansible-lint
+        files: ^Ansible/.*\.(yml|yaml)$
+        exclude: ^Ansible/wallix-ansible-collection/examples|^Ansible/Provisioning/Advanced/WIP
+        args: [--strict, --format, quiet]
+
+  - repo: https://github.com/adrienverge/yamllint.git
+    rev: v1.33.0
+    hooks:
+      - id: yamllint
+        files: ^Ansible/.*\.(yml|yaml)$
+        exclude: ^Ansible/wallix-ansible-collection/examples|^Ansible/Provisioning/Advanced/WIP
+        args: [-c, .yamllint]

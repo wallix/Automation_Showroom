@@ -1,6 +1,9 @@
 # Local .terraform directories
 **/.terraform/*
 
+# Archives
+**/archive/
+
 # Ignore infracost
 
 .infracost
@@ -107,6 +110,7 @@ Thumbs.db
 .idea/
 *.swp
 *.log
+.github/instructions/
 
 # Cloud-init generated files
 Cloud-init/generated_examples/

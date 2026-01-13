@@ -1,67 +1,513 @@
 ---
-# Template Playbook for Wallix Ansible Collection
-# Usage:
-# 1. Install collection: ansible-galaxy collection install git+https://github.com/wallix/ansible-collection.git
-# 2. Set environment variables: export WALLIX_URL=... WALLIX_USER=... WALLIX_PASSWORD=...
-# 3. Run: ansible-playbook template_playbook.yml
+# =============================================================================
 
-- name: Wallix Integration Demo
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+- [Main README](../README.md)- [Examples](../examples/)- [Installation Guide](installation.md)## 📖 See AlsoAll roles depend on `wallix-auth` for API authentication.```    G --> D    C --> D    B --> D    E --> F        A --> I[wallix-config]    A --> H[wallix-cleanup]    A --> G[wallix-timeframes]    A --> F[wallix-global-accounts]    A --> E[wallix-global-domains]    A --> D[wallix-authorizations]    A --> C[wallix-users]    A[wallix-auth] --> B[wallix-devices]graph TD```mermaid## 🔄 Role Dependencies---```    max_connections: 100    default_timeout: 3600  session_options:      ca_certificate: "{{ lookup('file', 'certs/ca.pem') }}"    enable: true  x509:      sender: "wallix@example.com"    use_tls: true    port: 587    server: "smtp.example.com"  smtp:wallix_config:```yaml### Variables**Purpose:** Configure system settings, clustering, licensing, certificates**Category:** Maintenance  ## wallix-config---```          confirm_cleanup: true          cleanup_authorizations: true          backup_before_delete: true        wallix_cleanup:      vars:    - role: wallix.pam.wallix-cleanup    - role: wallix.pam.wallix-auth  roles:  hosts: bastion- name: Cleanup resources```yaml### Usage```  confirm_cleanup: true  # Confirmation required    cleanup_devices: true  cleanup_user_groups: true  cleanup_users: true  cleanup_target_groups: true  cleanup_authorizations: true  # Resources to clean up    backup_path: "/tmp/wallix_backup"  backup_before_delete: truewallix_cleanup:```yaml### Variables**Purpose:** Safe resource cleanup with backup capabilities**Category:** Maintenance  ## wallix-cleanup---```    state: "present"        days: ["monday", "tuesday", "wednesday", "thursday", "friday"]        end_time: "18:00"      - start_time: "09:00"    periods:    description: "Monday to Friday, 9am-6pm"  - timeframe_name: "business-hours"wallix_timeframes:```yaml### Variables**Purpose:** Create and manage timeframes for scheduled access**Category:** Policies  ## wallix-timeframes---```    state: "present"    checkout_policy: "shared"    auto_change_password: true    description: "Backup service account"    login: "svc_backup"    domain: "corp-ad"  - name: "svc-backup"wallix_global_accounts:```yaml### Variables**Purpose:** Create and manage global accounts with credential management**Category:** Infrastructure  ## wallix-global-accounts---```    - role: wallix.pam.wallix-global-domains    - role: wallix.pam.wallix-auth  roles:    - vars/domains.yml  vars_files:  hosts: bastion- name: Configure global domains```yaml### Usage```    state: "present"    bind_password: "{{ vault_ldap_password }}"    bind_dn: "CN=svc_wallix,OU=Services,DC=example,DC=com"    base_dn: "DC=example,DC=com"    ldap_ssl: true    ldap_port: 636    ldap_host: "dc.example.com"    description: "Corporate Active Directory"    type: "ActiveDirectory"  - name: "corp-ad"wallix_global_domains:```yaml### Variables**Purpose:** Create and manage global authentication domains (LDAP/AD)**Category:** Infrastructure  ## wallix-global-domains---```    - role: wallix.pam.wallix-authorizations    - role: wallix.pam.wallix-auth  roles:    - vars/authorizations.yml  vars_files:  hosts: bastion- name: Configure authorizations```yaml### Usage```    state: "present"    approval_required: false    is_recorded: true    is_critical: true    authorization_type: "RDP,SSH"    target_group: "production-servers"    user_group: "admins"    description: "Admin access to production"  - name: "admin-prod-access"wallix_authorizations:    state: "present"    description: "All production servers"  - group_name: "production-servers"wallix_target_groups:```yaml### Variables**Purpose:** Create authorization rules and target groups**Category:** Access Control  ## wallix-authorizations---```    - role: wallix.pam.wallix-users    - role: wallix.pam.wallix-auth  roles:    - vars/users.yml  vars_files:  hosts: bastion- name: Configure users```yaml### Usage```    state: "present"        password: "{{ vault_user_password }}"      - type: "password"    authentication:      - "admins"    groups:    email: "john.doe@example.com"    display_name: "John Doe"  - name: "john.doe"wallix_users:    state: "present"    profile: "administrator"    description: "System administrators"  - name: "admins"wallix_user_groups:```yaml### Variables**Purpose:** Create users, manage groups, and configure credentials**Category:** Access Control  ## wallix-users---```    - role: wallix.pam.wallix-devices    - role: wallix.pam.wallix-auth  roles:    - vars/devices.yml  vars_files:  hosts: bastion- name: Configure devices```yaml### Usage```    state: "present"    auto_change_password: false    description: "Web server admin account"    login: "admin"    device_name: "web-server-01"  - name: "web-admin"wallix_device_accounts:    state: "present"    connection_policy: "default"    port: 22    protocol: "SSH"    device_name: "web-server-01"  - name: "web-ssh"wallix_device_services:    state: "present"    type: "server"    description: "Production web server"    host: "10.0.1.100"  - name: "web-server-01"wallix_devices:```yaml### Variables**Purpose:** Create, configure, and manage devices (servers, network equipment)**Category:** Infrastructure  ## wallix-devices---- `validate_connectivity.yml` - Verify API connectivity- `session_management.yml` - Manage session cookies and renewal- `authenticate.yml` - Perform initial API authentication### Tasks```    - role: wallix.pam.wallix-auth  roles:  hosts: bastion- name: Authenticate with WALLIX Bastion```yaml### Usage```    retry_delay: 5    retry_count: 3    timeout: 30    verify_ssl: true  connection:      cleanup_on_exit: true    max_session_duration: 3600    renewal_threshold: 300  # seconds    auto_renew: true    use_cookie: true  session:      secret: "{{ vault_api_secret }}"    key: "{{ vault_api_key }}"  api_key:      password: "{{ vault_wallix_password }}"    username: "{{ vault_wallix_username }}"  credentials:    initial_auth_method: "credentials"  # Authentication method: credentials or api_keywallix_auth:wallix_bastion_protocol: "https"wallix_bastion_port: 443wallix_bastion_host: "bastion.example.com"```yaml### Variables**Purpose:** Authenticate with WALLIX Bastion API and manage sessions**Category:** Authentication  ## wallix-auth---| [wallix-cleanup](#wallix-cleanup) | Maintenance | Safe resource cleanup || [wallix-config](#wallix-config) | Maintenance | Bastion system configuration || [wallix-applications](#wallix-applications) | Integration | Application integration management || [wallix-policies](#wallix-policies) | Policies | Generic policy management || [wallix-connection-policies](#wallix-connection-policies) | Policies | Connection policy management || [wallix-timeframes](#wallix-timeframes) | Policies | Timeframe definitions || [wallix-authorizations](#wallix-authorizations) | Access Control | Authorization and target group management || [wallix-users](#wallix-users) | Access Control | User and user group management || [wallix-domains](#wallix-domains) | Infrastructure | Domain-specific authentication || [wallix-global-accounts](#wallix-global-accounts) | Infrastructure | Global account management || [wallix-global-domains](#wallix-global-domains) | Infrastructure | Global domain (LDAP/AD) configuration || [wallix-devices](#wallix-devices) | Infrastructure | Device and service configuration || [wallix-auth](#wallix-auth) | Authentication | API authentication and session management ||------|----------|-------------|| Role | Category | Description |## 📋 Role OverviewThis document provides detailed information about each role included in the WALLIX PAM Ansible Collection.# WALLIX PAM Ansible Collection - Template Playbook
+# =============================================================================
+# This playbook demonstrates the complete workflow for:
+#   1. Checking out a credential (password or SSH key)
+#   2. Using the credential
+#   3. Checking in (releasing) the credential
+#
+# Usage:
+#   1. Install collection:
+#      ansible-galaxy collection install git+https://github.com/wallix/Automation_Showroom.git#/Ansible/wallix-ansible-collection
+#
+#   2. Configure credentials (choose ONE method):
+#
+#      Option A - Environment Variables (CI/CD):
+#        export WALLIX_API_USER="api-user"
+#        export WALLIX_API_PASSWORD="your-password"
+#
+#      Option B - Ansible Vault (Production):
+#        ansible-vault create group_vars/all/vault.yml
+#        # Add: vault_wallix_username and vault_wallix_password
+#
+#      Option C - Plain Variables (Development):
+#        # Set wallix_username and wallix_password in vars (not recommended for prod)
+#
+#   3. Run:
+#      ansible-playbook template_playbook.yml
+#      # or with vault: ansible-playbook template_playbook.yml --ask-vault-pass
+#
+#   See docs/authentication-guide.md for detailed configuration options
+# =============================================================================
+
+- name: WALLIX PAM Integration Demo
   hosts: localhost
   connection: local
-  gather_facts: no
+  gather_facts: false
+
   vars:
-    # -------------------------------------------------------------------------
-    # CONFIGURATION
-    # -------------------------------------------------------------------------
-    # Wallix Bastion Connection Details (Best practice: use env vars)
+    # =========================================================================
+    # WALLIX BASTION CONNECTION
+    # =========================================================================
+    # Credentials auto-detected from (in order):
+    # 1. Plain variables (wallix_username/wallix_password)
+    # 2. Vault variables (vault_wallix_username/vault_wallix_password)
+    # 3. Environment variables (WALLIX_API_USER/WALLIX_API_PASSWORD)
+    # 4. Defaults
+    
     wallix_url: "{{ lookup('env', 'WALLIX_URL') | default('https://bastion.example.com', true) }}"
-    wallix_user: "{{ lookup('env', 'WALLIX_USER') | default('admin', true) }}"
-    wallix_password: "{{ lookup('env', 'WALLIX_PASSWORD') | default('secret', true) }}"
     
-    # Target Account Details (The account you want to checkout)
-    target_account: "root"          # e.g., root, admin, ansible
-    target_domain: "local"          # e.g., local, mydomain.com
-    target_device: "target-server"  # The device name as defined in Wallix
-    
-    # -------------------------------------------------------------------------
+    # Optional: Override credentials here (will take priority over vault/env)
+    # wallix_username: "your-username"
+    # wallix_password: "your-password"
+
+    # =========================================================================
+    # TARGET ACCOUNT CONFIGURATION
+    # =========================================================================
+    # Update these to match a real target in your WALLIX Bastion
+    target_account: "root"          # Account name (e.g., root, admin, ansible)
+    target_domain: "local"          # Domain (local, or AD/LDAP domain)
+    target_device: "target-server"  # Device name as configured in WALLIX
+
+    # Temporary file path for SSH keys
+    ssh_key_path: "/tmp/wallix_demo_key"
 
   tasks:
-    - name: 1. Checkout Secret (Module)
-      wallix.pam_secret_action.secret:
+    # =========================================================================
+    # STEP 1: CHECKOUT SECRET
+    # =========================================================================
+    - name: "1. Checkout credentials from WALLIX Bastion"
+      wallix.pam.secret:
         wallix_url: "{{ wallix_url }}"
-        username: "{{ wallix_user }}"
-        password: "{{ wallix_password }}"
+        username: "{{ wallix_username | default(vault_wallix_username | default(lookup('env', 'WALLIX_API_USER'))) }}"
+        password: "{{ wallix_password | default(vault_wallix_password | default(lookup('env', 'WALLIX_API_PASSWORD'))) }}"
         account: "{{ target_account }}"
         domain: "{{ target_domain }}"
         device: "{{ target_device }}"
         state: checkout
-        validate_certs: no # Set to yes in production
+        validate_certs: false  # Set to true in production!
       register: wallix_secret
-      no_log: true
+      no_log: true  # CRITICAL: Always hide secrets from logs
 
-    - name: 2. Display Result (Safe)
-      debug:
-        msg: 
-          - "Successfully checked out credentials for: {{ wallix_secret.login }}"
-          - "Secret Type: {{ 'SSH Key' if wallix_secret.ssh_key is defined else 'Password' }}"
+    # =========================================================================
+    # STEP 2: DISPLAY RESULT (Safe metadata only)
+    # =========================================================================
+    - name: "2. Display checkout result (metadata only)"
+      ansible.builtin.debug:
+        msg:
+          - "✅ Successfully checked out credentials"
+          - "   Account: {{ wallix_secret.login | default('N/A') }}"
+          - "   Type: {{ 'SSH Key' if wallix_secret.ssh_key is defined else 'Password' }}"
+          - "   Device: {{ target_device }}"
 
-    - name: 3. Use Secret (Example: Save SSH Key)
-      copy:
+    # =========================================================================
+    # STEP 3: USE SECRET (Example - Save SSH Key)
+    # =========================================================================
+    - name: "3. Save SSH key to temporary file"
+      ansible.builtin.copy:
         content: "{{ wallix_secret.ssh_key }}"
-        dest: "/tmp/ssh_key_demo"
+        dest: "{{ ssh_key_path }}"
         mode: '0600'
       when: wallix_secret.ssh_key is defined
       no_log: true
 
-    - name: 4. Checkin Secret (Release)
-      wallix.pam_secret_action.secret:
+    - name: "3b. Display password info (if password type)"
+      ansible.builtin.debug:
+        msg: "Password credential retrieved (hidden for security)"
+      when: wallix_secret.ssh_key is not defined
+
+    # =========================================================================
+    # STEP 4: CHECKIN SECRET (Release)
+    # =========================================================================
+    - name: "4. Checkin (release) credentials"
+      wallix.pam.secret:
         wallix_url: "{{ wallix_url }}"
-        username: "{{ wallix_user }}"
-        password: "{{ wallix_password }}"
+        username: "{{ wallix_username | default(vault_wallix_username | default(lookup('env', 'WALLIX_API_USER'))) }}"
+        password: "{{ wallix_password | default(vault_wallix_password | default(lookup('env', 'WALLIX_API_PASSWORD'))) }}"
         account: "{{ target_account }}"
         domain: "{{ target_domain }}"
         device: "{{ target_device }}"
         state: checkin
         force: true
-        comment: "Testing finished"
-      validate_certs: no
+        comment: "Demo completed - {{ ansible_date_time.iso8601 | default('N/A') }}"
+        validate_certs: false
+
+    # =========================================================================
+    # STEP 5: CLEANUP
+    # =========================================================================
+    - name: "5. Remove temporary SSH key file"
+      ansible.builtin.file:
+        path: "{{ ssh_key_path }}"
+        state: absent
+      when: wallix_secret.ssh_key is defined
+
+    - name: "6. Demo complete"
+      ansible.builtin.debug:
+        msg:
+          - "🎉 WALLIX PAM integration demo completed successfully!"
+          - ""
+          - "Next steps:"
+          - "  - Set validate_certs: true for production"
+          - "  - Use Ansible Vault for credentials"
+          - "  - Implement block/always for guaranteed cleanup"

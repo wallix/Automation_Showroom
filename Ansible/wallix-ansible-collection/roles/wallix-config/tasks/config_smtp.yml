@@ -1,0 +1,107 @@
+---
+# SMTP Configuration Management for WALLIX Bastion
+# Manages SMTP server configuration for email notifications
+
+- name: "SMTP | Get current SMTP configuration"
+  uri:
+    url: "{{ wallix_api.base_url }}/config/smtp"
+    method: GET
+    headers:
+      Cookie: "{{ wallix_session_cookie }}"
+      Content-Type: "application/json"
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(true) }}"
+    timeout: "{{ wallix_auth.connection.timeout | default(30) }}"
+    status_code: [200, 404]
+  register: wallix_smtp_current
+  when: wallix_smtp_config is defined
+  tags:
+    - smtp
+    - configuration
+
+- name: "SMTP | Debug configuration payload"
+  debug:
+    msg: |
+      Payload SMTP à envoyer :
+      - server: {{ wallix_smtp_config.host }}
+      - port: {{ wallix_smtp_config.port | default(25) | int }} (type: {{ (wallix_smtp_config.port | default(25) | int) | type_debug }})
+      - protocol: {{ wallix_smtp_config.security | default('') }}
+      - authentication_method: {{ 'plain' if wallix_smtp_config.username is defined and wallix_smtp_config.username != '' else '' }}
+      - user: {{ wallix_smtp_config.username | default('') }}
+      - sender_email: {{ wallix_smtp_config.sender_email | default('') }}
+  when:
+    - wallix_smtp_config is defined
+  tags:
+    - smtp
+    - debug
+
+- name: "SMTP | Configurer SMTP avec l'endpoint correct"
+  uri:
+    url: "{{ wallix_api.base_url }}/config/smtp"
+    method: PUT
+    headers:
+      Cookie: "{{ wallix_session_cookie }}"
+      Content-Type: "application/json"
+    body_format: json
+    body: |
+      {
+        "server": "{{ wallix_smtp_config.host }}",
+        "port": {{ wallix_smtp_config.port | default(25) | int }},
+        "protocol": "{{ wallix_smtp_config.security | default('') }}",
+        "authentication_method": "{{ 'plain' if wallix_smtp_config.username is defined and wallix_smtp_config.username != '' else '' }}",
+        "user": "{{ wallix_smtp_config.username | default('') }}",
+        "password": "{{ wallix_smtp_config.password | default('') }}",
+        "sender_name": "{{ wallix_smtp_config.sender_name | default('WALLIX Bastion') }}",
+        "sender_email": "{{ wallix_smtp_config.sender_email | default('') }}",
+        "postmaster_email": "{{ wallix_smtp_config.postmaster_email | default(wallix_smtp_config.sender_email | default('')) }}",
+        "certificate_hash": "{{ wallix_smtp_config.certificate_hash | default('') }}"
+      }
+    validate_certs: "{{ wallix_auth.connection.verify_ssl | default(true) }}"
+    timeout: "{{ wallix_auth.connection.timeout | default(30) }}"
+    status_code: [200, 201, 204]
+  register: wallix_smtp_result
+  when:
+    - wallix_smtp_config is defined
+    - wallix_smtp_config.host is defined
+    - wallix_smtp_config.sender_email is defined
+  tags:
+    - smtp
+    - configuration
+
+- name: "SMTP | Afficher les résultats de configuration SMTP"
+  debug:
+    msg: |
+      ✅ Configuration SMTP via PUT /api/config/smtp
+
+      📊 Résultats de la configuration :
+      - Status code : {{ wallix_smtp_result.status | default('Non configuré') }}
+      - URL utilisée : {{ wallix_smtp_result.url | default('N/A') }}
+      - Méthode : PUT /api/config/smtp
+
+      📝 Configuration SMTP appliquée :
+      - Server: {{ wallix_smtp_config.host | default('Non configuré') }}
+      - Port: {{ wallix_smtp_config.port | default(25) }}
+      - Protocol: {{ wallix_smtp_config.security | default('none') }}
+      - Authentication: {{ 'Activée (' + (wallix_smtp_config.username | default('')) + ')' if wallix_smtp_config.username is defined and wallix_smtp_config.username != '' else 'Désactivée' }}
+      - Expéditeur: {{ wallix_smtp_config.sender_email | default('Non configuré') }}
+      - Nom expéditeur: {{ wallix_smtp_config.sender_name | default('WALLIX Bastion') }}
+
+      🎯 Status de la configuration :
+      {% if wallix_smtp_result.status | default(0) in [200, 201, 204] %}
+      ✅ Configuration SMTP appliquée avec succès !
+      {% elif wallix_smtp_result.status | default(0) == 404 %}
+      ⚠️  Endpoint non trouvé - Vérifier la version de l'API
+      {% elif wallix_smtp_result.status | default(0) == 405 %}
+      ⚠️  Méthode non autorisée - Problème d'authentification possible
+      {% else %}
+      ❌ Erreur de configuration - Code: {{ wallix_smtp_result.status | default('N/A') }}
+      {% endif %}
+
+      💡 La configuration SMTP est maintenant accessible via l'interface Web WALLIX.
+  when:
+    - wallix_smtp_config is defined
+    - wallix_smtp_result is defined
+  tags:
+    - smtp
+    - configuration
+    - verification
+    - configuration

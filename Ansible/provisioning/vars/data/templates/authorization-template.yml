@@ -1,0 +1,101 @@
+---
+# Authorization Template - Copy and customize for access rules
+# Usage: Include this file in your provisioning playbook
+# Example: make provision-authz AUTHZ=prod-ssh-access
+
+# Authorization definition
+authorization:
+  name: "Authorization_Name"              # Required: Unique authorization name
+  description: "Authorization description"
+  state: present                          # present|absent
+
+  # User group allowed to use this authorization
+  user_group: "GroupName"                 # Must reference an existing user group
+
+  # Target group this authorization grants access to
+  target_group: "TargetGroupName"         # Must reference an existing target group
+
+  # Session settings
+  is_critical: false                      # Critical session (extra confirmation)
+  is_recorded: true                       # Record session for audit
+  approval_required: false                # Require approval workflow
+
+  # Time-based restrictions (optional)
+  # active_quorum: 0                      # Number of approvals needed
+  # inactive_quorum: 0
+  # approval_timeout: 60                  # Minutes to wait for approval
+
+  # Allowed subprotocols (depends on target service protocols)
+  subprotocols:
+    - "SSH_SHELL_SESSION"
+    - "SSH_SCP_UP"
+    - "SSH_SCP_DOWN"
+    # - "RDP_CLIPBOARD_UP"
+    # - "RDP_CLIPBOARD_DOWN"
+
+  # Timeframe restrictions (optional)
+  # timeframes:
+  #   - "business_hours"
+  #   - "maintenance_window"
+
+---
+# Target Group Template (typically defined alongside authorizations)
+
+# Target Group definition
+target_group:
+  name: "TargetGroup_Name"                # Required: Unique target group name
+  description: "Group of targets"
+  state: present
+
+  # Session targets
+  session:
+    accounts:
+      - account: "admin"                  # Account name
+        domain: "local"                   # local or domain name
+        domain_type: "local"              # local, global
+        device: "server-01"               # Device name
+        service: "ssh"                    # Service name
+        application: null
+
+    # Account mappings (for interactive login)
+    account_mappings:
+      - device: "server-01"
+        service: "ssh"
+        application: null
+
+    # Interactive logins
+    interactive_logins:
+      - device: "server-01"
+        service: "ssh"
+        application: null
+
+  # Password retrieval targets
+  password_retrieval:
+    accounts:
+      - account: "admin"
+        domain: "local"
+        domain_type: "local"
+        device: "server-01"
+        application: null
+
+  # Restrictions
+  restrictions:
+    - action: "notify"                    # notify, kill
+      rules: "protocol"                   # Rule type
+      subprotocol: "SSH_SHELL_SESSION"
+
+---
+# User Group Template
+
+# User Group definition
+user_group:
+  name: "UserGroup_Name"                  # Required: Unique group name
+  description: "Group of users"
+  state: present
+
+  # Timeframe restrictions (optional)
+  # timeframes:
+  #   - "business_hours"
+
+  # Profile (optional)
+  profile: ""                             # Group profile

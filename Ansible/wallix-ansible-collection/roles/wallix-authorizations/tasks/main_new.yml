@@ -1,0 +1,21 @@
+---
+# Main tasks for wallix-authorizations role
+
+- name: Validate authorizations configuration
+  assert:
+    that:
+      - wallix_authorizations is defined
+      - wallix_authorizations | length > 0
+    fail_msg: "No authorizations defined for management"
+    success_msg: "Authorizations configuration validated successfully"
+  when: wallix_authorizations_validate_config | default(true)
+
+- name: Include authorization creation tasks
+  include_tasks: create_authorizations.yml
+  when:
+    - components_to_manage.authorizations | default(false)
+    - wallix_authorizations_mode != 'validate_only'
+
+- name: Include authorization validation tasks
+  include_tasks: validate_authorizations.yml
+  when: wallix_authorizations_validate | default(true)

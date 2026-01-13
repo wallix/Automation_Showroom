@@ -1,0 +1,55 @@
+---
+# playbooks/operational/health-check.yml - System health and connectivity validation
+#
+# Quick health check for WALLIX Bastion connectivity and API status
+#
+# Usage:
+#   make ops-health
+#   ansible-playbook playbooks/operational/health-check.yml -i inventories/dev/hosts.ini \
+#     -e wallix_bastion_host=10.10.122.15 --vault-password-file <(printf "vault_pass")
+
+- name: WALLIX Bastion - Health Check
+  hosts: localhost
+  gather_facts: false
+  connection: local
+
+  pre_tasks:
+    - name: Set connection defaults
+      set_fact:
+        wallix_api_protocol: "{{ wallix_api.protocol | default('https') }}"
+        wallix_api_port: "{{ wallix_api.port | default(443) }}"
+
+    - name: Build API base URL
+      set_fact:
+        wallix_api: "{{ wallix_api | combine({'base_url': wallix_api_protocol ~ '://' ~ wallix_bastion_host ~ ':' ~ wallix_api_port ~ '/api'}) }}"
+
+  tasks:
+    - name: Display health check target
+      debug:
+        msg:
+          - "🏥 WALLIX Bastion Health Check"
+          - "Target: {{ wallix_api.base_url }}"
+
+    - name: Authenticate for health check
+      include_role:
+        name: wallix-auth
+      tags: [auth]
+
+    - name: Validate API connectivity
+      include_role:
+        name: wallix-auth
+        tasks_from: validate_connectivity.yml
+      tags: [connectivity]
+
+    - name: Check API connectivity
+      debug:
+        msg:
+          - "╔══════════════════════════════════════════════════════════╗"
+          - "║              🏥 HEALTH CHECK RESULTS                     ║"
+          - "╠══════════════════════════════════════════════════════════╣"
+          - "║  ✅ Bastion: {{ wallix_bastion_host }}"
+          - "║  ✅ Session: {{ 'Valid' if wallix_session_cookie is defined else 'Invalid' }}"
+          - "║  ✅ API Status: Available"
+          - "║  ✅ API Version: {{ wallix_api_version | default('unknown') }}"
+          - "╚══════════════════════════════════════════════════════════╝"
+      tags: [always]

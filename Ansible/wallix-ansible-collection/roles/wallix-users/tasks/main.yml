@@ -1,0 +1,66 @@
+---
+# WALLIX Users Management Main Task
+
+- name: Display user management start
+  debug:
+    msg:
+      - "👥 Starting WALLIX user management"
+      - "Mode: {{ wallix_users_mode | default('normal') }}"
+      - "Users to manage: {{ wallix_users | length }}"
+      - "Groups to manage: {{ wallix_user_groups | length }}"
+
+# Create user groups
+- name: Include user group creation tasks
+  include_tasks: create_user_groups.yml
+  when:
+    - wallix_user_groups | default([]) | length > 0
+    - wallix_session_cookie is defined
+
+# Create users
+- name: Include user creation tasks
+  include_tasks: create_users.yml
+  when:
+    - wallix_users | default([]) | length > 0
+    - wallix_session_cookie is defined
+
+# Manage user credentials (SSH, X.509, etc.)
+- name: Include user credentials management tasks
+  include_tasks: manage_user_credentials.yml
+  when:
+    - wallix_users | selectattr('credentials', 'defined') | list | length > 0
+    - wallix_session_cookie is defined
+    - wallix_users_manage_credentials | default(true)
+
+# Manage group memberships
+- name: Include group membership management tasks
+  include_tasks: "manage_group_membership.yml"
+  when: wallix_manage_group_membership | default(false)
+
+- name: Display user management completion
+  debug:
+    msg:
+      - "✅ WALLIX user management completed"
+      - "Status: {{ wallix_users_status | default('completed') }}"
+
+- name: "Users | Manage user preferences"
+  include_tasks: manage_user_preferences.yml
+  when:
+    - wallix_users_manage_preferences | default(false)
+    - wallix_session_cookie is defined
+  tags:
+    - users
+    - preferences
+
+- name: "Users | Test user functionality"
+  include_tasks: test_users.yml
+  when: wallix_users_debug.test_user_creation | default(true)
+  tags:
+    - users
+    - test
+
+- name: "Users | Generate users report"
+  include_tasks: generate_users_report.yml
+  when: wallix_users_generate_report | default(false)
+  tags:
+    - users
+    - report

@@ -1,0 +1,286 @@
+---
+# Demo Users and Groups Data
+# Realistic example of users, groups, and authorizations for provisioning demos
+# Usage: Loaded automatically by demo playbooks or include with -e @vars/data/demo/users.yml
+
+# ============================================================================
+# GLOBAL DOMAINS - Authentication domains (AD, LDAP, etc.)
+# ============================================================================
+
+wallix_global_domains:
+  - name: "DEMO_LOCAL"
+    domain_real_name: "demo.local"
+    description: "Demo local domain for testing"
+    enable_password_change: false
+    state: present
+
+  - name: "DEMO_AD"
+    domain_real_name: "demo.company.local"
+    description: "Demo Active Directory domain"
+    enable_password_change: true
+    password_change_policy: "default"
+    password_change_plugin: "Windows"
+    state: present
+
+# ============================================================================
+# GLOBAL ACCOUNTS - Domain-level service accounts
+# ============================================================================
+
+wallix_global_accounts:
+  accounts:
+    - domain_name: "DEMO_LOCAL"
+      account_name: "demo_svc"
+      account_login: "svc_demo@demo.local"
+      description: "Demo service account for local domain"
+      credentials:
+        - type: "password"
+          password: "{{ vault_demo_svc_password | default('DemoPassword123!') }}"
+      state: present
+
+    - domain_name: "DEMO_AD"
+      account_name: "demo_backup"
+      account_login: "svc_backup@demo.company.local"
+      description: "Demo backup service account"
+      credentials:
+        - type: "password"
+          password: "{{ vault_demo_backup_password | default('BackupPass123!') }}"
+      state: present
+
+# ============================================================================
+# USER GROUPS - Logical groupings of users
+# ============================================================================
+
+wallix_user_groups:
+  - name: "Demo_Admins"
+    description: "Demo administrators group"
+    state: present
+
+  - name: "Demo_Operators"
+    description: "Demo operators group"
+    state: present
+
+  - name: "Demo_Developers"
+    description: "Demo developers group"
+    state: present
+
+  - name: "Demo_DBAs"
+    description: "Demo database administrators"
+    state: present
+
+  - name: "Demo_Auditors"
+    description: "Demo audit and compliance team"
+    state: present
+
+# ============================================================================
+# USERS - Individual user accounts
+# ============================================================================
+
+wallix_users:
+  # Administrator user
+  - name: "demo_admin"
+    email: "admin@demo.company.com"
+    profile: "product_administrator"
+    preferred_language: "en"
+    description: "Demo administrator user"
+    password: "{{ vault_demo_admin_password | default('AdminDemo123!') }}"
+    force_change_password: true
+    state: present
+    groups:
+      - "Demo_Admins"
+
+  # Operator users
+  - name: "demo_operator1"
+    email: "operator1@demo.company.com"
+    profile: "user"
+    preferred_language: "en"
+    description: "Demo operator user 1"
+    password: "{{ vault_demo_operator_password | default('OperatorDemo123!') }}"
+    force_change_password: true
+    state: present
+    groups:
+      - "Demo_Operators"
+
+  - name: "demo_operator2"
+    email: "operator2@demo.company.com"
+    profile: "user"
+    preferred_language: "fr"
+    description: "Demo operator user 2"
+    password: "{{ vault_demo_operator_password | default('OperatorDemo123!') }}"
+    force_change_password: true
+    state: present
+    groups:
+      - "Demo_Operators"
+
+  # Developer users
+  - name: "demo_dev1"
+    email: "dev1@demo.company.com"
+    profile: "user"
+    preferred_language: "en"
+    description: "Demo developer 1"
+    password: "{{ vault_demo_dev_password | default('DevDemo123!') }}"
+    force_change_password: true
+    state: present
+    groups:
+      - "Demo_Developers"
+
+  - name: "demo_dev2"
+    email: "dev2@demo.company.com"
+    profile: "user"
+    preferred_language: "en"
+    description: "Demo developer 2"
+    password: "{{ vault_demo_dev_password | default('DevDemo123!') }}"
+    force_change_password: true
+    state: present
+    groups:
+      - "Demo_Developers"
+
+  # DBA user
+  - name: "demo_dba"
+    email: "dba@demo.company.com"
+    profile: "user"
+    preferred_language: "en"
+    description: "Demo database administrator"
+    password: "{{ vault_demo_dba_password | default('DBADemo123!') }}"
+    force_change_password: true
+    state: present
+    groups:
+      - "Demo_DBAs"
+
+  # Auditor user (read-only profile)
+  - name: "demo_auditor"
+    email: "auditor@demo.company.com"
+    profile: "auditor"
+    preferred_language: "en"
+    description: "Demo auditor - read only access"
+    password: "{{ vault_demo_auditor_password | default('AuditorDemo123!') }}"
+    force_change_password: true
+    state: present
+    groups:
+      - "Demo_Auditors"
+
+# ============================================================================
+# AUTHORIZATIONS - Access rules mapping users to targets
+# ============================================================================
+
+wallix_authorizations:
+  # Admins have full access to all demo resources
+  - name: "Demo_Admin_FullAccess"
+    description: "Full access for demo administrators"
+    user_group: "Demo_Admins"
+    target_group: "Demo_WebServers"
+    subprotocol: "SSH_SHELL_SESSION"
+    is_critical: false
+    is_recorded: true
+    approval_required: false
+    state: present
+
+  - name: "Demo_Admin_DB_Access"
+    description: "Database access for demo administrators"
+    user_group: "Demo_Admins"
+    target_group: "Demo_Databases"
+    subprotocol: "SSH_SHELL_SESSION"
+    is_critical: true
+    is_recorded: true
+    approval_required: false
+    state: present
+
+  - name: "Demo_Admin_Windows"
+    description: "Windows access for demo administrators"
+    user_group: "Demo_Admins"
+    target_group: "Demo_Windows"
+    subprotocol: "RDP"
+    is_critical: false
+    is_recorded: true
+    approval_required: false
+    state: present
+
+  # Operators have access to web and app servers
+  - name: "Demo_Operator_Web"
+    description: "Web server access for operators"
+    user_group: "Demo_Operators"
+    target_group: "Demo_WebServers"
+    subprotocol: "SSH_SHELL_SESSION"
+    is_critical: false
+    is_recorded: true
+    approval_required: false
+    state: present
+
+  - name: "Demo_Operator_App"
+    description: "Application server access for operators"
+    user_group: "Demo_Operators"
+    target_group: "Demo_Applications"
+    subprotocol: "SSH_SHELL_SESSION"
+    is_critical: false
+    is_recorded: true
+    approval_required: false
+    state: present
+
+  # Developers have access to app servers only
+  - name: "Demo_Dev_App"
+    description: "Application server access for developers"
+    user_group: "Demo_Developers"
+    target_group: "Demo_Applications"
+    subprotocol: "SSH_SHELL_SESSION"
+    is_critical: false
+    is_recorded: true
+    approval_required: false
+    state: present
+
+  # DBAs have database access
+  - name: "Demo_DBA_Database"
+    description: "Database access for DBAs"
+    user_group: "Demo_DBAs"
+    target_group: "Demo_Databases"
+    subprotocol: "SSH_SHELL_SESSION"
+    is_critical: true
+    is_recorded: true
+    approval_required: false  # Disabled for demo (requires approvers group)
+    state: present
+
+# ============================================================================
+# TIMEFRAMES - Time-based access restrictions (optional)
+# ============================================================================
+
+wallix_timeframes:
+  - timeframe_name: "demo_business_hours"
+    description: "Business hours - Mon-Fri 8:00-18:00"
+    periods:
+      - start_date: "2024-01-01"
+        end_date: "2099-12-31"
+        start_time: "08:00"
+        end_time: "18:00"
+        week_days:
+          - monday
+          - tuesday
+          - wednesday
+          - thursday
+          - friday
+    state: present
+
+  - timeframe_name: "demo_maintenance"
+    description: "Maintenance window - Sat 02:00-06:00"
+    periods:
+      - start_date: "2024-01-01"
+        end_date: "2099-12-31"
+        start_time: "02:00"
+        end_time: "06:00"
+        week_days:
+          - saturday
+    state: present
+
+  - timeframe_name: "demo_24x7"
+    description: "24x7 access"
+    periods:
+      - start_date: "2024-01-01"
+        end_date: "2099-12-31"
+        start_time: "00:00"
+        end_time: "00:00"
+        week_days:
+          - monday
+          - tuesday
+          - wednesday
+          - thursday
+          - friday
+          - saturday
+          - sunday
+    state: present

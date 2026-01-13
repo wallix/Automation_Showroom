@@ -1,0 +1,52 @@
+---
+# playbooks/test-auth.yml - Test authentication and API connectivity
+#
+# Usage:
+#   make auth
+#   ansible-playbook playbooks/test-auth.yml -i inventories/dev/hosts.ini \
+#     -e wallix_bastion_host=10.10.122.15 --vault-password-file <(printf "vault_pass")
+
+- name: Test WALLIX Bastion Authentication
+  hosts: localhost
+  gather_facts: false
+  connection: local
+
+  pre_tasks:
+    - name: Validate required variables
+      assert:
+        that:
+          - wallix_bastion_host is defined
+          - vault_wallix_username is defined
+          - vault_wallix_password is defined
+        fail_msg: "Missing required variables: wallix_bastion_host, vault_wallix_username, vault_wallix_password"
+
+    - name: Set connection defaults
+      set_fact:
+        wallix_api_protocol: "{{ wallix_api.protocol | default('https') }}"
+        wallix_api_port: "{{ wallix_api.port | default(443) }}"
+
+    - name: Build API base URL
+      set_fact:
+        wallix_api: "{{ wallix_api | combine({'base_url': wallix_api_protocol ~ '://' ~ wallix_bastion_host ~ ':' ~ wallix_api_port ~ '/api'}) }}"
+
+    - name: Display test target
+      debug:
+        msg:
+          - "🔐 Testing authentication to: {{ wallix_api.base_url }}"
+
+  tasks:
+    - name: Include wallix-auth role
+      include_role:
+        name: wallix-auth
+
+    - name: Display authentication result
+      debug:
+        msg:
+          - "╔══════════════════════════════════════════════════════════╗"
+          - "║              ✅ AUTHENTICATION SUCCESSFUL                ║"
+          - "╠══════════════════════════════════════════════════════════╣"
+          - "║  Bastion: {{ wallix_bastion_host }}"
+          - "║  API URL: {{ wallix_api.base_url }}"
+          - "║  Session: {{ 'Present ✅' if wallix_session_cookie is defined else 'Not available ❌' }}"
+          - "║  API Version: {{ wallix_api_version | default('unknown') }}"
+          - "╚══════════════════════════════════════════════════════════╝"

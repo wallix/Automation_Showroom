@@ -1,6 +1,0 @@
-users:
-  - { user_name: "toto", user_email: "toto@toto.com", user_password: "MyH0lyPass1" }
-  - { user_name: "tito", user_email: "tito@toto.com", user_password: "MyH0lyPass2" }
-  - { user_name: "tuto", user_email: "tuto@toto.com", user_password: "MyH0lyPass3" }
-  - { user_name: "tato", user_email: "tato@toto.com", user_password: "MyH0lyPass4" }
-  - { user_name: "teto", user_email: "teto@toto.com", user_password: "MyH0lyPass5" }

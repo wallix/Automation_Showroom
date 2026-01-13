@@ -1,0 +1,16 @@
+---
+# User preferences management tasks for WALLIX users
+
+- name: Skip user preferences management
+  debug:
+    msg:
+      - "⚠️ User preferences management skipped"
+      - "Reason: Feature not implemented yet"
+      - "This will be implemented in future iterations"
+  when: wallix_users_manage_preferences | default(false)
+
+- name: Set user preferences status
+  set_fact:
+    wallix_user_preferences_status: "skipped"
+    wallix_user_preferences_reason: "not_implemented"
+  when: wallix_users_manage_preferences | default(false)
