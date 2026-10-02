@@ -114,3 +114,5 @@ Thumbs.db
 
 # Cloud-init generated files
 Cloud-init/generated_examples/
+
+.claude/
