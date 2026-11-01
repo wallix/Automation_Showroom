@@ -1,0 +1,19 @@
+bastion_info_ip   = "bastion.example.com"
+bastion_info_user = "admin"
+
+# Keep secrets out of this file:
+#   export TF_VAR_bastion_info_token="<API key>"
+#   export TF_VAR_webapp_account_password="<password of the web application account>"
+
+# Lab Bastion with a self-signed certificate only:
+# bastion_info_insecure_skip_verify = true
+
+application_name      = "intranet"
+application_url       = "https://intranet.example.com"
+login_form_url        = "https://intranet.example.com/login"
+login_button_selector = "#submit-button"
+
+webapp_account_login = "svc-intranet"
+
+# Existing Bastion users allowed to open the application.
+users = []
