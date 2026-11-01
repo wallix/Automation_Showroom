@@ -1,11 +1,20 @@
 product_name    = "bastion"
 product_version = "10.4.0.4"
 
-allowed_ip                = ["0.0.0.0/0"]
-cidr_range                = "10.0.0.0/16"
-gcp_bucket_name           = "wallix-cloud-images-gcp"
-gcp_credentials_file_path = "key.json"
-gcp_instance_size         = "e2-medium"
-gcp_project_name          = "testing"
-gcp_region                = "europe-west1"
-gcp_region_zone           = "europe-west1-b"
+# Replace with your own public IP. 0.0.0.0/0 exposes the instance to the Internet.
+allowed_ip        = ["<YOUR_PUBLIC_IP>/32"]
+cidr_range        = "10.0.0.0/24"
+gcp_bucket_name   = "wallix-cloud-images-gcp"
+gcp_instance_size = "e2-medium"
+gcp_project_name  = "<GCP_PROJECT_ID>"
+gcp_region        = "europe-west1"
+gcp_region_zone   = "europe-west1-b"
+
+# Optional: service account key file. Default (null) uses Application Default Credentials.
+# gcp_credentials_file_path = "key.json"
+
+ssh_key_root        = "<SSH_PUBLIC_KEY>"
+ssh_key_wabadmin    = "<SSH_PUBLIC_KEY>"
+wabadmin_password   = "<CHANGE_ME>"
+wabsuper_password   = "<CHANGE_ME>"
+wabupgrade_password = "<CHANGE_ME>"
