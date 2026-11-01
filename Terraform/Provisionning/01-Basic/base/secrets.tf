@@ -1,29 +1,34 @@
-# Generate SSH Key
-resource "tls_private_key" "rsa-4096" {
-  algorithm = "RSA"
-  rsa_bits  = 4096
-}
-# write local file
-resource "local_file" "private_key" {
-  content         = tls_private_key.rsa-4096.private_key_pem
-  filename        = "ssh_private_key.pem"
-  file_permission = "0600"
+resource "random_pet" "demo" {
+  prefix = "demo"
 }
 
-# Generate a random Password
-resource "random_string" "demo" {
-  length           = 16
-  special          = true
-  min_special      = 2
+# Password of the Bastion user (web UI and SSH proxy login).
+resource "random_password" "user" {
+  length           = 20
+  min_lower        = 2
   min_upper        = 2
   min_numeric      = 2
-  override_special = "_%@|/"
+  min_special      = 2
+  override_special = "_%@+-."
 }
 
-resource "random_pet" "user" {
-  prefix = "demo"
+# Password stored in the Bastion vault for the target account. A real server needs its real password.
+resource "random_password" "target_account" {
+  length           = 20
+  min_lower        = 2
+  min_upper        = 2
+  min_numeric      = 2
+  min_special      = 2
+  override_special = "_%@+-."
 }
 
-resource "random_pet" "group" {
-  prefix = "demo"
+# SSH key pair of the Bastion user: the public key goes to the Bastion, the private key to a local file.
+resource "tls_private_key" "user" {
+  algorithm = "ED25519"
+}
+
+resource "local_sensitive_file" "user_private_key" {
+  content         = tls_private_key.user.private_key_openssh
+  filename        = "${path.module}/${local.name}.pem"
+  file_permission = "0600"
 }

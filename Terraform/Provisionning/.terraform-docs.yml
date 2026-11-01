@@ -1,0 +1,32 @@
+# Regenerate the reference section of an example README, from the example folder:
+#   terraform-docs -c ../../.terraform-docs.yml .            (01-Basic/<example>)
+#   terraform-docs -c ../../../.terraform-docs.yml .         (02-Advanced/Using_Inventory/<use case>)
+formatter: markdown table
+
+sections:
+  hide:
+    - modules
+    - providers
+
+output:
+  file: README.md
+  mode: inject
+  template: |-
+    <!-- BEGIN_TF_DOCS -->
+    {{ .Content }}
+    <!-- END_TF_DOCS -->
+
+sort:
+  enabled: true
+  by: required
+
+settings:
+  anchor: false
+  default: true
+  escape: true
+  html: false
+  indent: 2
+  lockfile: false
+  required: true
+  sensitive: true
+  type: true

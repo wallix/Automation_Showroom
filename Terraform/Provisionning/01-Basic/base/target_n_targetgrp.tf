@@ -1,56 +1,52 @@
-# Configure a device
+# A target is an account used on a service of a device: <account>@<domain>@<device>:<service>.
+
 resource "wallix-bastion_device" "demo" {
-  device_name = "server1"
-  host        = "server1"
+  device_name = "${local.name}-srv01"
+  host        = var.target_host
+  description = "Automation Showroom: base example"
 }
 
-# Configure a global domain
+resource "wallix-bastion_device_service" "ssh" {
+  device_id         = wallix-bastion_device.demo.id
+  service_name      = "SSH"
+  protocol          = "SSH"
+  port              = 22
+  connection_policy = "SSH" # Built-in connection policy.
+  subprotocols      = ["SSH_SHELL_SESSION", "SSH_SCP_UP", "SSH_SCP_DOWN", "SFTP_SESSION"]
+  # Accounts of these global domains can be used on the service.
+  global_domains = [wallix-bastion_domain.demo.domain_name]
+}
+
+# A global domain holds accounts shared by several devices; a local domain belongs to a single device.
 resource "wallix-bastion_domain" "demo" {
-  domain_name = "globdomexample.com"
+  domain_name = "${local.name}.lab"
+  description = "Automation Showroom: base example"
 }
 
-# Configure an account on global domain
 resource "wallix-bastion_domain_account" "demo" {
   domain_id     = wallix-bastion_domain.demo.id
-  account_name  = "admin"
-  account_login = "admin"
-  resources = [
-    "${wallix-bastion_device.demo.device_name}:${wallix-bastion_device_service.demo.service_name}"
-  ]
+  account_name  = var.target_account_login
+  account_login = var.target_account_login
+  # <device>:<service> pairs the account is used on.
+  resources = ["${wallix-bastion_device.demo.device_name}:${wallix-bastion_device_service.ssh.service_name}"]
 }
 
-# Configure a credential on account of global domain
 resource "wallix-bastion_domain_account_credential" "demo" {
   domain_id  = wallix-bastion_domain_account.demo.domain_id
   account_id = wallix-bastion_domain_account.demo.id
   type       = "password"
-  password   = random_string.demo.result
-
+  password   = random_password.target_account.result
 }
 
-# Configure a service on device
-resource "wallix-bastion_device_service" "demo" {
-  service_name      = "demossh"
-  device_id         = wallix-bastion_device.demo.id
-  connection_policy = "SSH"
-  port              = 22
-  protocol          = "SSH"
-  subprotocols = [
-    "SSH_SHELL_SESSION"
-  ]
-  global_domains = [
-    wallix-bastion_domain.demo.domain_name
-  ]
-}
-
-# Configure a target group
 resource "wallix-bastion_targetgroup" "demo" {
-  group_name = random_pet.group.id
+  group_name  = local.name
+  description = "Automation Showroom: base example"
+
   session_accounts {
     account     = wallix-bastion_domain_account.demo.account_name
     domain      = wallix-bastion_domain.demo.domain_name
     domain_type = "global"
     device      = wallix-bastion_device.demo.device_name
-    service     = wallix-bastion_device_service.demo.service_name
+    service     = wallix-bastion_device_service.ssh.service_name
   }
 }
