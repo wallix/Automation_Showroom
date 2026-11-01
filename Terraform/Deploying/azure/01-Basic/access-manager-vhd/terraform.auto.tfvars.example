@@ -1,13 +1,17 @@
+# subscription_id    = "<SUBSCRIPTION_ID>" # or export ARM_SUBSCRIPTION_ID
+resource_group_name  = "<RESOURCE_GROUP>"
+virtual_network_name = "<VNET_NAME>"
+subnet_name          = "<SUBNET_NAME>"
+storage_account_name = "<STORAGE_ACCOUNT_WITH_VHDS>"
 
-am_version           = "4.3.0.3"
-resource_group_name  = "LAB_RG"
-ssh_key              = "ssh-rsa <RSA KEY>"
-storage_account_name = "wallix"
-subnet_name          = "default"
-virtual_network_name = "mla_vn"
-vm_name              = "am3"
-vm_size              = "Standard_B2s"
-wabadmin_password    = "Password"
-wabsuper_password    = "Password"
-wabupgrade_password  = "Password"
+am_version = "4.3.0.3" # must match vhds/access-manager-<version>-azure.vhd
+vm_name    = "wallix-am"
+vm_size    = "Standard_B2ms"
 
+# Leave empty for a private-only VM. Otherwise use your own public IP; 0.0.0.0/0 exposes the VM to the Internet.
+allowed_ips = []
+
+ssh_key             = "<SSH_PUBLIC_KEY>"
+wabadmin_password   = "<CHANGE_ME>"
+wabsuper_password   = "<CHANGE_ME>"
+wabupgrade_password = "<CHANGE_ME>"

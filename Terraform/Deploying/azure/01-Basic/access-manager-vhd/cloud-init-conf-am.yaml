@@ -1,11 +1,11 @@
 #cloud-config
 
 users:
-  - name: wabsuper   
+  - name: wabsuper
     lock_passwd: false
-    plain_text_passwd: ${wabsuper_password}
+    plain_text_passwd: ${jsonencode(wabsuper_password)}
   - name: wabupgrade
     lock_passwd: false
-    plain_text_passwd: ${wabupgrade_password}
+    plain_text_passwd: ${jsonencode(wabupgrade_password)}
 preserve_hostname: False
 manage_etc_hosts: localhost
