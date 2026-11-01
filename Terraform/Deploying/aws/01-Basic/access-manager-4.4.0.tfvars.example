@@ -1,9 +1,15 @@
 product_name    = "access-manager"
 product_version = "4.4.0.7"
 
-allowed_ip        = ["0.0.0.0/0"]
-aws_instance_size = "t2.small"
-aws_key_name      = "R&D-Cross-QA"
-aws_region        = "eu-west-1"
-aws_vpc_id        = "vpc-00b68c65"
+# Replace with your own public IP. 0.0.0.0/0 exposes the instance to the Internet.
+allowed_ip        = ["<YOUR_PUBLIC_IP>/32"]
+aws_instance_size = "t3.medium"
+aws_key_name      = "<EXISTING_KEY_PAIR_NAME>"
+aws_region        = "eu-west-3"
+aws_vpc_id        = "<VPC_ID>"
+subnet_cidr       = "10.10.2.0/24"
 
+# TAGS
+
+Project_Owner = "<your-email>"
+Project_Name  = "Lab_Wallix"

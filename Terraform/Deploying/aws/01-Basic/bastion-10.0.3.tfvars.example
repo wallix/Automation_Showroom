@@ -1,14 +1,15 @@
 product_name    = "bastion"
 product_version = "10.0.3.10"
 
-allowed_ip        = ["0.0.0.0/0"]
-aws_instance_size = "t2.small"
-aws_key_name      = "demo_terraform"
+# Replace with your own public IP. 0.0.0.0/0 exposes the instance to the Internet.
+allowed_ip        = ["<YOUR_PUBLIC_IP>/32"]
+aws_instance_size = "t3.medium"
+aws_key_name      = "<EXISTING_KEY_PAIR_NAME>"
 aws_region        = "eu-west-3"
-aws_vpc_id        = "vpc-cvxcvxcvcxcvxvcxcvxc"
+aws_vpc_id        = "<VPC_ID>"
 subnet_cidr       = "10.10.1.0/24"
 
 # TAGS
 
-Project_Owner = "lab@wallix.com"
+Project_Owner = "<your-email>"
 Project_Name  = "Lab_Wallix"
