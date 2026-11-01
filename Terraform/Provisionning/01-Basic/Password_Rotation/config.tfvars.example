@@ -1,0 +1,13 @@
+bastion_info_ip   = "bastion.example.com"
+bastion_info_user = "admin"
+
+# Keep secrets out of this file:
+#   export TF_VAR_bastion_info_token="<API key>"
+#   export TF_VAR_account_password="<current password of the account>"
+
+# Lab Bastion with a self-signed certificate only:
+# bastion_info_insecure_skip_verify = true
+
+ad_domain_name    = "corp.example.com"
+domain_controller = "192.0.2.20"
+account_login     = "svc-backup"
