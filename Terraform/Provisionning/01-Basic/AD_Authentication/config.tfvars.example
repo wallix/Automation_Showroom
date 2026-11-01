@@ -1,0 +1,17 @@
+bastion_info_ip   = "bastion.example.com"
+bastion_info_user = "admin"
+
+# Keep secrets out of this file:
+#   export TF_VAR_bastion_info_token="<API key>"
+#   export TF_VAR_ad_bind_password="<password of the bind account>"
+
+# Lab Bastion with a self-signed certificate only:
+# bastion_info_insecure_skip_verify = true
+
+ad_host    = "dc01.example.com"
+ad_ca_file = "ad-root-ca.pem"
+ad_base    = "OU=Users,DC=example,DC=com"
+ad_bind_dn = "CN=svc-bastion,OU=Service Accounts,DC=example,DC=com"
+
+ad_domain   = "example.com"
+ad_group_dn = "CN=Bastion Users,OU=Groups,DC=example,DC=com"

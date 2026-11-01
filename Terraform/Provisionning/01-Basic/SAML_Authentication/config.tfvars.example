@@ -1,0 +1,21 @@
+bastion_info_ip   = "bastion.example.com"
+bastion_info_user = "admin"
+
+# Keep secrets out of this file: export TF_VAR_bastion_info_token="<API key>"
+
+# Lab Bastion with a self-signed certificate only:
+# bastion_info_insecure_skip_verify = true
+
+# Downloaded from the identity provider (Okta, ADFS, Keycloak...).
+idp_metadata_file = "idp-metadata.xml"
+
+# Names of the attributes in the SAML assertion, as configured on the identity provider.
+saml_attributes = {
+  username    = "username"
+  displayname = "displayname"
+  email       = "email"
+  group       = "groups"
+}
+
+auth_domain_name = "example.com"
+idp_group        = "bastion-users"

@@ -1,0 +1,18 @@
+bastion_info_ip   = "bastion.example.com"
+bastion_info_user = "admin"
+
+# Keep secrets out of this file:
+#   export TF_VAR_bastion_info_token="<API key>"
+#   export TF_VAR_ldap_bind_password="<password of the LDAP bind account>"
+#   export TF_VAR_radius_secret="<RADIUS shared secret>"
+
+# Lab Bastion with a self-signed certificate only:
+# bastion_info_insecure_skip_verify = true
+
+ldap_host    = "ldap.example.com"
+ldap_base    = "ou=people,dc=example,dc=com"
+ldap_bind_dn = "cn=bastion,ou=services,dc=example,dc=com"
+
+radius_host = "radius.example.com"
+
+auth_domain_name = "example.com"
