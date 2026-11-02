@@ -28,29 +28,17 @@ module "integration_debian" {
 ## Requirements
 
 | Name | Version |
-|------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.9.0 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >=5.85.0 |
-| <a name="requirement_cloudinit"></a> [cloudinit](#requirement\_cloudinit) | >=2.3.5 |
-| <a name="requirement_local"></a> [local](#requirement\_local) | >=2.5.2 |
-| <a name="requirement_random"></a> [random](#requirement\_random) | >=3.6.3 |
-
-## Providers
-
-| Name | Version |
-|------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | >=5.85.0 |
-| <a name="provider_cloudinit"></a> [cloudinit](#provider\_cloudinit) | >=2.3.5 |
-| <a name="provider_random"></a> [random](#provider\_random) | >=3.6.3 |
-
-## Modules
-
-No modules.
+| ---- | ------- |
+| terraform | >= 1.9.0 |
+| aws | >= 6.0 |
+| cloudinit | >=2.3.5 |
+| local | >=2.5.2 |
+| random | >=3.6.3 |
 
 ## Resources
 
 | Name | Type |
-|------|------|
+| ---- | ---- |
 | [aws_eip.public_ip_debian](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/eip) | resource |
 | [aws_instance.debian_admin](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/instance) | resource |
 | [aws_network_interface.debian-linux](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/network_interface) | resource |
@@ -62,28 +50,28 @@ No modules.
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
-| <a name="input_allowed_ips"></a> [allowed\_ips](#input\_allowed\_ips) | Specifies the ips/networks allowed to access integration instance. e.g: [''10.0.0.0/16'',''90.15.25.21/32''] | `list(string)` | <pre>[<br/>  "127.0.0.1/32"<br/>]</pre> | no |
-| <a name="input_am-instances"></a> [am-instances](#input\_am-instances) | list of AM IP or Network in CIDR Format. | `list(string)` | n/a | yes |
-| <a name="input_aws_instance_size"></a> [aws\_instance\_size](#input\_aws\_instance\_size) | Specifies the instance sizing. | `string` | `"t3.medium"` | no |
-| <a name="input_common_tags"></a> [common\_tags](#input\_common\_tags) | Map of tags to apply on instances resources. | `map(string)` | `{}` | no |
-| <a name="input_debian_version"></a> [debian\_version](#input\_debian\_version) | version debian to use. 11, 12. | `number` | `12` | no |
-| <a name="input_key_pair_name"></a> [key\_pair\_name](#input\_key\_pair\_name) | Name of the key pair that will be use to connect to the instance. | `string` | n/a | yes |
-| <a name="input_private_key"></a> [private\_key](#input\_private\_key) | Private key to be added in /home/admin/.ssh/ to connect to WALLIX Instances. | `string` | n/a | yes |
-| <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Name of the project. Will be used for Naming and Tags. | `string` | n/a | yes |
-| <a name="input_public_ssh_key"></a> [public\_ssh\_key](#input\_public\_ssh\_key) | Public key to be added in /home/rdpuser/.ssh/authorized\_keys. | `string` | n/a | yes |
-| <a name="input_sm-instances"></a> [sm-instances](#input\_sm-instances) | list of SM IP or Network in CIDR Format. | `list(string)` | n/a | yes |
-| <a name="input_subnet_id"></a> [subnet\_id](#input\_subnet\_id) | ID of the subnet to use for this instance | `string` | n/a | yes |
-| <a name="input_tags"></a> [tags](#input\_tags) | Map of tags to apply on instances resources. | `map(string)` | `{}` | no |
-| <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | vpc\_id to which attach the security group | `string` | n/a | yes |
+| ---- | ----------- | ---- | ------- | :------: |
+| allowed\_ips | Specifies the ips/networks allowed to access integration instance. e.g: [''10.0.0.0/16'',''90.15.25.21/32''] | `list(string)` | ```[ "127.0.0.1/32" ]``` | no |
+| am-instances | list of AM IP or Network in CIDR Format. | `list(string)` | n/a | yes |
+| aws\_instance\_size | Specifies the instance sizing. | `string` | `"t3.medium"` | no |
+| common\_tags | Map of tags to apply on instances resources. | `map(string)` | `{}` | no |
+| debian\_version | version debian to use. 11, 12. | `number` | `12` | no |
+| key\_pair\_name | Name of the key pair that will be use to connect to the instance. | `string` | n/a | yes |
+| private\_key | Private key to be added in /home/admin/.ssh/ to connect to WALLIX Instances. | `string` | n/a | yes |
+| project\_name | Name of the project. Will be used for Naming and Tags. | `string` | n/a | yes |
+| public\_ssh\_key | Public key to be added in /home/rdpuser/.ssh/authorized\_keys. | `string` | n/a | yes |
+| sm-instances | list of SM IP or Network in CIDR Format. | `list(string)` | n/a | yes |
+| subnet\_id | ID of the subnet to use for this instance | `string` | n/a | yes |
+| tags | Map of tags to apply on instances resources. | `map(string)` | `{}` | no |
+| vpc\_id | vpc\_id to which attach the security group | `string` | n/a | yes |
 
 ## Outputs
 
 | Name | Description |
-|------|-------------|
-| <a name="output_cloudinit_config"></a> [cloudinit\_config](#output\_cloudinit\_config) | Content of the cloud init. Mostly for debug |
-| <a name="output_password_rdpuser"></a> [password\_rdpuser](#output\_password\_rdpuser) | Generated password for rdp connexion with rdpuser. |
-| <a name="output_private_ip_debian_admin"></a> [private\_ip\_debian\_admin](#output\_private\_ip\_debian\_admin) | Private IP of the debian instance. |
-| <a name="output_public_ip_debian_admin"></a> [public\_ip\_debian\_admin](#output\_public\_ip\_debian\_admin) | Public IP of the debian instance. |
-| <a name="output_z_connect"></a> [z\_connect](#output\_z\_connect) | How to connect to instance. |
+| ---- | ----------- |
+| cloudinit\_config | Content of the cloud init (holds the rdpuser password and the private key). Mostly for debug |
+| password\_rdpuser | Generated password for rdp connexion with rdpuser. |
+| private\_ip\_debian\_admin | Private IP of the debian instance. |
+| public\_ip\_debian\_admin | Public IP of the debian instance. |
+| z\_connect | How to connect to instance. |
 <!-- END_TF_DOCS -->

@@ -19,6 +19,7 @@ This example is intended to present good practices but keeping the ease of use i
   - [What to check before starting ?](#what-to-check-before-starting-)
   - [Deploy](#deploy)
   - [Configure](#configure)
+  - [Network access](#network-access)
   - [Replication](#replication)
   - [Cost](#cost)
   - [Known issues](#known-issues)
@@ -26,8 +27,6 @@ This example is intended to present good practices but keeping the ease of use i
     - [Failing to import certificate on loadbalancer](#failing-to-import-certificate-on-loadbalancer)
     - [I can't access the Debian Machine from my IP](#i-cant-access-the-debian-machine-from-my-ip)
   - [Requirements](#requirements)
-  - [Providers](#providers)
-  - [Modules](#modules)
   - [Resources](#resources)
   - [Inputs](#inputs)
   - [Outputs](#outputs)
@@ -90,12 +89,20 @@ Connect and configure Access and Session Manager on port 2242 :
   - Database replication
   - WebUI Admin password and Encryption.
 
+## Network access
+
+The ALB and the NLB accept traffic from `allowed_ips` and from the VPC CIDR only. When the ALB is internet-facing (`alb_internal = false`, the default), the public IP of the Debian host is also allowed, so its Firefox can reach the Access Manager through the ALB.
+
+The Access Managers accept HTTPS from the ALB security group and from the VPC subnets. The NLB preserves client IPs, so the Bastion security group allows SSH, RDP and HTTPS from the NLB security group. The VPC default security group, which the AM and SM interfaces also carry, only allows traffic between its members.
+
 ## Replication
 
 If there is 2 Session Manager, a file `./generated_files/info_replication.txt` will be generated. This can be used for extra automation on setting up the replication.
 This is not yet shown as an example as bastion replication installation is dependant on the version you use.
 
 ## Cost
+
+This estimate predates the root volume change: each WALLIX instance now has a single encrypted root volume of `am_disk_size` or `sm_disk_size` GB (`am_disk_type`/`sm_disk_type`), so the 8 GB gp2 `root_block_device` lines no longer apply to them.
 
 ```txt
  Name                                                       Monthly Qty  Unit              Monthly Cost   
@@ -164,59 +171,40 @@ For some reason, there is sometimes a 403 error while importing a certificate on
 You may need to manually create the listener and import it before refreshing and re-applying the configuration.
 
 ```bash
-terraform import aws_lb_listener.Frontend_AM arn:aws:elasticloadbalancing:eu-west-3:519101999238:listener/app/Access-Manager-Front/059ce0c7d3b69254/9c0b0d80abe0ef50
+terraform import aws_lb_listener.Frontend_AM arn:aws:elasticloadbalancing:<region>:<account-id>:listener/app/<alb-name>/<alb-id>/<listener-id>
 ```
 
 If you have imported the listener for the port 80 by mistake, delete the resource target and redo the import.
 
 ```bash
 terraform destroy -target aws_lb_listener.Frontend_AM
-terraform import aws_lb_listener.Frontend_AM arn:aws:elasticloadbalancing:eu-west-3:519101999238:listener/app/Access-Manager-Front/059ce0c7d3b69254/9c0b0d80abe0ef50
+terraform import aws_lb_listener.Frontend_AM arn:aws:elasticloadbalancing:<region>:<account-id>:listener/app/<alb-name>/<alb-id>/<listener-id>
 ```
 
 ### I can't access the Debian Machine from my IP
 
 Have you set the allowed ip variable with your public IP ?
 
+Terraform itself connects to the Debian host over SSH to copy the bookmarks and the replication file, so `allowed_ips` must also include the public IP of the machine running Terraform (see the `your-public_ip` output).
+
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
 | Name | Version |
-|------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.9.0 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >=5.85.0 |
-| <a name="requirement_cloudinit"></a> [cloudinit](#requirement\_cloudinit) | >=2.3.5 |
-| <a name="requirement_http"></a> [http](#requirement\_http) | >=3.4.5 |
-| <a name="requirement_local"></a> [local](#requirement\_local) | >=2.5.2 |
-| <a name="requirement_random"></a> [random](#requirement\_random) | >=3.6.3 |
-| <a name="requirement_ssh"></a> [ssh](#requirement\_ssh) | >=2.7.0 |
-| <a name="requirement_tls"></a> [tls](#requirement\_tls) | >=4.0.6 |
-
-## Providers
-
-| Name | Version |
-|------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.5.0 |
-| <a name="provider_http"></a> [http](#provider\_http) | 3.5.0 |
-| <a name="provider_local"></a> [local](#provider\_local) | 2.5.3 |
-| <a name="provider_ssh"></a> [ssh](#provider\_ssh) | 2.7.0 |
-| <a name="provider_tls"></a> [tls](#provider\_tls) | 4.1.0 |
-
-## Modules
-
-| Name | Source | Version |
-|------|--------|---------|
-| <a name="module_cloud-init-am"></a> [cloud-init-am](#module\_cloud-init-am) | ./modules/cloud-init-wallix | n/a |
-| <a name="module_cloud-init-sm"></a> [cloud-init-sm](#module\_cloud-init-sm) | ./modules/cloud-init-wallix | n/a |
-| <a name="module_instance_access_manager"></a> [instance\_access\_manager](#module\_instance\_access\_manager) | ./modules/aws_wallix_instance | n/a |
-| <a name="module_instance_bastion"></a> [instance\_bastion](#module\_instance\_bastion) | ./modules/aws_wallix_instance | n/a |
-| <a name="module_integration_debian"></a> [integration\_debian](#module\_integration\_debian) | ./modules/integration_debian_aws | n/a |
-| <a name="module_ssh_aws"></a> [ssh\_aws](#module\_ssh\_aws) | ./modules/aws-ssh-key | n/a |
+| ---- | ------- |
+| terraform | >= 1.9.0 |
+| aws | ~> 6.0 |
+| cloudinit | >=2.3.5 |
+| http | >=3.4.5 |
+| local | >=2.5.2 |
+| random | >=3.6.3 |
+| ssh | >=2.7.0 |
+| tls | >=4.0.6 |
 
 ## Resources
 
 | Name | Type |
-|------|------|
+| ---- | ---- |
 | [aws_acm_certificate.cert](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/acm_certificate) | resource |
 | [aws_default_security_group.default](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/default_security_group) | resource |
 | [aws_efs_file_system.efs-example](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/efs_file_system) | resource |
@@ -249,8 +237,6 @@ Have you set the allowed ip variable with your public IP ?
 | [aws_subnet.subnet_az_AM](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet) | resource |
 | [aws_subnet.subnet_az_SM](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet) | resource |
 | [aws_vpc.cluster](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc) | resource |
-| [local_file.all_ips_file](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
-| [local_file.all_secrets_file](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [local_file.firefox_bookmark_am](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [local_file.firefox_bookmark_sm](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [local_sensitive_file.private_key](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/sensitive_file) | resource |
@@ -265,61 +251,61 @@ Have you set the allowed ip variable with your public IP ?
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
-| <a name="input_access_manager_version"></a> [access\_manager\_version](#input\_access\_manager\_version) | Bastion version to use. It can be partial or full value (12, 11.0 , 10.4.3, 10.0.7.28).<br/> Can be empty for latest pushed image. | `string` | `""` | no |
-| <a name="input_alb_internal"></a> [alb\_internal](#input\_alb\_internal) | Should Application Load Balancer be internal ? | `bool` | `false` | no |
-| <a name="input_allowed_ips"></a> [allowed\_ips](#input\_allowed\_ips) | Specifies the ips/networks allowed to access integration instance. e.g: [''10.0.0.0/16'',''90.15.25.21/32''] | `list(any)` | n/a | yes |
-| <a name="input_am_disk_size"></a> [am\_disk\_size](#input\_am\_disk\_size) | AM disk sizing | `number` | `30` | no |
-| <a name="input_am_disk_type"></a> [am\_disk\_type](#input\_am\_disk\_type) | AM disk type | `string` | `"gp3"` | no |
-| <a name="input_ami_from_aws_marketplace"></a> [ami\_from\_aws\_marketplace](#input\_ami\_from\_aws\_marketplace) | Should we use the marketplace image ? If false, the shared image by WALLIX will be use. | `bool` | `true` | no |
-| <a name="input_aws_instance_size_am"></a> [aws\_instance\_size\_am](#input\_aws\_instance\_size\_am) | Specifies the instance sizing. | `string` | `"t2.medium"` | no |
-| <a name="input_aws_instance_size_debian"></a> [aws\_instance\_size\_debian](#input\_aws\_instance\_size\_debian) | Specifies the instance sizing. | `string` | `"t3.medium"` | no |
-| <a name="input_aws_instance_size_sm"></a> [aws\_instance\_size\_sm](#input\_aws\_instance\_size\_sm) | Specifies the instance sizing. | `string` | `"t2.medium"` | no |
-| <a name="input_aws_profile"></a> [aws\_profile](#input\_aws\_profile) | AWS profile to use! | `string` | `"default"` | no |
-| <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | Aws region to deploy resources | `string` | n/a | yes |
-| <a name="input_bastion_version"></a> [bastion\_version](#input\_bastion\_version) | Bastion version to use. It can be partial or full value (5, 4.0 , 4.4.1, 4.4.1.8).<br/> Can be empty for latest pushed image. | `string` | `""` | no |
-| <a name="input_deploy_integration_debian"></a> [deploy\_integration\_debian](#input\_deploy\_integration\_debian) | Should a debian instance for integration be deployed ? | `bool` | `true` | no |
-| <a name="input_install_replication"></a> [install\_replication](#input\_install\_replication) | Should we install replication on Session Manager ?<br/> Only valid for bastion 12.0.0 and above. | `bool` | `false` | no |
-| <a name="input_key_pair_name"></a> [key\_pair\_name](#input\_key\_pair\_name) | Name of the key pair that will be use to connect to the instance. | `string` | n/a | yes |
-| <a name="input_nlb_internal"></a> [nlb\_internal](#input\_nlb\_internal) | Should Network Load Balancer be internal ?<br/> Setting it to false is risky. | `bool` | `true` | no |
-| <a name="input_number_of_am"></a> [number\_of\_am](#input\_number\_of\_am) | Number of AM to be deployed | `number` | `2` | no |
-| <a name="input_number_of_sm"></a> [number\_of\_sm](#input\_number\_of\_sm) | Number of SM to be deployed | `number` | `2` | no |
-| <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Specifies the project name | `string` | n/a | yes |
-| <a name="input_sm_disk_size"></a> [sm\_disk\_size](#input\_sm\_disk\_size) | SM disk sizing | `number` | `31` | no |
-| <a name="input_sm_disk_type"></a> [sm\_disk\_type](#input\_sm\_disk\_type) | SM disk type | `string` | `"gp3"` | no |
-| <a name="input_tags"></a> [tags](#input\_tags) | Map of tags to apply on resources. | `map(string)` | `{}` | no |
-| <a name="input_vpc_cidr"></a> [vpc\_cidr](#input\_vpc\_cidr) | The CIDR block for the VPC, e.g: 10.0.0.0/16 | `string` | n/a | yes |
+| ---- | ----------- | ---- | ------- | :------: |
+| access\_manager\_version | Access Manager version to use. It can be partial or full value (5, 4.0 , 4.4.1, 4.4.1.8).  Can be empty for latest pushed image. | `string` | `""` | no |
+| alb\_internal | Should Application Load Balancer be internal ?  If false, the AM web UI is reachable from allowed\_ips over the Internet. | `bool` | `false` | no |
+| allowed\_ips | Public CIDR blocks allowed to reach the ALB, the NLB and the integration instance, e.g: ["203.0.113.10/32"]. The VPC CIDR is always allowed on the load balancers. | `list(string)` | n/a | yes |
+| am\_disk\_size | AM disk sizing | `number` | `30` | no |
+| am\_disk\_type | AM disk type | `string` | `"gp3"` | no |
+| ami\_from\_aws\_marketplace | Should we use the marketplace image ? If false, the shared image by WALLIX will be use. | `bool` | `true` | no |
+| aws\_instance\_size\_am | Specifies the instance sizing. | `string` | `"t2.medium"` | no |
+| aws\_instance\_size\_debian | Specifies the instance sizing. | `string` | `"t3.medium"` | no |
+| aws\_instance\_size\_sm | Specifies the instance sizing. | `string` | `"t2.medium"` | no |
+| aws\_profile | AWS profile to use! | `string` | `"default"` | no |
+| aws\_region | Aws region to deploy resources | `string` | n/a | yes |
+| bastion\_version | Bastion version to use. It can be partial or full value (12, 11.0 , 10.4.3, 10.0.7.28).  Can be empty for latest pushed image. | `string` | `""` | no |
+| deploy\_integration\_debian | Should a debian instance for integration be deployed ? | `bool` | `true` | no |
+| install\_replication | Should we install replication on Session Manager ?  Only valid for bastion 12.0.0 and above. | `bool` | `false` | no |
+| key\_pair\_name | Name of the key pair that will be use to connect to the instance. | `string` | n/a | yes |
+| nlb\_internal | Should Network Load Balancer be internal ?  Setting it to false is risky. | `bool` | `true` | no |
+| number\_of\_am | Number of AM to be deployed | `number` | `2` | no |
+| number\_of\_sm | Number of SM to be deployed | `number` | `2` | no |
+| project\_name | Specifies the project name. Load balancer and target group names derive from it and are limited to 32 characters. | `string` | n/a | yes |
+| sm\_disk\_size | SM disk sizing | `number` | `31` | no |
+| sm\_disk\_type | SM disk type | `string` | `"gp3"` | no |
+| tags | Map of tags to apply on resources. | `map(string)` | `{}` | no |
+| vpc\_cidr | The CIDR block for the VPC, e.g: 10.0.0.0/16. Prefix between /16 and /22 (subnets use 6 extra bits). | `string` | n/a | yes |
 
 ## Outputs
 
 | Name | Description |
-|------|-------------|
-| <a name="output_all_ips"></a> [all\_ips](#output\_all\_ips) | All IPs |
-| <a name="output_all_secrets"></a> [all\_secrets](#output\_all\_secrets) | All secret |
-| <a name="output_am-ami"></a> [am-ami](#output\_am-ami) | Description of the AMI used for Access Manager. |
-| <a name="output_am_password_wabadmin"></a> [am\_password\_wabadmin](#output\_am\_password\_wabadmin) | Wabadmin password. |
-| <a name="output_am_password_wabsuper"></a> [am\_password\_wabsuper](#output\_am\_password\_wabsuper) | Wabsuper password. |
-| <a name="output_am_password_wabupgrade"></a> [am\_password\_wabupgrade](#output\_am\_password\_wabupgrade) | Wabupgrade password. |
-| <a name="output_am_private_ip"></a> [am\_private\_ip](#output\_am\_private\_ip) | List of the private ip used for Access Manager. |
-| <a name="output_am_url_alb"></a> [am\_url\_alb](#output\_am\_url\_alb) | Url to connect to the AM cluster from Application Load Balancer. |
-| <a name="output_availability_zones"></a> [availability\_zones](#output\_availability\_zones) | Availability zones of the select region. |
-| <a name="output_cloud_init_am"></a> [cloud\_init\_am](#output\_cloud\_init\_am) | Show Cloud-init rendered file for AM |
-| <a name="output_cloud_init_sm"></a> [cloud\_init\_sm](#output\_cloud\_init\_sm) | Show Cloud-init rendered file for SM |
-| <a name="output_debian_connect"></a> [debian\_connect](#output\_debian\_connect) | How to connect to the Debian instance. |
-| <a name="output_debian_public_ip"></a> [debian\_public\_ip](#output\_debian\_public\_ip) | Public IP of the Debian instance. |
-| <a name="output_debianpassword_rdpuser"></a> [debianpassword\_rdpuser](#output\_debianpassword\_rdpuser) | Generated password for rdp connexion with rdpuser. |
-| <a name="output_efs"></a> [efs](#output\_efs) | FQDN of the EFS |
-| <a name="output_sm-ami"></a> [sm-ami](#output\_sm-ami) | Description of the AMI used for Session Manager. |
-| <a name="output_sm_fqdn_nlb"></a> [sm\_fqdn\_nlb](#output\_sm\_fqdn\_nlb) | FQDN of the Network Load Balancer. |
-| <a name="output_sm_ids"></a> [sm\_ids](#output\_sm\_ids) | List of sm ids. Useful to find the default admin password (admin-<instance-id>) |
-| <a name="output_sm_password_crypto"></a> [sm\_password\_crypto](#output\_sm\_password\_crypto) | Bastion passphrase. |
-| <a name="output_sm_password_wabadmin"></a> [sm\_password\_wabadmin](#output\_sm\_password\_wabadmin) | Wabadmin password. |
-| <a name="output_sm_password_wabsuper"></a> [sm\_password\_wabsuper](#output\_sm\_password\_wabsuper) | Wabsuper password. |
-| <a name="output_sm_password_wabupgrade"></a> [sm\_password\_wabupgrade](#output\_sm\_password\_wabupgrade) | Wabupgrade password. |
-| <a name="output_sm_password_webui"></a> [sm\_password\_webui](#output\_sm\_password\_webui) | WebUI password. |
-| <a name="output_sm_private_ip"></a> [sm\_private\_ip](#output\_sm\_private\_ip) | List of the private ip used for Session Manager. |
-| <a name="output_ssh_private_key"></a> [ssh\_private\_key](#output\_ssh\_private\_key) | The SSH Private key in openssh format. |
-| <a name="output_warning_allowed_ips_too_wild"></a> [warning\_allowed\_ips\_too\_wild](#output\_warning\_allowed\_ips\_too\_wild) | IP Warnings. |
-| <a name="output_warning_nlb_internal_false"></a> [warning\_nlb\_internal\_false](#output\_warning\_nlb\_internal\_false) | NLB Warnings. |
-| <a name="output_your-public_ip"></a> [your-public\_ip](#output\_your-public\_ip) | Your egress public IP. |
+| ---- | ----------- |
+| all\_ips | All IPs |
+| all\_secrets | All secret |
+| am-ami | Description of the AMI used for Access Manager. |
+| am\_password\_wabadmin | Wabadmin password. |
+| am\_password\_wabsuper | Wabsuper password. |
+| am\_password\_wabupgrade | Wabupgrade password. |
+| am\_private\_ip | List of the private ip used for Access Manager. |
+| am\_url\_alb | Url to connect to the AM cluster from Application Load Balancer. |
+| availability\_zones | Availability zones of the select region. |
+| cloud\_init\_am | Show Cloud-init rendered file for AM |
+| cloud\_init\_sm | Show Cloud-init rendered file for SM |
+| debian\_connect | How to connect to the Debian instance. |
+| debian\_public\_ip | Public IP of the Debian instance. |
+| debianpassword\_rdpuser | Generated password for rdp connexion with rdpuser. |
+| efs | FQDN of the EFS |
+| sm-ami | Description of the AMI used for Session Manager. |
+| sm\_fqdn\_nlb | FQDN of the Network Load Balancer. |
+| sm\_ids | List of sm ids. Useful to find the default admin password (admin-<instance-id>) |
+| sm\_password\_crypto | Bastion passphrase. |
+| sm\_password\_wabadmin | Wabadmin password. |
+| sm\_password\_wabsuper | Wabsuper password. |
+| sm\_password\_wabupgrade | Wabupgrade password. |
+| sm\_password\_webui | WebUI password. |
+| sm\_private\_ip | List of the private ip used for Session Manager. |
+| ssh\_private\_key | The SSH Private key in openssh format. |
+| warning\_allowed\_ips\_too\_wild | IP Warnings. |
+| warning\_nlb\_internal\_false | NLB Warnings. |
+| your-public\_ip | Your egress public IP. |
 <!-- END_TF_DOCS -->

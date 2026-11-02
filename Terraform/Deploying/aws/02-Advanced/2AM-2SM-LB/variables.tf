@@ -6,8 +6,12 @@ variable "aws_profile" {
 }
 
 variable "project_name" {
-  description = "Specifies the project name"
+  description = "Specifies the project name. Load balancer and target group names derive from it and are limited to 32 characters."
   type        = string
+  validation {
+    condition     = can(regex("^[A-Za-z0-9]([A-Za-z0-9-]{0,15}[A-Za-z0-9])?$", var.project_name))
+    error_message = "project_name must be 1 to 17 characters: letters, digits and inner hyphens only (AWS load balancer naming rules)."
+  }
 }
 
 variable "ami_from_aws_marketplace" {
@@ -35,7 +39,7 @@ variable "key_pair_name" {
 // Booleans
 
 variable "alb_internal" {
-  description = "Should Application Load Balancer be internal ?"
+  description = "Should Application Load Balancer be internal ?\n If false, the AM web UI is reachable from allowed_ips over the Internet."
   default     = false
   type        = bool
 }
@@ -55,16 +59,20 @@ variable "deploy_integration_debian" {
 // AWS Networking
 
 variable "vpc_cidr" {
-  description = "The CIDR block for the VPC, e.g: 10.0.0.0/16"
+  description = "The CIDR block for the VPC, e.g: 10.0.0.0/16. Prefix between /16 and /22 (subnets use 6 extra bits)."
   type        = string
+  validation {
+    condition     = can(cidrnetmask(var.vpc_cidr)) && try(tonumber(split("/", var.vpc_cidr)[1]) >= 16 && tonumber(split("/", var.vpc_cidr)[1]) <= 22, false)
+    error_message = "vpc_cidr must be a valid IPv4 CIDR block with a prefix between /16 and /22."
+  }
 }
 
 variable "allowed_ips" {
-  description = "Specifies the ips/networks allowed to access integration instance. e.g: [''10.0.0.0/16'',''90.15.25.21/32''] "
-  type        = list(any)
+  description = "Public CIDR blocks allowed to reach the ALB, the NLB and the integration instance, e.g: [\"203.0.113.10/32\"]. The VPC CIDR is always allowed on the load balancers."
+  type        = list(string)
   validation {
-    condition     = (contains(var.allowed_ips, "127.0.0.1/32") == false)
-    error_message = "Please change this range to a valid value. 0.0.0.0/0 is not recommanded"
+    condition     = length(var.allowed_ips) > 0 && alltrue([for cidr in var.allowed_ips : can(cidrnetmask(cidr))]) && !contains(var.allowed_ips, "127.0.0.1/32")
+    error_message = "allowed_ips must hold valid IPv4 CIDR blocks. Replace the 127.0.0.1/32 placeholder with your public IP (x.x.x.x/32). 0.0.0.0/0 is not recommended."
   }
 }
 
@@ -114,13 +122,13 @@ variable "sm_disk_type" {
 variable "bastion_version" {
   type        = string
   default     = ""
-  description = "Bastion version to use. It can be partial or full value (5, 4.0 , 4.4.1, 4.4.1.8).\n Can be empty for latest pushed image."
+  description = "Bastion version to use. It can be partial or full value (12, 11.0 , 10.4.3, 10.0.7.28).\n Can be empty for latest pushed image."
 }
 
 variable "access_manager_version" {
   type        = string
   default     = ""
-  description = "Bastion version to use. It can be partial or full value (12, 11.0 , 10.4.3, 10.0.7.28).\n Can be empty for latest pushed image."
+  description = "Access Manager version to use. It can be partial or full value (5, 4.0 , 4.4.1, 4.4.1.8).\n Can be empty for latest pushed image."
 }
 
 variable "number_of_am" {
@@ -128,7 +136,7 @@ variable "number_of_am" {
   default     = 2
   description = "Number of AM to be deployed"
   validation {
-    condition     = (var.number_of_am <= 3)
+    condition     = contains([0, 1, 2, 3], var.number_of_am)
     error_message = "Value should be between 0 and 3 !"
   }
 }
@@ -138,7 +146,7 @@ variable "number_of_sm" {
   default     = 2
   description = "Number of SM to be deployed"
   validation {
-    condition     = (var.number_of_sm <= 3)
+    condition     = contains([0, 1, 2, 3], var.number_of_sm)
     error_message = "Value should be between 0 and 3 !"
   }
 }

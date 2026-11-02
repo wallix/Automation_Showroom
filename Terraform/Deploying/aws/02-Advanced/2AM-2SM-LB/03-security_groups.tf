@@ -1,13 +1,7 @@
 // Default Security Group for VPC
-// Restrict all
+// Only traffic between its members: AM/SM interfaces carry it next to their own SG.
 resource "aws_default_security_group" "default" {
   vpc_id = aws_vpc.cluster.id
-  ingress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
 
   ingress {
     protocol  = "-1"
@@ -45,11 +39,11 @@ resource "aws_security_group" "accessmanager_sg" {
   }
 
   ingress {
-    description = "HTTPS_public"
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    description     = "HTTPS_from_ALB"
+    from_port       = 443
+    to_port         = 443
+    protocol        = "tcp"
+    security_groups = [aws_security_group.alb.id]
   }
 
   ingress {
@@ -125,6 +119,18 @@ resource "aws_security_group" "bastion_sg" {
     cidr_blocks = local.all_az1_az2_subnets
   }
 
+  // The NLB preserves client IPs: referencing its SG lets those clients through.
+  dynamic "ingress" {
+    for_each = { Proxy_SSH_from_NLB = 22, Proxy_RDP_from_NLB = 3389, HTTPS_from_NLB = 443 }
+    content {
+      description     = ingress.key
+      from_port       = ingress.value
+      to_port         = ingress.value
+      protocol        = "tcp"
+      security_groups = [aws_security_group.nlb.id]
+    }
+  }
+
   ingress {
     description = "SSH Admin"
     from_port   = 2242
@@ -162,7 +168,7 @@ resource "aws_network_interface_sg_attachment" "wallix-sm" {
   network_interface_id = module.instance_bastion[count.index].instance_network_interface_id
 }
 
-// Load Balancers
+// Load Balancers: reachable from allowed_ips and from inside the VPC (see locals).
 
 resource "aws_security_group" "alb" {
   name        = "firewall-alb-${local.project_name}"
@@ -174,7 +180,7 @@ resource "aws_security_group" "alb" {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = local.alb_allowed_cidrs
   }
 
   ingress {
@@ -182,7 +188,7 @@ resource "aws_security_group" "alb" {
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = local.alb_allowed_cidrs
   }
 
   egress {
@@ -211,21 +217,21 @@ resource "aws_security_group" "nlb" {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # concat(var.allowed_ips, local.all_az1_az2_subnets)
+    cidr_blocks = local.nlb_allowed_cidrs
   }
   ingress {
     description = "RDP"
     from_port   = 3389
     to_port     = 3389
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # concat(var.allowed_ips, local.all_az1_az2_subnets)
+    cidr_blocks = local.nlb_allowed_cidrs
   }
   ingress {
     description = "SSH"
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # concat(var.allowed_ips, local.all_az1_az2_subnets)
+    cidr_blocks = local.nlb_allowed_cidrs
   }
   egress {
     description      = "Allow egress"
@@ -242,4 +248,4 @@ resource "aws_security_group" "nlb" {
   )
 
 }
-// Note : NLB security group can be nasty to setup properly. This setup was made to be easy to use, not the best for security.
+// Note : with an internet-facing NLB, the Bastion proxies are reachable from allowed_ips through the NLB SG.

@@ -21,7 +21,7 @@ variable "common_tags" {
 
 variable "disk_size" {
   default     = 40
-  description = "Size of the EBS block for /dev/sda1. Use at least 60 for production"
+  description = "Size of the root EBS volume, in GiB. Use at least 60 for production"
   type        = number
 }
 

@@ -3,7 +3,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = ">=5.85.0"
+      version = ">= 6.0" // primary_network_interface
     }
     random = {
       source  = "hashicorp/random"
@@ -139,6 +139,10 @@ resource "aws_instance" "debian_admin" {
   key_name = var.key_pair_name
 
   user_data = data.cloudinit_config.integration_debian.rendered
+
+  root_block_device {
+    encrypted = true
+  }
 
   primary_network_interface {
     network_interface_id = aws_network_interface.debian-linux.id

@@ -1,12 +1,12 @@
 # AWS Configuration
-aws_profile   = "WITHMFA"                # AWS CLI profile to use
+aws_profile   = "default"                # AWS CLI profile to use
 aws_region    = "eu-west-3"              # AWS region for deployment
-key_pair_name = "ExceedPartner-wallix"   # EC2 key pair name
-project_name  = "ExceedPartner-wallix"   # Project identifier
+key_pair_name = "wallix-lab"             # EC2 key pair created by this example (must not exist yet)
+project_name  = "wallix-lab"             # Project identifier (17 characters max)
 
 # Networking
-allowed_ips = ["203.0.113.0/32", "192.0.2.0/24"]    # Example public IP and local network (RFC 5737 test networks)
-vpc_cidr    = "10.18.0.0/16"                        # VPC CIDR block
+allowed_ips = ["203.0.113.0/32", "192.0.2.0/24"]    # Replace with your public IP (see output your-public_ip); RFC 5737 examples
+vpc_cidr    = "10.18.0.0/16"                        # VPC CIDR block (/16 to /22)
 
 # Instance Sizes (uncomment to override defaults)
 # aws_instance_size_am     = "t3.large"   # Access Manager instance size
@@ -29,6 +29,6 @@ install_replication       = true    # Install replication feature
 
 # Resource Tags
 tags = {
-  Owner          = "SuperDevOps"      # Resource owner
-  Resource_Group = "ExceedPartner"    # Resource group name
+  Owner          = "<your-email>"      # Resource owner
+  Resource_Group = "<resource-group>"  # Resource group name
 }

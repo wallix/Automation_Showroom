@@ -3,7 +3,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = ">=5.85.0"
+      version = ">= 6.0" // primary_network_interface
     }
     local = {
       source  = "hashicorp/local"
@@ -39,13 +39,11 @@ resource "aws_instance" "wallix" {
   instance_type = var.aws_instance_size
   user_data     = var.user_data
   key_name      = var.key_pair_name
+  // Sized here: an ebs_block_device on the root device name causes a perpetual diff.
   root_block_device {
-    delete_on_termination = true
-  }
-  ebs_block_device {
-    device_name           = "/dev/sda1"
     volume_size           = var.disk_size
     volume_type           = var.disk_type
+    encrypted             = true
     delete_on_termination = true
   }
 
