@@ -67,6 +67,7 @@ The examples marked "Bastion-wide" change a setting of the whole Bastion: apply 
 | Example | What it shows |
 | ------- | ------------- |
 | [Using_Inventory](02-Advanced/Using_Inventory/) | Users, servers and access rules described in YAML; three access models: [per user](02-Advanced/Using_Inventory/UseCase1%20-%20OneAuthorizationPerUser/), [per department](02-Advanced/Using_Inventory/UseCase2%20-%20OneAuthorizationPerDepartment/), [per account](02-Advanced/Using_Inventory/UseCase3%20-%20OneAuthorizationPerTargetService/) |
+| [Extended_deployment_targetgroups](02-Advanced/Extended_deployment_targetgroups/) | A complete configuration from one inventory file per object type: connection policies, timeframes, servers, accounts, target groups, users and authorizations |
 
 ### How they were tested
 
@@ -90,7 +91,7 @@ Every resource also has a data source of the same name, to read an object that a
 | `application` | [Web_Application](01-Basic/Web_Application/) (web), [UseCase1](02-Advanced/Using_Inventory/UseCase1%20-%20OneAuthorizationPerUser/) (program on a jump server), [Cluster](01-Basic/Cluster/) |
 | `application_localdomain`, `application_localdomain_account`, `application_localdomain_account_credential` | [Application_Local_Account](01-Basic/Application_Local_Account/) |
 | `cluster` | [Cluster](01-Basic/Cluster/) |
-| `connection_policy` | [Connection_Policy](01-Basic/Connection_Policy/) |
+| `connection_policy` | [Connection_Policy](01-Basic/Connection_Policy/), [Extended_deployment_targetgroups](02-Advanced/Extended_deployment_targetgroups/) |
 | `checkout_policy`, `timeframe` | [Approval_Workflow](01-Basic/Approval_Workflow/) |
 | `passwordchangepolicy` | [Password_Rotation](01-Basic/Password_Rotation/) |
 | `certificate_authority` | [Certificate_Authority](01-Basic/Certificate_Authority/) |
