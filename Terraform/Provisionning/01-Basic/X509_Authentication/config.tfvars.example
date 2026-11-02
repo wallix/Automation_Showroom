@@ -1,0 +1,18 @@
+bastion_info_ip   = "bastion.example.com"
+bastion_info_user = "admin"
+
+# Keep secrets out of this file: export TF_VAR_bastion_info_token="<API key>"
+
+# Lab Bastion with a self-signed certificate only:
+# bastion_info_insecure_skip_verify = true
+
+# Certificate of the Bastion web and API listener: keep the private key out of git.
+bastion_certificate_file = "bastion.crt"
+bastion_private_key_file = "bastion.key"
+
+# CA of the user certificates, and where the Bastion checks their revocation.
+users_ca_file  = "users-ca.pem"
+crl_url        = "http://pki.example.com/users-ca.crl"
+ocsp_responder = "http://ocsp.example.com"
+
+user_certificate_dn = "CN=jdoe,OU=Users,O=Example,C=FR"

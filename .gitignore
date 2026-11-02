@@ -46,6 +46,8 @@ terraform.rc
 *.pem
 info_replication.txt
 input_data.json
+key.json
+gcp_key.json
 
 Terraform/Deploying/azure/02-Advanced
 # WALLIX credentials

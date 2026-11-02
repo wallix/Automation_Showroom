@@ -129,7 +129,7 @@ output "warning_allowed_ips_too_wild" {
 
 output "warning_nlb_internal_false" {
   description = "NLB Warnings."
-  value       = var.nlb_internal == false ? "!!!Warning!!!\nYou did nlb_internal set as false.\nIt is fun to open NLB in the wild. But this is totally risky.\n NLB works only with 0.0.0.0/0 as ingress. Keep it internal!" : null
+  value       = var.nlb_internal == false ? "!!!Warning!!!\nYou did nlb_internal set as false.\nThe Bastion SSH, RDP and HTTPS proxies are reachable from allowed_ips over the Internet.\n Keep it internal unless you need it!" : null
 
 }
 

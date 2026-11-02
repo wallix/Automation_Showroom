@@ -28,40 +28,29 @@ resource "local_sensitive_file" "private_key" {
 ## Requirements
 
 | Name | Version |
-|------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.9.0 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >=5.85.0 |
-| <a name="requirement_tls"></a> [tls](#requirement\_tls) | >=4.0.6 |
-
-## Providers
-
-| Name | Version |
-|------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | >=5.85.0 |
-| <a name="provider_tls"></a> [tls](#provider\_tls) | >=4.0.6 |
-
-## Modules
-
-No modules.
+| ---- | ------- |
+| terraform | >= 1.9.0 |
+| aws | >= 6.0 |
+| tls | >=4.0.6 |
 
 ## Resources
 
 | Name | Type |
-|------|------|
+| ---- | ---- |
 | [aws_key_pair.key_pair](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/key_pair) | resource |
 | [tls_private_key.key_pair](https://registry.terraform.io/providers/hashicorp/tls/latest/docs/resources/private_key) | resource |
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
-| <a name="input_key_name"></a> [key\_name](#input\_key\_name) | Name of the ssh Keypair which will be created on AWS | `string` | n/a | yes |
+| ---- | ----------- | ---- | ------- | :------: |
+| key\_name | Name of the ssh Keypair which will be created on AWS | `string` | n/a | yes |
 
 ## Outputs
 
 | Name | Description |
-|------|-------------|
-| <a name="output_key_pair_name"></a> [key\_pair\_name](#output\_key\_pair\_name) | Name of the ssh Keypair which was created on AWS. |
-| <a name="output_ssh_private_key"></a> [ssh\_private\_key](#output\_ssh\_private\_key) | The SSH Private key in openssh format. |
-| <a name="output_ssh_public_key"></a> [ssh\_public\_key](#output\_ssh\_public\_key) | The SSH public key in openssh format. |
+| ---- | ----------- |
+| key\_pair\_name | Name of the ssh Keypair which was created on AWS. |
+| ssh\_private\_key | The SSH Private key in openssh format. |
+| ssh\_public\_key | The SSH public key in openssh format. |
 <!-- END_TF_DOCS -->

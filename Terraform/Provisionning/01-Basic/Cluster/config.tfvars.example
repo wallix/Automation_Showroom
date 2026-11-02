@@ -1,0 +1,12 @@
+bastion_info_ip   = "bastion.example.com"
+bastion_info_user = "admin"
+
+# Keep secrets out of this file: export TF_VAR_bastion_info_token="<API key>"
+# (or TF_VAR_bastion_info_password) before running Terraform.
+
+# Lab Bastion with a self-signed certificate only:
+# bastion_info_insecure_skip_verify = true
+
+jump_server_hosts  = ["192.0.2.31", "192.0.2.32"]
+jump_account_login = "svc-rds"
+program            = "C:\\Windows\\System32\\notepad.exe"

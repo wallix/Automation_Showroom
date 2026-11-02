@@ -1,0 +1,13 @@
+bastion_info_ip   = "bastion.example.com"
+bastion_info_user = "admin"
+
+# Keep secrets out of this file:
+#   export TF_VAR_bastion_info_token="<API key>"
+#   export TF_VAR_current_passphrase="<current passphrase>"
+#   export TF_VAR_new_passphrase="<current passphrase, or the new one to rotate it>"
+
+# Lab Bastion with a self-signed certificate only:
+# bastion_info_insecure_skip_verify = true
+
+# Bastion older than API v3.12:
+# bastion_info_api_version = "v3.8"

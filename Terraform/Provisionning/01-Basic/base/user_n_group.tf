@@ -1,27 +1,18 @@
-# Create UserGroup
-
 resource "wallix-bastion_usergroup" "demo" {
-  group_name = random_pet.group.id
-  timeframes = [
-    "allthetime"
-  ]
+  group_name  = local.name
+  description = "Automation Showroom: base example"
+  timeframes  = ["allthetime"] # Built-in timeframe: no time restriction.
 }
 
-
-
-# Configure an user
 resource "wallix-bastion_user" "demo" {
-  user_name = random_pet.user.id
-  email     = "${random_pet.user.id}@none.none"
-  profile   = "user"
-  user_auths = [
-    "local_password",
-    "local_sshkey"
-  ]
+  user_name          = local.name
+  display_name       = "Demo user"
+  email              = "${local.name}@example.com"
+  profile            = "user" # Built-in profile: access to the targets only, no administration.
+  user_auths         = ["local_password", "local_sshkey"]
+  password           = random_password.user.result
+  ssh_public_key     = tls_private_key.user.public_key_openssh
   force_change_pwd   = false
   preferred_language = "en"
-  password           = random_string.demo.result
-  ssh_public_key     = tls_private_key.rsa-4096.public_key_openssh
   groups             = [wallix-bastion_usergroup.demo.group_name]
-
 }

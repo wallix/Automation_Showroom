@@ -1,135 +1,155 @@
+terraform {
+  required_version = "~> 1.9"
+
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~> 5.0"
+    }
+    cloudinit = {
+      source  = "hashicorp/cloudinit"
+      version = "~> 2.3"
+    }
+  }
+}
+
 provider "azurerm" {
   features {}
+  subscription_id = var.subscription_id # null: read from ARM_SUBSCRIPTION_ID
 }
 
-provider "cloudinit" {
+locals {
+  public_access = length(var.allowed_ips) > 0
+  location      = data.azurerm_resource_group.resource_group.location
 }
 
-# Use a given resource group
 data "azurerm_resource_group" "resource_group" {
   name = var.resource_group_name
 }
 
-
-data "template_file" "cloudinit_bastion" {
-  template = file("${path.module}/cloud-init-conf-bastion.yaml")
-
-  vars = {
-    wabadmin_password   = var.wabadmin_password
-    wabsuper_password   = var.wabsuper_password
-    wabupgrade_password = var.wabupgrade_password
-  }
-
-}
-
-data "cloudinit_config" "cloudinit_bastion" {
-  gzip          = true
-  base64_encode = true
-  part {
-    filename     = "cloud-init-conf-bastion.yaml"
-    content_type = "text/cloud-config"
-    content      = data.template_file.cloudinit_bastion.rendered
-  }
-}
-
-# Retrieve data about an existing subnet
 data "azurerm_subnet" "lab-subnet" {
   name                 = var.subnet_name
   virtual_network_name = var.virtual_network_name
   resource_group_name  = var.resource_group_name
 }
 
+data "azurerm_storage_account" "vhds" {
+  name                = var.storage_account_name
+  resource_group_name = var.resource_group_name
+}
 
-#Create a public IP -  Uncoment for public ip usage
-/*
-resource "azurerm_public_ip" "public_ip" {
-  name                = "${var.vm_name}-public_ip"
-  location            = data.azurerm_resource_group.resource_group.location
+data "cloudinit_config" "cloudinit_bastion" {
+  gzip          = true
+  base64_encode = true
+
+  part {
+    filename     = "cloud-init-conf-bastion.yaml"
+    content_type = "text/cloud-config"
+    content = templatefile("${path.module}/cloud-init-conf-bastion.yaml", {
+      wabadmin_password   = var.wabadmin_password
+      wabsuper_password   = var.wabsuper_password
+      wabupgrade_password = var.wabupgrade_password
+    })
+  }
+}
+
+# Managed image built from the WALLIX VHD (unmanaged OS disks are retired on Azure).
+resource "azurerm_image" "bastion" {
+  name                = "${var.vm_name}-image"
+  location            = local.location
   resource_group_name = data.azurerm_resource_group.resource_group.name
-  allocation_method   = "Dynamic"
+
+  os_disk {
+    os_type      = "Linux"
+    os_state     = "Generalized"
+    blob_uri     = "${data.azurerm_storage_account.vhds.primary_blob_endpoint}vhds/bastion-${var.bastion_version}-azure.vhd"
+    caching      = "ReadWrite"
+    storage_type = var.os_disk_type
+  }
 }
 
-output "public_ip" {
-  value = azurerm_public_ip.public_ip.ip_address
-  depends_on = [
-    azurerm_network_interface.nic
-  ]
+resource "azurerm_public_ip" "public_ip" {
+  count               = local.public_access ? 1 : 0
+  name                = "${var.vm_name}-public-ip"
+  location            = local.location
+  resource_group_name = data.azurerm_resource_group.resource_group.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
-*/
 
-# Create network interface
+resource "azurerm_network_security_group" "nsg" {
+  count               = local.public_access ? 1 : 0
+  name                = "${var.vm_name}-nsg"
+  location            = local.location
+  resource_group_name = data.azurerm_resource_group.resource_group.name
+
+  security_rule {
+    name                       = "wallix-bastion-inbound"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_ranges    = ["22", "80", "443", "2242", "3389"]
+    source_address_prefixes    = var.allowed_ips
+    destination_address_prefix = "*"
+  }
+}
+
 resource "azurerm_network_interface" "nic" {
-  depends_on = [
-    # azurerm_public_ip.public_ip # Uncoment for public ip usage
-  ]
   name                = "${var.vm_name}-nic"
-  location            = data.azurerm_resource_group.resource_group.location
+  location            = local.location
   resource_group_name = data.azurerm_resource_group.resource_group.name
 
   ip_configuration {
     name                          = "internal"
     subnet_id                     = data.azurerm_subnet.lab-subnet.id
     private_ip_address_allocation = "Dynamic"
-    #public_ip_address_id          = azurerm_public_ip.public_ip.id # Uncoment for public ip usage
+    public_ip_address_id          = try(azurerm_public_ip.public_ip[0].id, null)
   }
 }
 
-data "azurerm_storage_account" "anduril" {
-  name                = var.storage_account_name
-  resource_group_name = var.resource_group_name
+resource "azurerm_network_interface_security_group_association" "nsg" {
+  count                     = local.public_access ? 1 : 0
+  network_interface_id      = azurerm_network_interface.nic.id
+  network_security_group_id = azurerm_network_security_group.nsg[0].id
 }
 
-# Create virtual machine
-resource "azurerm_virtual_machine" "vm-bastion" {
-  depends_on = [
-    azurerm_network_interface.nic
-  ]
-  name                = var.vm_name
-  resource_group_name = data.azurerm_resource_group.resource_group.name
-  location            = data.azurerm_resource_group.resource_group.location
-  vm_size             = var.vm_size
+resource "azurerm_linux_virtual_machine" "vm-bastion" {
+  name                  = var.vm_name
+  resource_group_name   = data.azurerm_resource_group.resource_group.name
+  location              = local.location
+  size                  = var.vm_size
+  network_interface_ids = [azurerm_network_interface.nic.id]
+  source_image_id       = azurerm_image.bastion.id
 
-  # This line setup to delete the OS disk automatically when deleting the VM
-  delete_os_disk_on_termination = true
+  computer_name                   = var.vm_name
+  admin_username                  = "wabadmin"
+  admin_password                  = var.wabadmin_password
+  disable_password_authentication = false
+  custom_data                     = data.cloudinit_config.cloudinit_bastion.rendered
 
-  # This line setup to delete the data disks automatically when deleting the VM
-  delete_data_disks_on_termination = true
-
-
-  network_interface_ids = [
-    azurerm_network_interface.nic.id,
-  ]
-  storage_os_disk {
-    name          = "${var.vm_name}-osdisk"
-    create_option = "FromImage"
-    os_type       = "Linux"
-    image_uri     = "https://${var.storage_account_name}.blob.core.windows.net/vhds/bastion-${var.bastion_version}-azure.vhd"
-    vhd_uri       = "https://${var.storage_account_name}.blob.core.windows.net/vhds/osdisk-${var.vm_name}.vhd"
+  admin_ssh_key {
+    username   = "wabadmin"
+    public_key = var.ssh_key
   }
 
-  os_profile {
-    computer_name  = var.vm_name
-    admin_username = "wabadmin"
-    admin_password = var.wabadmin_password
-    custom_data    = data.cloudinit_config.cloudinit_bastion.rendered
-  }
-  os_profile_linux_config {
-    ssh_keys {
-      path     = "/home/wabadmin/.ssh/authorized_keys"
-      key_data = var.ssh_key
-    }
-    disable_password_authentication = false
+  os_disk {
+    name                 = "${var.vm_name}-osdisk"
+    caching              = "ReadWrite"
+    storage_account_type = var.os_disk_type
   }
 }
 
-# Add auto-shutdown schedule
+# Lab cost control: stops (deallocates) the VM every day at 21:00.
 resource "azurerm_dev_test_global_vm_shutdown_schedule" "auto-shutdown-bastion" {
-  virtual_machine_id = azurerm_virtual_machine.vm-bastion.id
-  location           = data.azurerm_resource_group.resource_group.location
+  virtual_machine_id = azurerm_linux_virtual_machine.vm-bastion.id
+  location           = local.location
   enabled            = true
 
   daily_recurrence_time = "2100"
   timezone              = "Central Europe Standard Time"
+
   notification_settings {
     enabled = false
   }

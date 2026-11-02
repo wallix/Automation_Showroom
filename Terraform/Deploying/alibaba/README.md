@@ -1,36 +1,27 @@
-# Alibaba deployments with Terraform
+# Deploy WALLIX on Alibaba Cloud with Terraform
 
-Deployments of the various resources, vms and automation alike can be done by using terraform and the alicloud provider.
+| Example | What it deploys |
+| --- | --- |
+| [01-Basic/bastion](01-Basic/bastion/) | One WALLIX Bastion ECS instance from a custom image, in an existing VPC |
+| [01-Basic/access-manager](01-Basic/access-manager/) | One WALLIX Access Manager ECS instance from a custom image, in an existing VPC |
 
-## Alibaba Authentication
+## Authentication
 
-Terraform needs an authentication to Alibaba to create, manage and delete the resources.
-Terraform has the possibility to authenticate using info passed in the alicloud provider's configuration. All informations needed are available in the `AccessKey Management` section of the user's profile in the Alibaba Cloud GUI.
+The examples use the `aliyun/alicloud` provider. Prefer environment variables over writing keys in a tfvars file:
 
-Alibaba Cloud also has a [`CLI`](https://www.alibabacloud.com/help/en/alibaba-cloud-cli) which can be used to authenticate a user.
+```bash
+export ALICLOUD_ACCESS_KEY=<access-key-id>
+export ALICLOUD_SECRET_KEY=<access-key-secret>
+```
 
-All ways to enter credentials for authentication are described [`here`](https://registry.terraform.io/providers/aliyun/alicloud/latest/docs).
+The [Alibaba Cloud CLI](https://www.alibabacloud.com/help/en/alibaba-cloud-cli) profiles (`ALICLOUD_PROFILE`) and the other methods listed in the [provider documentation](https://registry.terraform.io/providers/aliyun/alicloud/latest/docs) work too. An AccessKey pair is created from the AccessKey Management page of the user profile in the console.
 
-## Necessary information
+## Preparing the WALLIX images
 
-Each terraform template requires specific information to identify both the resources to be created and the already existing resources to be used.
-All the required information is given using terraform variables.\
-While most of it is specific to the type of resource to be deployed, the name of the resource group on which to deploy them, the virtual private cloud and the virtual switch used, are mandatory for all of them.
+Bastion and Access Manager are delivered as KVM qcow2 images. Before running the examples:
 
-## Windows and Linux vms
+1. Upload the qcow2 file to an Object Storage Service (OSS) bucket, for example with [ossutil](https://www.alibabacloud.com/help/en/object-storage-service/latest/developer-tools-ossutil).
+2. Create an ECS custom image from it with [Import Image](https://www.alibabacloud.com/help/en/elastic-compute-service/latest/import-custom-images). Select **BIOS** as boot mode, not UEFI.
+3. Name the image so that it starts with `bastion-<version>` or `access-manager-<version>`: the examples look it up with that prefix among your own images.
 
-A generic vm, be it windows or linux, can be deployed using the images that are publicly available on Alicloud as base. This implies that the appropriate information to retrieve the right image must be provided.\
-They are also deployed using the dedicated terraform resource `alicloud_instance`.
-
-For Windows vms, as ssh is **not** enabled by default on the system, the only connection can be made on RDP 3389.
-
-## Bastion and Access Manager
-
-Bastion and Access Manager instances are created by importing the desiderated kvm-qcow2 image into an Object Storage Service bucket (OSS).
-For those operations, we can use the [`ossutil`](https://www.alibabacloud.com/help/en/object-storage-service/latest/developer-tools-ossutil) binary to copy everything needed.
-
-After importing all kvm-qcow2 images in the bucket, an ECS image needs to be created for each imported version using the [`Import Image`](https://www.alibabacloud.com/help/en/elastic-compute-service/latest/import-custom-images) functionnality.
-The ECS images will be the entrypoints for ECS instances.
-**For Bastion and Access Manager images be sure to select BIOS instead of UEFI !**
-
-Starting a Bastion or an Access Manager instance by only using the ECS image as base delivers the vm as ready to be configured through the configuration screens. By using cloudinit to provide additional configuration, it is possible to bypass the configuration screens and have the system configure itself to deliver a ready-to-use instance.
+Booting the image alone stops on the appliance configuration screens. The examples pass a cloud-init configuration that sets the service account passwords and SSH keys, so the instance comes up ready to use.

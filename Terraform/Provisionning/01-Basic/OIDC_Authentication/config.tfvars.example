@@ -1,0 +1,26 @@
+bastion_info_ip   = "bastion.example.com"
+bastion_info_user = "admin"
+
+# Keep secrets out of this file:
+#   export TF_VAR_bastion_info_token="<API key>"
+#   export TF_VAR_oidc_client_secret="<client secret>"
+
+# Lab Bastion with a self-signed certificate only:
+# bastion_info_insecure_skip_verify = true
+
+# Entra ID: https://login.microsoftonline.com/<tenant id>/v2.0/.well-known/openid-configuration
+# Keycloak: https://<host>/realms/<realm>/.well-known/openid-configuration
+oidc_discovery_url = "https://idp.example.com/.well-known/openid-configuration"
+oidc_client_id     = "wallix-bastion"
+
+authdomain = {
+  domain_name          = "corporate.oidc"
+  auth_domain_name     = "corporate.com"
+  label                = "Corporate SSO"
+  default_email_domain = "corporate.com"
+}
+
+group_mappings = {
+  "OIDC_Administrators" = { idp_group = "bastion-admins", profile = "product_administrator" }
+  "OIDC_Users"          = { idp_group = "bastion-users" }
+}

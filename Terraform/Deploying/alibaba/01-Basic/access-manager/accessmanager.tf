@@ -1,3 +1,14 @@
+terraform {
+  required_version = "~> 1.9"
+
+  required_providers {
+    alicloud = {
+      source  = "aliyun/alicloud"
+      version = "~> 2.0"
+    }
+  }
+}
+
 # Configure the Alicloud Provider
 provider "alicloud" {
   access_key = var.access_key
@@ -14,7 +25,7 @@ data "alicloud_vswitches" "default" {
 }
 
 data "alicloud_security_groups" "default" {
-  vpc_id = data.alicloud_vpcs.default.vpcs.0.id
+  vpc_id = data.alicloud_vpcs.default.vpcs[0].id
 }
 
 ################################################################
@@ -33,16 +44,16 @@ data "alicloud_instance_types" "am_compute" {
 
 resource "alicloud_instance" "accessmanager" {
   instance_name = "access-manager-${var.am_version}"
-  instance_type = data.alicloud_instance_types.am_compute.instance_types.0.id
+  instance_type = data.alicloud_instance_types.am_compute.instance_types[0].id
 
-  image_id = data.alicloud_images.am_image.images.0.image_id
+  image_id = data.alicloud_images.am_image.images[0].image_id
 
   resource_group_id = var.resource_group
 
-  vswitch_id = data.alicloud_vswitches.default.vswitches.0.id
+  vswitch_id = data.alicloud_vswitches.default.vswitches[0].id
 
   security_groups = [
-    data.alicloud_security_groups.default.groups.0.id
+    data.alicloud_security_groups.default.groups[0].id
   ]
 
   internet_charge_type       = var.internet_charge_type
@@ -51,7 +62,7 @@ resource "alicloud_instance" "accessmanager" {
 
   system_disk_category = "cloud_auto"
 
-  # cloud-init configuration
+  # cloud-init: hostname, service account password hashes, SSH keys
   user_data = <<EOT
 #cloud-config
 
@@ -90,7 +101,7 @@ EOT
     host        = self.public_ip
   }
 
-  # Allow HTTP connections on access manager's public IP & update VM date to CET
+  # Trust the public IP as HTTP host name, then sync the clock.
   provisioner "remote-exec" {
     inline = [
       "echo -n 'http_host_trusted_hostnames = ${self.public_ip}' >> /var/wab/etc/wabengine.conf",
@@ -100,10 +111,10 @@ EOT
 }
 
 ################################################################
-#                          Public IP                          #
+#                          Public IP                           #
 ################################################################
 
 output "am_public_ip" {
-  value      = alicloud_instance.accessmanager.public_ip
-  depends_on = [alicloud_instance.accessmanager]
+  description = "Public IP of the instance."
+  value       = alicloud_instance.accessmanager.public_ip
 }

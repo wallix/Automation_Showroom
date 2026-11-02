@@ -1,0 +1,15 @@
+# Credentials: prefer ALICLOUD_ACCESS_KEY / ALICLOUD_SECRET_KEY environment variables.
+region         = "eu-central-1"
+resource_group = "<RESOURCE_GROUP_ID>"
+vpc            = "<VPC_NAME>"
+vswitch        = "<VSWITCH_NAME>"
+
+am_version = "4.0.3.2" # custom image name must start with the product name and this version
+
+# SHA-512 crypt hashes (mkpasswd --method=SHA-512), not cleartext passwords
+wabadmin_password   = "<HASH>"
+wabsuper_password   = "<HASH>"
+wabupgrade_password = "<HASH>"
+
+ssh_key          = "<SSH_PUBLIC_KEY>"
+private_key_file = "~/.ssh/id_ed25519"

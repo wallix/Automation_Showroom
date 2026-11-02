@@ -1,0 +1,13 @@
+bastion_info_ip   = "bastion.example.com"
+bastion_info_user = "admin"
+
+# Keep secrets out of this file:
+#   export TF_VAR_bastion_info_token="<API key>"
+#   export TF_VAR_tacacs_secret="<TACACS+ shared secret>"
+
+# Lab Bastion with a self-signed certificate only:
+# bastion_info_insecure_skip_verify = true
+
+tacacs_host = "tacacs.example.com"
+
+user_name = "jdoe"

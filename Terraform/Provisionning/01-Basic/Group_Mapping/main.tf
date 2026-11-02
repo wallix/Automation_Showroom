@@ -1,49 +1,49 @@
 terraform {
-  required_version = ">=v1.10.1"
+  required_version = ">= 1.5.0"
+
   required_providers {
     wallix-bastion = {
       source  = "wallix/wallix-bastion"
-      version = ">=0.14.1"
-    }
-    random = {
-      source  = "hashicorp/random"
-      version = "3.5.1"
+      version = "~> 0.17.0"
     }
   }
 }
 
 provider "wallix-bastion" {
-  ip          = var.bastion_info_ip
-  token       = var.bastion_info_token
-  api_version = var.bastion_info_api_version
-  user        = var.bastion_info_user
-  port        = var.bastion_info_port
+  ip                   = var.bastion_info_ip
+  port                 = var.bastion_info_port
+  user                 = var.bastion_info_user
+  token                = var.bastion_info_token
+  password             = var.bastion_info_password
+  api_version          = var.bastion_info_api_version
+  insecure_skip_verify = var.bastion_info_insecure_skip_verify
 }
-# Set locals
+
 locals {
-  input_data        = jsondecode(file("input_data.json"))
-  mailNickname_list = local.input_data[*].mailNickname
-  id_list           = local.input_data[*].id
-  description_list  = local.input_data[*].description
-  group_map         = zipmap(local.mailNickname_list, local.id_list)
-  description_map   = zipmap(local.mailNickname_list, local.description_list)
-
-
+  # Output of `az ad group list`, keyed by mailNickname (becomes the Bastion user group name).
+  entra_groups = { for group in jsondecode(file(var.input_file)) : group.mailNickname => group }
 }
 
-# Configure a group of users
-resource "wallix-bastion_usergroup" "demo" {
-  for_each    = toset(local.mailNickname_list)
+# Existing Entra ID authentication domain, looked up by name.
+data "wallix-bastion_authdomain_azuread" "entra" {
+  domain_name = var.authdomain_name
+}
+
+resource "wallix-bastion_usergroup" "entra" {
+  for_each = local.entra_groups
+
   group_name  = each.key
-  description = lookup(local.description_map, each.key, null)
-  profile     = lookup(var.profil_mapping, each.key, "user")
-  timeframes  = ["allthetime"]
+  description = try(each.value.description, null)
+  # Profile given to the users who log in through the mapping.
+  profile    = lookup(var.profile_mapping, each.key, "user")
+  timeframes = ["allthetime"]
 }
 
-# Configure a group mapping
-resource "wallix-bastion_authdomain_mapping" "test" {
-  for_each       = toset(keys(wallix-bastion_usergroup.demo))
-  domain_id      = var.authdomain_id
-  user_group     = each.value
-  external_group = local.group_map[each.value]
+# A member of the Entra ID group gets the Bastion user group at login.
+resource "wallix-bastion_authdomain_mapping" "entra" {
+  for_each = wallix-bastion_usergroup.entra
+
+  domain_id      = data.wallix-bastion_authdomain_azuread.entra.id
+  user_group     = each.value.group_name
+  external_group = local.entra_groups[each.key].id # Object ID of the Entra ID group.
 }

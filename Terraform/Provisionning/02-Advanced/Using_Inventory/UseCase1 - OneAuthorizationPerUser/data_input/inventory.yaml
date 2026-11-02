@@ -1,56 +1,57 @@
-#######################################################################
-#   Put here all your users, devices and groups inventory.            #
-#   This file is a YAML format, please respect the naming convention  #
-#######################################################################
+# Inventory of UseCase1: one user group, one target group and one authorization per user.
+# Keys (demo01, windows_common01...) are Terraform keys: keep them stable, renaming one recreates its objects.
 
-# Inventory of all your users, one user_group will be created per user
 users_inventory:
-  "demo01":
-      user_name: "Demo01"
-      display_name: "Demo01"
-      email: "demo01@demo.com"
-      profile: "product_administrator"
-      user_auths: ["local_password","local_sshkey"]
-      force_change_pwd: true
-      ssh_public_key: "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBJiRVOBtwqJzp2O+U2eLDCTlgFvoRS6AeyRh+/HedHJhMrlFC4HX1rTLb80RA0B5NH5wtNNwrSg+wMCGGWEAaQ0= demo01@demo.com"
-  "demo02":
-      user_name: "Demo02"
-      display_name: "Demo02"
-      email: "demo02@demo.com"
-      profile: "user"
-      user_auths: ["local_password","local_sshkey"]
-      force_change_pwd: true
-      ssh_public_key: ""
+  demo01:
+    user_name: "Demo01"
+    display_name: "Demo01"
+    email: "demo01@demo.com"
+    profile: "product_administrator"
+    user_auths: ["local_password", "local_sshkey"]
+    force_change_pwd: true
+    ssh_public_key: "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBJiRVOBtwqJzp2O+U2eLDCTlgFvoRS6AeyRh+/HedHJhMrlFC4HX1rTLb80RA0B5NH5wtNNwrSg+wMCGGWEAaQ0= demo01@demo.com"
+    targets: [windows_common01, windows_demo01, linux01_common] # Keys of vms_inventory.
+  demo02:
+    user_name: "Demo02"
+    display_name: "Demo02"
+    email: "demo02@demo.com"
+    profile: "user"
+    user_auths: ["local_password", "local_sshkey"]
+    force_change_pwd: true
+    ssh_public_key: ""
+    targets: [windows_common01, windows_demo02, linux01_common]
 
-# Inventory of all your servers
-vms_inventory:  
-  "windows_common01":
-    name    : "Windows_Common01"
-    ip      : "192.168.1.10"
-    service : "RDP"
-    port    : 3389
-    url     : ""  
-  "windows_demo01":
-    name    : "Windows_Demo01"
-    ip      : "192.168.1.11"
-    service : "RDP"
-    port    : 3389
-    url     : ""
-  "windows_demo02":
-    name    : "Windows_Demo02"
-    ip      : "192.168.1.12"
-    service : "RDP"
-    port    : 3389
-    url     : ""
-  
-  "linux01_common":
-    name    : "Debian01"
-    ip      : "192.168.1.13"
-    service : "SSH"
-    port    : 22
-    url     : "https://linux01_Common.wallix.demo"
+# service: SSH or RDP (the protocol, connection policy and service name on the Bastion).
+# url: when set, an application opens it, for the users with this VM in their targets (see applications).
+vms_inventory:
+  windows_common01:
+    name: "Windows_Common01"
+    ip: "192.168.1.10"
+    service: "RDP"
+    port: 3389
+    url: ""
+  windows_demo01:
+    name: "Windows_Demo01"
+    ip: "192.168.1.11"
+    service: "RDP"
+    port: 3389
+    url: ""
+  windows_demo02:
+    name: "Windows_Demo02"
+    ip: "192.168.1.12"
+    service: "RDP"
+    port: 3389
+    url: ""
+  linux01_common:
+    name: "Debian01"
+    ip: "192.168.1.13"
+    service: "SSH"
+    port: 22
+    url: "https://linux01_Common.wallix.demo"
 
-
-# Define the users accesses
-demo01_inventory: [windows_common01, windows_demo01, linux01_common]
-demo02_inventory: [windows_common01, windows_demo02, linux01_common]
+# Applications run with AppDriver on an RDS server, in an RDP session opened with rds_account.
+applications:
+  rds_server: windows_common01 # Key of vms_inventory.
+  rds_account: "svc_appdriver"
+  appdriver_path: 'C:\appdriver\appdriver.exe'
+  working_dir: 'C:\appdriver'

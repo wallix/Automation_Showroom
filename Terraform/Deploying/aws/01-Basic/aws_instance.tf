@@ -1,46 +1,51 @@
 terraform {
+  required_version = "~> 1.9"
+
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.0"
+      version = "~> 6.0"
     }
   }
-
 }
 
 provider "aws" {
   region = var.aws_region
-
 }
 
 locals {
   image_name    = "${var.product_name}-${var.product_version}-aws"
   instance_name = "instance-${var.product_name}-${var.product_version}-${var.Project_Name}"
+
+  common_tags = {
+    Project_Name  = var.Project_Name
+    Project_Owner = var.Project_Owner
+  }
 }
+
 data "aws_ami" "ami" {
   most_recent = true
+  owners      = ["519101999238"] # WALLIX
+
   filter {
     name   = "name"
     values = [local.image_name]
   }
-  owners = ["519101999238"] # WALLIX
-
 }
 
+# The subnet is created in an existing VPC. Its route table must have a
+# default route to an Internet Gateway for the public IP to be reachable.
 resource "aws_subnet" "labnet" {
   vpc_id     = var.aws_vpc_id
   cidr_block = var.subnet_cidr
 
-  tags = {
-    Name          = "subnet-${var.product_name}-${var.Project_Name}"
-    Project_Name  = var.Project_Name
-    Project_Owner = var.Project_Owner
-  }
-
+  tags = merge(local.common_tags, {
+    Name = "subnet-${var.product_name}-${var.Project_Name}"
+  })
 }
 
 resource "aws_security_group" "accessmanager_sg" {
-  name        = "firewall-${var.product_name}-lab"
+  name        = "firewall-${var.product_name}-${var.Project_Name}"
   description = "Allow traffic for ${var.product_name}"
   vpc_id      = var.aws_vpc_id
   count       = var.product_name == "access-manager" ? 1 : 0
@@ -60,6 +65,7 @@ resource "aws_security_group" "accessmanager_sg" {
     protocol    = "tcp"
     cidr_blocks = var.allowed_ip
   }
+
   ingress {
     description = "HTTP"
     from_port   = 80
@@ -76,16 +82,13 @@ resource "aws_security_group" "accessmanager_sg" {
     ipv6_cidr_blocks = ["::/0"]
   }
 
-  tags = {
-    Name          = "firewall-${var.product_name}-${var.Project_Name}"
-    Project_Name  = var.Project_Name
-    Project_Owner = var.Project_Owner
-  }
-
+  tags = merge(local.common_tags, {
+    Name = "firewall-${var.product_name}-${var.Project_Name}"
+  })
 }
 
 resource "aws_security_group" "bastion_sg" {
-  name        = "firewall-${var.product_name}-lab"
+  name        = "firewall-${var.product_name}-${var.Project_Name}"
   description = "Allow traffic for ${var.product_name}"
   vpc_id      = var.aws_vpc_id
   count       = var.product_name == "bastion" ? 1 : 0
@@ -105,6 +108,7 @@ resource "aws_security_group" "bastion_sg" {
     protocol    = "tcp"
     cidr_blocks = var.allowed_ip
   }
+
   ingress {
     description = "HTTP"
     from_port   = 80
@@ -112,6 +116,7 @@ resource "aws_security_group" "bastion_sg" {
     protocol    = "tcp"
     cidr_blocks = var.allowed_ip
   }
+
   ingress {
     description = "RDP"
     from_port   = 3389
@@ -119,6 +124,7 @@ resource "aws_security_group" "bastion_sg" {
     protocol    = "tcp"
     cidr_blocks = var.allowed_ip
   }
+
   ingress {
     description = "SSH"
     from_port   = 22
@@ -126,35 +132,33 @@ resource "aws_security_group" "bastion_sg" {
     protocol    = "tcp"
     cidr_blocks = var.allowed_ip
   }
+
   egress {
     from_port        = 0
     to_port          = 0
     protocol         = "-1"
     cidr_blocks      = ["0.0.0.0/0"]
     ipv6_cidr_blocks = ["::/0"]
-
   }
 
-  tags = {
-    Name          = "firewall-${var.product_name}-${var.Project_Name}"
-    Project_Name  = var.Project_Name
-    Project_Owner = var.Project_Owner
-  }
-
+  tags = merge(local.common_tags, {
+    Name = "firewall-${var.product_name}-${var.Project_Name}"
+  })
 }
 
 resource "aws_instance" "product_instance" {
   ami                         = data.aws_ami.ami.id
   instance_type               = var.aws_instance_size
   subnet_id                   = aws_subnet.labnet.id
-  vpc_security_group_ids      = [try(aws_security_group.bastion_sg[0].id, aws_security_group.accessmanager_sg[0].id)]
+  vpc_security_group_ids      = [var.product_name == "bastion" ? aws_security_group.bastion_sg[0].id : aws_security_group.accessmanager_sg[0].id]
   key_name                    = var.aws_key_name
   associate_public_ip_address = true
 
-  tags = {
-    Name          = local.instance_name
-    Project_Name  = var.Project_Name
-    Project_Owner = var.Project_Owner
+  root_block_device {
+    encrypted = true
   }
 
+  tags = merge(local.common_tags, {
+    Name = local.instance_name
+  })
 }

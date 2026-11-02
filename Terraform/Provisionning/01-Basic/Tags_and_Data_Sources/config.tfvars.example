@@ -1,0 +1,14 @@
+bastion_info_ip   = "bastion.example.com"
+bastion_info_user = "admin"
+
+# Keep secrets out of this file: export TF_VAR_bastion_info_token="<API key>"
+# (or TF_VAR_bastion_info_password) before running Terraform.
+
+# Lab Bastion with a self-signed certificate only:
+# bastion_info_insecure_skip_verify = true
+
+# Bastion older than API v3.12:
+# bastion_info_api_version = "v3.8"
+
+existing_user_group = "web-team"
+target_host         = "192.0.2.20"

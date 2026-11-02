@@ -1,80 +1,80 @@
-<!-- markdownlint-disable MD033 -->
-# Group Mapping
+# Group Mapping (Entra ID)
 
-This is an example of provisionning of User Groups and Authentication Domain Group Mapping form a json extract.
+Creates one Bastion user group per Entra ID group and maps them, so that a user who logs in through Entra ID gets the Bastion groups (and profile) of their Entra ID groups. The group list comes from a JSON export of the Azure CLI, which keeps the example independent of any Graph API credential in Terraform.
 
-## How to use
+## Prerequisites
 
-### With EntraID
+- An Entra ID authentication domain already configured on the Bastion (resource `wallix-bastion_authdomain_azuread`, or the web UI). This example looks it up by name and doesn't change it.
+- The profiles named in `profile_mapping` exist on the Bastion (`approver`, `auditor`, `user`... are built in).
+- The [connection settings](../../README.md#before-you-start) shared by all the examples.
 
-Generate a data.json file
+## Run it
+
+Export the groups to map. Filter them: `az ad group list` without a filter returns every group of the tenant, and the example would create one Bastion user group for each.
 
 ```bash
-az ad group list --output json > input_data.json
+az ad group list --filter "startswith(displayName,'PAM_')" \
+  --query "[].{id:id, mailNickname:mailNickname, description:description}" --output json > input_data.json
 ```
 
-Adapt the variables.
+`input_data.json.example` shows the expected format; copy it to `input_data.json` to try the example without Azure.
 
 ```bash
-cp config.tfvars.example config.tfvars
-```
+cp config.tfvars.example config.tfvars           # set bastion_info_ip and authdomain_name
+export TF_VAR_bastion_info_token="<API key>"
 
-run it with:
-
-```bash
 terraform init
-terraform apply -var-file=config.tvfars
+terraform apply -var-file=config.tfvars
 ```
 
-After testing you can remove change with:
+Clean up with `terraform destroy -var-file=config.tfvars`.
 
-```bash
-terraform destroy -var-file=config.tvfars
-```
+## How it works
 
-### Adapt locals
+| Entra ID (input_data.json) | Bastion |
+| -------------------------- | ------- |
+| `mailNickname` | user group name, and key of `profile_mapping` |
+| `description` | user group description |
+| `id` (group object ID) | `external_group` of the mapping |
 
-This example take for base EntraID, if you want to use it with another set of data please adapt the json key to use in the locals.
+Re-export the file and apply again to follow the changes in Entra ID: a group removed from the file removes its Bastion user group and mapping.
+
+To use another source (LDAP, another IdP export), keep the same structure and change the keys read in the `locals` block of `main.tf`. For an OIDC identity provider, see [OIDC_Authentication](../OIDC_Authentication/).
 
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
 | Name | Version |
-|------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >=v1.10.1 |
-| <a name="requirement_random"></a> [random](#requirement\_random) | 3.5.1 |
-| <a name="requirement_wallix-bastion"></a> [wallix-bastion](#requirement\_wallix-bastion) | >=0.14.1 |
-
-## Providers
-
-| Name | Version |
-|------|---------|
-| <a name="provider_wallix-bastion"></a> [wallix-bastion](#provider\_wallix-bastion) | 0.14.1 |
-
-## Modules
-
-No modules.
+| ---- | ------- |
+| terraform | >= 1.5.0 |
+| wallix-bastion | ~> 0.17.0 |
 
 ## Resources
 
 | Name | Type |
-|------|------|
-| [wallix-bastion_authdomain_mapping.test](https://registry.terraform.io/providers/wallix/wallix-bastion/latest/docs/resources/authdomain_mapping) | resource |
-| [wallix-bastion_usergroup.demo](https://registry.terraform.io/providers/wallix/wallix-bastion/latest/docs/resources/usergroup) | resource |
+| ---- | ---- |
+| [wallix-bastion_authdomain_mapping.entra](https://registry.terraform.io/providers/wallix/wallix-bastion/latest/docs/resources/authdomain_mapping) | resource |
+| [wallix-bastion_usergroup.entra](https://registry.terraform.io/providers/wallix/wallix-bastion/latest/docs/resources/usergroup) | resource |
+| [wallix-bastion_authdomain_azuread.entra](https://registry.terraform.io/providers/wallix/wallix-bastion/latest/docs/data-sources/authdomain_azuread) | data source |
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
-| <a name="input_authdomain_id"></a> [authdomain\_id](#input\_authdomain\_id) | Id of the authdomain were mapping will be created! | `string` | n/a | yes |
-| <a name="input_bastion_info_api_version"></a> [bastion\_info\_api\_version](#input\_bastion\_info\_api\_version) | This is the version of api used to call api. | `string` | `"v3.12"` | no |
-| <a name="input_bastion_info_ip"></a> [bastion\_info\_ip](#input\_bastion\_info\_ip) | IP of the bastion | `string` | n/a | yes |
-| <a name="input_bastion_info_port"></a> [bastion\_info\_port](#input\_bastion\_info\_port) | This is the tcp port for https connection on bastion API. | `string` | `"443"` | no |
-| <a name="input_bastion_info_token"></a> [bastion\_info\_token](#input\_bastion\_info\_token) | This is the token to authenticate on bastion API. | `string` | n/a | yes |
-| <a name="input_bastion_info_user"></a> [bastion\_info\_user](#input\_bastion\_info\_user) | This is the username used to authenticate on bastion API. | `string` | `"admin"` | no |
-| <a name="input_profil_mapping"></a> [profil\_mapping](#input\_profil\_mapping) | Map value of the user\_group name and the profil to set. Profil must exist on bastion. By default user will be use | `map(string)` | <pre>{<br/>  "PAM_Approver_EntraID_Group": "approver",<br/>  "PAM_Auditor_EntraIDGroup": "product_administrator",<br/>  "PAM_Operation_Administrator": "operation_administrator",<br/>  "PAM_System_Administrator": "system_administrator",<br/>  "PAM_User": "user"<br/>}</pre> | no |
+| ---- | ----------- | ---- | ------- | :------: |
+| authdomain\_name | Domain name of the Entra ID authentication domain that already exists on the Bastion. | `string` | n/a | yes |
+| bastion\_info\_ip | IP address or FQDN of the Bastion. | `string` | n/a | yes |
+| bastion\_info\_api\_version | Version of the REST API: v3.12, or v3.8 for an older Bastion. | `string` | `"v3.12"` | no |
+| bastion\_info\_insecure\_skip\_verify | Skip the TLS certificate check. Only for a lab Bastion with a self-signed certificate. | `bool` | `false` | no |
+| bastion\_info\_password | Password of bastion\_info\_user, when no API key is used. | `string` | `null` | no |
+| bastion\_info\_port | HTTPS port of the Bastion REST API. | `number` | `443` | no |
+| bastion\_info\_token | API key of bastion\_info\_user. Set this or bastion\_info\_password, preferably with TF\_VAR\_bastion\_info\_token. | `string` | `null` | no |
+| bastion\_info\_user | Bastion user that owns the API key (or logs in with bastion\_info\_password). | `string` | `"admin"` | no |
+| input\_file | JSON export of the Entra ID groups (az ad group list --output json). | `string` | `"input_data.json"` | no |
+| profile\_mapping | Bastion profile per group (mailNickname). The profile must exist on the Bastion; unlisted groups get "user". | `map(string)` | ```{ "PAM_Approver": "approver", "PAM_Auditor": "auditor", "PAM_Operation_Administrator": "operation_administrator", "PAM_System_Administrator": "system_administrator", "PAM_User": "user" }``` | no |
 
 ## Outputs
 
-No outputs.
+| Name | Description |
+| ---- | ----------- |
+| mappings | Bastion user group => Entra ID group object ID. |
 <!-- END_TF_DOCS -->

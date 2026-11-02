@@ -1,0 +1,26 @@
+bastion_info_ip   = "bastion.example.com"
+bastion_info_user = "admin"
+
+# Keep secrets out of this file:
+#   export TF_VAR_bastion_info_token="<API key>"
+#   export TF_VAR_smtp_password="<password of smtp_user>"   (only with SMTP authentication)
+
+# Lab Bastion with a self-signed certificate only:
+# bastion_info_insecure_skip_verify = true
+
+# Bastion older than API v3.12:
+# bastion_info_api_version = "v3.8"
+
+smtp_server   = "smtp.example.com"
+smtp_port     = 587
+smtp_protocol = "starttls"
+
+# SMTP relay with authentication:
+# smtp_authentication_method = "login"
+# smtp_user                  = "bastion"
+
+sender_email     = "bastion@example.com"
+postmaster_email = "postmaster@example.com"
+
+recipients = ["secops@example.com"]
+events     = ["wrong_fingerprint", "integrity_error", "filesystem_full", "licence_notifications"]

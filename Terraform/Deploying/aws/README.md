@@ -1,20 +1,20 @@
-# AWS deployments with Terraform
+# Deploy WALLIX on AWS with Terraform
 
-Deployments of the various resources, vms, networks and automation alike can be done by using terraform and the aws provider.
+| Example | What it deploys |
+| --- | --- |
+| [01-Basic](01-Basic/) | One Bastion or one Access Manager instance in an existing VPC, with a public IP |
+| [02-Advanced/2AM-2SM-LB](02-Advanced/2AM-2SM-LB/) | A new VPC with two Access Managers behind an ALB, two Bastions (Session Managers) behind an NLB, and an optional Debian jump host |
 
-We highly recommend to follow the official tutorial before jumping on the usage with WALLIX products.
+If you are new to Terraform on AWS, the [HashiCorp AWS tutorial](https://developer.hashicorp.com/terraform/tutorials/aws-get-started) covers the basics used here.
 
-[Follow the tutorial rabbit](https://developer.hashicorp.com/terraform/tutorials/aws-get-started)
+## Authentication
 
-## AWS Authentication
+Terraform uses the standard AWS credential chain: environment variables, the shared credentials file written by `aws configure` or `aws sso login`, or an instance role. The [AWS provider documentation](https://registry.terraform.io/providers/hashicorp/aws/latest/docs#authentication-and-configuration) lists every method. Check which identity and account Terraform will use before applying:
 
-Terraform needs an authentication to AWS to create, manage and delete the resources. Various methods of authentication exist, as described in the [documentation of the aws provider](https://registry.terraform.io/providers/hashicorp/aws/latest/docs#authentication-and-configuration).
+```bash
+aws sts get-caller-identity
+```
 
-When authenticated through the CLI, Terraform will use those credentials to authenticate against AWS as long as they are valid and present on the system, meaning that there is no need to refresh them between two deployments if those are done back-to-back.
+## Inputs
 
-## Necessary information
-
-Each terraform template requires specific information to identify both the resources to be created and the already existing resources to be used.
-All the required information is given using terraform variables.
-
-While most of it is specific to the type of resource to be deployed, the name of the resource group on which to deploy them is mandatory for all of them.
+Each example takes its inputs from Terraform variables. Copy the `*.tfvars.example` file of the example, fill in the placeholders, and pass it with `-var-file` (or name it `*.auto.tfvars` so Terraform loads it automatically). `*.tfvars` files are ignored by Git in this repository because they usually hold environment-specific or sensitive values.

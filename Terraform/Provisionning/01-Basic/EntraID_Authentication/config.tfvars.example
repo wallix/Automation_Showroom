@@ -1,0 +1,17 @@
+bastion_info_ip   = "bastion.example.com"
+bastion_info_user = "admin"
+
+# Keep secrets out of this file:
+#   export TF_VAR_bastion_info_token="<API key>"
+#   export TF_VAR_client_secret="<client secret of the app registration>"
+
+# Lab Bastion with a self-signed certificate only:
+# bastion_info_insecure_skip_verify = true
+
+# Downloaded from the SAML settings of the Entra ID enterprise application.
+federation_metadata_file = "entra-federationmetadata.xml"
+
+tenant_id = "00000000-0000-0000-0000-000000000000"
+client_id = "00000000-0000-0000-0000-000000000000"
+
+auth_domain_name = "example.com"
